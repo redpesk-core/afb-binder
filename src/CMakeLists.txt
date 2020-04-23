@@ -25,7 +25,6 @@
 # configure
 
 configure_file(afb-binder.h.in afb-binder.h @ONLY)
-configure_file(afb-binder.pc.in afb-binder.pc @ONLY)
 
 # build
 
@@ -46,9 +45,6 @@ target_link_libraries(afb-binder
 
 install(TARGETS afb-binder
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/afb-binder.pc
-	DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 
 if(WITH_MONITORING)
 	file(GLOB monit_files ${CMAKE_CURRENT_SOURCE_DIR}/monitoring/*)

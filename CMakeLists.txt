@@ -27,7 +27,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
 set(PROJECT_NAME afb-binder)
 set(PROJECT_PRETTY_NAME "Application Framework Binder")
 set(PROJECT_DESCRIPTION "Secured binder of API for clients of the Application framework")
-set(PROJECT_VERSION "1.2")
+set(PROJECT_VERSION 1.2)
 set(PROJECT_URL "https://github.com/redpesk/afb-libafb")
 set(PROJECT_LANGUAGE C)
 
@@ -38,15 +38,14 @@ INCLUDE(GNUInstallDirs)
 ###########################################################################
 # possible settings
 
-option(AGL_DEVEL                  "Activates developping features"         OFF)
 option(WITH_MONITORING            "Activates installation of monitoring"   ON)
+option(PROVIDE_AFB_DAEMON         "Provide afb-daemon compatibility items" OFF)
 
 set(AFS_SUPERVISION_SOCKET "@urn:AGL:afs:supervision:socket" CACHE STRING "Internal socket for supervision")
 set(AFS_SUPERVISOR_PORT    1619 CACHE STRING "Port of service for the supervisor")
 set(AFS_SUPERVISOR_TOKEN   HELLO CACHE STRING "Secret token for the supervisor")
 set(DATADIR                ${CMAKE_INSTALL_FULL_DATADIR}/afb-binder CACHE STRING "Path to datadir")
 set(INTRINSIC_BINDING_DIR  ${CMAKE_INSTALL_FULL_LIBDIR}/afb-binder CACHE STRING "Path to install intrinsic bindings")
-set(SAMPLE_INSTALL_DIR     ${DATADIR}/samples CACHE STRING "Path to install samples")
 set(MONITORING_INSTALL_DIR ${DATADIR}/monitoring CACHE STRING "Path to install monitoring")
 
 ###########################################################################
