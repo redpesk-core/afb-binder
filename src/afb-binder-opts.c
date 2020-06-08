@@ -189,7 +189,6 @@ static struct option_desc optdefs[] = {
 	{ADD_ALIAS,           1, "alias",       "Multiple url map outside of rootdir [eg: --alias=/icons:/usr/share/icons]"},
 	{SET_UPLOAD_DIR,      1, "uploaddir",   "Directory for uploading files [default: workdir] relative to workdir"},
 	{SET_CACHE_TIMEOUT,   1, "cache-eol",   "Client cache end of live [default " d2s(DEFAULT_CACHE_TIMEOUT) "]"},
-	{SET_TOKEN,           1, "token",       "Initial Secret [default=random, use --token="" to allow any token]"},
 	{SET_RANDOM_TOKEN,    0, "random-token","Enforce a random token"},
 #endif
 
@@ -912,7 +911,7 @@ static void parse_arguments_inner(int argc, char **argv, struct json_object *con
 
 #if WITH_AFB_HOOK
 		case SET_TRACEREQ:
-			config_set_optenum(config, optid, afb_hook_flags_xreq_from_text);
+			config_set_optenum(config, optid, afb_hook_flags_req_from_text);
 			break;
 
 		case SET_TRACEEVT:
@@ -1105,7 +1104,7 @@ static void parse_environment(struct json_object *config)
 {
 	on_environment_basic("AFB_LOG", set_log);
 #if WITH_AFB_HOOK
-	on_environment_enum(config, SET_TRACEREQ, "AFB_TRACEREQ", afb_hook_flags_xreq_from_text);
+	on_environment_enum(config, SET_TRACEREQ, "AFB_TRACEREQ", afb_hook_flags_req_from_text);
 	on_environment_enum(config, SET_TRACEEVT, "AFB_TRACEEVT", afb_hook_flags_evt_from_text);
 	on_environment_enum(config, SET_TRACESES, "AFB_TRACESES", afb_hook_flags_session_from_text);
 	on_environment_enum(config, SET_TRACEAPI, "AFB_TRACEAPI", afb_hook_flags_api_from_text);
@@ -1120,7 +1119,6 @@ static void parse_environment(struct json_object *config)
 #endif
 	on_environment(config, ADD_SET, "AFB_SET", config_mix2_str);
 	on_environment_bool(config, SET_TRAP_FAULTS, "AFB_TRAP_FAULTS");
-	on_environment(config, SET_TOKEN, "AFB_SET_TOKEN", config_set_str);
 #if WITH_LIBMICROHTTPD
 	on_environment_int(config, SET_PORT, "AFB_SET_PORT");
 #endif

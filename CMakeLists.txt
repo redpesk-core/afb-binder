@@ -80,5 +80,4 @@ PKG_CHECK_MODULES(libafb REQUIRED libafb)
 ADD_DEFINITIONS(-DAFB_VERSION="${PROJECT_VERSION}")
 
 add_subdirectory(src)
-add_subdirectory(afb-daemon)
 

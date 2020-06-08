@@ -47,13 +47,15 @@
 #endif
 
 #include <libafb/core/afb-apiset.h>
-#include <libafb/core/afb-xreq.h>
+#include <libafb/core/afb-api-common.h>
+#include <libafb/core/afb-req-common.h>
+#include <libafb/core/afb-req-reply.h>
 #include <libafb/core/afb-session.h>
 #include <libafb/core/afb-common.h>
-#include <libafb/core/afb-export.h>
 #include <libafb/core/afb-jobs.h>
 #include <libafb/core/afb-sched.h>
 #include <libafb/core/afb-sig-monitor.h>
+#include <libafb/core/containerof.h>
 #if WITH_AFB_HOOK
 #   include <libafb/core/afb-hook.h>
 #   include <libafb/core/afb-hook-flags.h>
@@ -668,7 +670,7 @@ static int execute_command()
 
 struct startup_req
 {
-	struct afb_xreq xreq;
+	struct afb_req_common comreq;
 	char *api;
 	char *verb;
 	struct json_object *calls;
@@ -678,30 +680,28 @@ struct startup_req
 	struct afb_session *session;
 };
 
-static void startup_call_reply(struct afb_xreq *xreq, struct json_object *object, const char *error, const char *info)
+static void startup_call_reply(struct afb_req_common *comreq, const struct afb_req_reply *reply)
 {
-	struct startup_req *sreq = CONTAINER_OF_XREQ(struct startup_req, xreq);
+	struct startup_req *sreq = containerof(struct startup_req, comreq, comreq);
 
-	info = info ?: "";
-	if (!error) {
-		NOTICE("startup call %s returned %s (%s)", sreq->callspec, json_object_get_string(object), info);
-		json_object_put(object);
+	if (!reply->error) {
+		NOTICE("startup call %s returned %s (%s)", sreq->callspec, json_object_get_string(reply->object), reply->info?:"");
 	} else {
-		ERROR("startup call %s ERROR! %s (%s)", sreq->callspec, error, info);
+		ERROR("startup call %s ERROR! %s (%s)", sreq->callspec, reply->error, reply->info?:"");
 		exit(1);
 	}
 }
 
 static void startup_call_current(struct startup_req *sreq);
 
-static void startup_call_unref(struct afb_xreq *xreq)
+static void startup_call_unref(struct afb_req_common *comreq)
 {
-	struct startup_req *sreq = CONTAINER_OF_XREQ(struct startup_req, xreq);
+	struct startup_req *sreq = containerof(struct startup_req, comreq, comreq);
 
 	free(sreq->api);
 	free(sreq->verb);
-	json_object_put(sreq->xreq.json);
-	afb_context_disconnect(&sreq->xreq.context);
+	json_object_put(sreq->comreq.json);
+	afb_req_common_cleanup(&sreq->comreq);
 	if (++sreq->index < sreq->count)
 		startup_call_current(sreq);
 	else {
@@ -711,7 +711,7 @@ static void startup_call_unref(struct afb_xreq *xreq)
 	}
 }
 
-static struct afb_xreq_query_itf startup_xreq_itf =
+static struct afb_req_common_query_itf startup_req_common_itf =
 {
 	.reply = startup_call_reply,
 	.unref = startup_call_unref
@@ -728,15 +728,15 @@ static void startup_call_current(struct startup_req *sreq)
 	if (verb) {
 		json = strchr(verb, ':');
 		if (json) {
-			afb_xreq_init(&sreq->xreq, &startup_xreq_itf);
-			afb_context_init_validated(&sreq->xreq.context, sreq->session, NULL);
+			afb_req_common_init(&sreq->comreq, &startup_req_common_itf, NULL, NULL);
+			sreq->comreq.validated = 1;
 			sreq->api = strndup(api, verb - api);
 			sreq->verb = strndup(verb + 1, json - verb - 1);
-			sreq->xreq.request.called_api = sreq->api;
-			sreq->xreq.request.called_verb = sreq->verb;
-			sreq->xreq.json = json_tokener_parse_verbose(json + 1, &jerr);
+			sreq->comreq.apiname = sreq->api;
+			sreq->comreq.verbname = sreq->verb;
+			sreq->comreq.json = json_tokener_parse_verbose(json + 1, &jerr);
 			if (sreq->api && sreq->verb && jerr == json_tokener_success) {
-				afb_xreq_process(&sreq->xreq, main_apiset);
+				afb_req_common_process(&sreq->comreq, main_apiset);
 				return;
 			}
 		}
@@ -898,7 +898,7 @@ static void start(int signum, void *arg)
 #endif
 
 	/* configure the daemon */
-	afb_export_set_config(settings);
+	afb_api_common_set_config(settings);
 	main_apiset = afb_apiset_create("main", api_timeout);
 	if (!main_apiset) {
 		ERROR("can't create main api set");
@@ -918,7 +918,7 @@ static void start(int signum, void *arg)
 #if WITH_AFB_HOOK
 	/* install hooks */
 	if (tracereq)
-		afb_hook_create_xreq(NULL, NULL, NULL, afb_hook_flags_xreq_from_text(tracereq), NULL, NULL);
+		afb_hook_create_req(NULL, NULL, NULL, afb_hook_flags_req_from_text(tracereq), NULL, NULL);
 #if !defined(REMOVE_LEGACY_TRACE)
 	if (traceapi || tracesvc || traceditf)
 		afb_hook_create_api(NULL, afb_hook_flags_api_from_text(traceapi)
