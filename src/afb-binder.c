@@ -52,6 +52,13 @@
 #include <libafb/core/afb-req-reply.h>
 #include <libafb/core/afb-session.h>
 #include <libafb/core/afb-common.h>
+#include <libafb/core/afb-data.h>
+#include <libafb/core/afb-type.h>
+#include <libafb/core/afb-type-predefined.h>
+
+#include <libafb/core/afb-v4.h>
+#include <libafb/core/afb-json-legacy.h>
+
 #include <libafb/core/afb-jobs.h>
 #include <libafb/core/afb-sched.h>
 #include <libafb/core/afb-sig-monitor.h>
@@ -680,14 +687,14 @@ struct startup_req
 	struct afb_session *session;
 };
 
-static void startup_call_reply(struct afb_req_common *comreq, const struct afb_req_reply *reply)
+static void startup_call_reply(struct afb_req_common *comreq, int status, unsigned nreplies, struct afb_data * const *replies)
 {
 	struct startup_req *sreq = containerof(struct startup_req, comreq, comreq);
 
-	if (!reply->error) {
-		NOTICE("startup call %s returned %s (%s)", sreq->callspec, json_object_get_string(reply->object), reply->info?:"");
+	if (status >= 0) {
+		NOTICE("startup call %s returned %d", sreq->callspec, status);
 	} else {
-		ERROR("startup call %s ERROR! %s (%s)", sreq->callspec, reply->error, reply->info?:"");
+		ERROR("startup call %s ERROR! %d", sreq->callspec, status);
 		exit(1);
 	}
 }
@@ -700,7 +707,6 @@ static void startup_call_unref(struct afb_req_common *comreq)
 
 	free(sreq->api);
 	free(sreq->verb);
-	json_object_put(sreq->comreq.json);
 	afb_req_common_cleanup(&sreq->comreq);
 	if (++sreq->index < sreq->count)
 		startup_call_current(sreq);
@@ -720,7 +726,8 @@ static struct afb_req_common_query_itf startup_req_common_itf =
 static void startup_call_current(struct startup_req *sreq)
 {
 	const char *api, *verb, *json;
-	enum json_tokener_error jerr;
+	struct afb_data *arg0;
+	int rc;
 
 	sreq->callspec = json_object_get_string(json_object_array_get_idx(sreq->calls, sreq->index)),
 	api = sreq->callspec;
@@ -728,14 +735,14 @@ static void startup_call_current(struct startup_req *sreq)
 	if (verb) {
 		json = strchr(verb, ':');
 		if (json) {
-			afb_req_common_init(&sreq->comreq, &startup_req_common_itf, NULL, NULL);
-			sreq->comreq.validated = 1;
 			sreq->api = strndup(api, verb - api);
 			sreq->verb = strndup(verb + 1, json - verb - 1);
-			sreq->comreq.apiname = sreq->api;
-			sreq->comreq.verbname = sreq->verb;
-			sreq->comreq.json = json_tokener_parse_verbose(json + 1, &jerr);
-			if (sreq->api && sreq->verb && jerr == json_tokener_success) {
+
+			rc = afb_data_create_raw(&arg0, &afb_type_predefined_json, json + 1, strlen(json), 0, 0);
+			if (sreq->api && sreq->verb && rc >= 0) {
+				afb_req_common_init(&sreq->comreq, &startup_req_common_itf, sreq->api, sreq->verb, 1, &arg0);
+				afb_req_common_set_session(&sreq->comreq, sreq->session);
+				sreq->comreq.validated = 1;
 				afb_req_common_process(&sreq->comreq, main_apiset);
 				return;
 			}
@@ -755,7 +762,7 @@ static void run_startup_calls()
 	 && json_object_is_type(calls, json_type_array)
 	 && (count = (int)json_object_array_length(calls))) {
 		sreq = calloc(1, sizeof *sreq);
-		sreq->session = afb_session_create(3600);
+		afb_session_create(&sreq->session, 3600);
 		sreq->calls = calls;
 		sreq->index = 0;
 		sreq->count = count;
