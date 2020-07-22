@@ -95,7 +95,6 @@
 #if WITH_DYNAMIC_BINDING && WITH_DIRENT
 #define ADD_LDPATH          10
 #define ADD_WEAK_LDPATH     11
-#define SET_NO_LDPATH       12
 #endif
 #define SET_API_TIMEOUT     13
 #define SET_SESSION_TIMEOUT 14
@@ -201,13 +200,8 @@ static struct option_desc optdefs[] = {
 #if WITH_DYNAMIC_BINDING
 	{ADD_BINDING,         1, "binding",     "Load the binding of path"},
 #if WITH_DIRENT
-	{ADD_LDPATH,          1, "ldpaths",     "Load bindings from dir1:dir2:..."
-#if defined(INTRINSIC_BINDING_DIR)
-	                                        "[default = " INTRINSIC_BINDING_DIR "]"
-#endif
-	                                        },
-	{ADD_WEAK_LDPATH,     1, "weak-ldpaths","Same as --ldpaths but ignore errors"},
-	{SET_NO_LDPATH,       0, "no-ldpaths",  "Discard default ldpaths loading"},
+	{ADD_LDPATH,          1, "ldpaths",     "Load bindings from dir1:dir2:..."},
+	{ADD_WEAK_LDPATH,     1, "weak-ldpaths","Same as --ldpaths but errors are not fatal"},
 #endif
 #endif
 
@@ -888,9 +882,6 @@ static void parse_arguments_inner(int argc, char **argv, struct json_object *con
 		case SET_RANDOM_TOKEN:
 		case SET_NO_HTTPD:
 #endif
-#if WITH_DYNAMIC_BINDING && WITH_DIRENT
-		case SET_NO_LDPATH:
-#endif
 #if WITH_MONITORING || WITH_LIBMICROHTTPD || WITH_DYNAMIC_BINDING
 			noarg(optid);
 			config_set_bool(config, optid, 1);
@@ -1031,10 +1022,6 @@ static void fulfill_config(struct json_object *config)
 	if (config_has_bool(config, SET_RANDOM_TOKEN))
 		config_del(config, SET_TOKEN);
 #endif
-#if WITH_DYNAMIC_BINDING && WITH_DIRENT && defined(INTRINSIC_BINDING_DIR)
-	if (!config_has(config, ADD_LDPATH) && !config_has(config, ADD_WEAK_LDPATH) && !config_has_bool(config, SET_NO_LDPATH))
-		config_add_str(config, ADD_LDPATH, INTRINSIC_BINDING_DIR);
-#endif
 
 #if WITH_MONITORING
 	if (config_has_bool(config, SET_MONITORING) && !config_has_str(config, ADD_ALIAS, MONITORING_ALIAS))
@@ -1116,6 +1103,7 @@ static void parse_environment(struct json_object *config)
 #endif
 #if WITH_DYNAMIC_BINDING && WITH_DIRENT
 	on_environment(config, ADD_LDPATH, "AFB_LDPATHS", config_add_str);
+	on_environment(config, ADD_WEAK_LDPATH, "AFB_WEAK_LDPATHS", config_add_str);
 #endif
 	on_environment(config, ADD_SET, "AFB_SET", config_mix2_str);
 	on_environment_bool(config, SET_TRAP_FAULTS, "AFB_TRAP_FAULTS");

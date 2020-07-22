@@ -45,7 +45,6 @@ set(AFS_SUPERVISION_SOCKET "@urn:AGL:afs:supervision:socket" CACHE STRING "Inter
 set(AFS_SUPERVISOR_PORT    1619 CACHE STRING "Port of service for the supervisor")
 set(AFS_SUPERVISOR_TOKEN   HELLO CACHE STRING "Secret token for the supervisor")
 set(DATADIR                ${CMAKE_INSTALL_FULL_DATADIR}/afb-binder CACHE STRING "Path to datadir")
-set(INTRINSIC_BINDING_DIR  ${CMAKE_INSTALL_FULL_LIBDIR}/afb-binder CACHE STRING "Path to install intrinsic bindings")
 set(MONITORING_INSTALL_DIR ${DATADIR}/monitoring CACHE STRING "Path to install monitoring")
 
 ###########################################################################
