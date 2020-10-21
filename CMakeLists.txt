@@ -80,3 +80,6 @@ ADD_DEFINITIONS(-DAFB_VERSION="${PROJECT_VERSION}")
 
 add_subdirectory(src)
 
+if(PROVIDE_AFB_DAEMON)
+	add_subdirectory(afb-daemon)
+endif()
