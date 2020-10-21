@@ -49,7 +49,6 @@
 #include <libafb/core/afb-apiset.h>
 #include <libafb/core/afb-api-common.h>
 #include <libafb/core/afb-req-common.h>
-#include <libafb/core/afb-req-reply.h>
 #include <libafb/core/afb-session.h>
 #include <libafb/core/afb-common.h>
 #include <libafb/core/afb-data.h>
