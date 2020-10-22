@@ -41,9 +41,6 @@ INCLUDE(GNUInstallDirs)
 option(WITH_MONITORING            "Activates installation of monitoring"   ON)
 option(PROVIDE_AFB_DAEMON         "Provide afb-daemon compatibility items" OFF)
 
-set(AFS_SUPERVISION_SOCKET "@urn:AGL:afs:supervision:socket" CACHE STRING "Internal socket for supervision")
-set(AFS_SUPERVISOR_PORT    1619 CACHE STRING "Port of service for the supervisor")
-set(AFS_SUPERVISOR_TOKEN   HELLO CACHE STRING "Secret token for the supervisor")
 set(DATADIR                ${CMAKE_INSTALL_FULL_DATADIR}/afb-binder CACHE STRING "Path to datadir")
 set(MONITORING_INSTALL_DIR ${DATADIR}/monitoring CACHE STRING "Path to install monitoring")
 
@@ -69,7 +66,7 @@ set (CMAKE_CXX_STANDARD 14)
 set(CMAKE_C_FLAGS_PROFILING    "-g -O2 -pg -U_FORTIFY_SOURCE")
 set(CMAKE_C_FLAGS_DEBUG        "-g -O2 -ggdb -U_FORTIFY_SOURCE")
 set(CMAKE_C_FLAGS_RELEASE      "-g -O3")
-set(CMAKE_C_FLAGS_CCOV         "-g -O2 --coverage")
+set(CMAKE_C_FLAGS_COVERAGE     "-g -O2 --coverage")
 
 ###########################################################################
 

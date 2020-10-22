@@ -513,13 +513,12 @@ static void on_sigchld(int signum, siginfo_t *info, void *uctx)
 /*
 # @@ @
 # @p port
-# @t token
 */
 
 #define SUBST_CHAR  '@'
 #define SUBST_STR   "@"
 
-static char *instanciate_string(char *arg, const char *port, const char *token)
+static char *instanciate_string(char *arg, const char *port)
 {
 	char *resu, *it, *wr, c;
 	int chg, dif;
@@ -533,9 +532,6 @@ static char *instanciate_string(char *arg, const char *port, const char *token)
 		if (c == 'p' && port) {
 			chg++;
 			dif += (int)strlen(port) - 2;
-		} else if (c == 't' && token) {
-			chg++;
-			dif += (int)strlen(token) - 2;
 		} else if (c == SUBST_CHAR) {
 			it++;
 			chg++;
@@ -565,8 +561,6 @@ static char *instanciate_string(char *arg, const char *port, const char *token)
 		c = *++it;
 		if (c == 'p' && port)
 			wr = stpcpy(wr, port);
-		else if (c == 't' && token)
-			wr = stpcpy(wr, token);
 		else {
 			if (c != SUBST_CHAR)
 				*wr++ = SUBST_CHAR;
@@ -579,7 +573,7 @@ static char *instanciate_string(char *arg, const char *port, const char *token)
 	return resu;
 }
 
-static int instanciate_environ(const char *port, const char *token)
+static int instanciate_environ(const char *port)
 {
 	extern char **environ;
 	char *repl;
@@ -587,7 +581,7 @@ static int instanciate_environ(const char *port, const char *token)
 
 	/* instantiate the environment */
 	for (i = 0 ; environ[i] ; i++) {
-		repl = instanciate_string(environ[i], port, token);
+		repl = instanciate_string(environ[i], port);
 		if (!repl)
 			return -1;
 		environ[i] = repl;
@@ -595,7 +589,7 @@ static int instanciate_environ(const char *port, const char *token)
 	return 0;
 }
 
-static char **instanciate_command_args(struct json_object *exec, const char *port, const char *token)
+static char **instanciate_command_args(struct json_object *exec, const char *port)
 {
 	char **result;
 	char *repl, *item;
@@ -612,7 +606,7 @@ static char **instanciate_command_args(struct json_object *exec, const char *por
 	/* instanciate the arguments */
 	for (i = 0 ; i < n ; i++) {
 		item = (char*)json_object_get_string(json_object_array_get_idx(exec, i));
-		repl = instanciate_string(item, port, token);
+		repl = instanciate_string(item, port);
 		if (!repl) {
 			free(result);
 			return NULL;
@@ -625,9 +619,9 @@ static char **instanciate_command_args(struct json_object *exec, const char *por
 
 static int execute_command()
 {
-	struct json_object *exec, *oport, *otok;
+	struct json_object *exec, *oport;
 	struct sigaction siga;
-	const char *token, *port;
+	const char *port;
 	char **args;
 
 	/* check whether a command is to execute or not */
@@ -654,12 +648,8 @@ static int execute_command()
 	else
 		port = 0;
 	/* instantiate arguments and environment */
-	if (json_object_object_get_ex(main_config, "token", &otok))
-		token = json_object_get_string(otok);
-	else
-		token = 0;
-	args = instanciate_command_args(exec, port, token);
-	if (args && instanciate_environ(port, token) >= 0) {
+	args = instanciate_command_args(exec, port);
+	if (args && instanciate_environ(port) >= 0) {
 		/* run */
 		if (!SELF_PGROUP)
 			setpgid(0, 0);
@@ -782,7 +772,7 @@ static void start(int signum, void *arg)
 	const char *tracesvc = NULL, *traceditf = NULL;
 #endif
 #endif
-	const char *workdir = NULL, *rootdir = NULL, *token = NULL;
+	const char *workdir = NULL, *rootdir = NULL;
 	struct json_object *settings = NULL;
 	int max_session_count, session_timeout, api_timeout;
 	int rc;
@@ -810,7 +800,6 @@ static void start(int signum, void *arg)
 
 			"rootdir", &rootdir,
 			"workdir", &workdir,
-			"token", &token,
 
 			"apitimeout", &api_timeout,
 			"cntxtimeout", &session_timeout,
@@ -894,8 +883,7 @@ static void start(int signum, void *arg)
 			goto error;
 		}
 #if WITH_ENVIRONMENT
-		if ((http_port > 0 && !addenv_int("AFB_PORT", http_port))
-		 || (token && !addenv("AFB_TOKEN", token))) {
+		if ((http_port > 0 && !addenv_int("AFB_PORT", http_port))) {
 			ERROR("can't set HTTP environment");
 			goto error;
 		}

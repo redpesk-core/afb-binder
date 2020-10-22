@@ -25,9 +25,8 @@
 
 #include <libafb/libafb-config.h>
 
-#if !defined(_GNU_SOURCE)
-#  define _GNU_SOURCE
-#endif
+#undef _GNU_SOURCE
+#define _GNU_SOURCE 1
 
 #define MONITORING_INSTALL_DIR "@MONITORING_INSTALL_DIR@"
 
@@ -37,11 +36,4 @@
 #cmakedefine01 WITH_MONITORING
 #else
 #define WITH_MONITORING 0
-#endif
-
-
-#if WITH_SUPERVISION
-#  cmakedefine AFS_SUPERVISION_SOCKET "@AFS_SUPERVISION_SOCKET@"
-#  cmakedefine AFS_SUPERVISOR_TOKEN "@AFS_SUPERVISOR_TOKEN@"
-#  cmakedefine AFS_SUPERVISOR_PORT @AFS_SUPERVISOR_PORT@
 #endif

@@ -143,12 +143,8 @@
 #define SET_OUTPUT         'o'
 #define SET_PORT           'p'
 #define SET_QUIET          'q'
-#if WITH_LIBMICROHTTPD
-#define SET_RANDOM_TOKEN   'r'
-#endif
 #define ADD_SET            's'
 #if WITH_LIBMICROHTTPD
-#define SET_TOKEN          't'
 #define SET_UPLOAD_DIR     'u'
 #endif
 #define GET_VERSION        'V'
@@ -188,7 +184,6 @@ static struct option_desc optdefs[] = {
 	{ADD_ALIAS,           1, "alias",       "Multiple url map outside of rootdir [eg: --alias=/icons:/usr/share/icons]"},
 	{SET_UPLOAD_DIR,      1, "uploaddir",   "Directory for uploading files [default: workdir] relative to workdir"},
 	{SET_CACHE_TIMEOUT,   1, "cache-eol",   "Client cache end of live [default " d2s(DEFAULT_CACHE_TIMEOUT) "]"},
-	{SET_RANDOM_TOKEN,    0, "random-token","Enforce a random token"},
 #endif
 
 	{SET_API_TIMEOUT,     1, "apitimeout",  "Binding API timeout in seconds [default " d2s(DEFAULT_API_TIMEOUT) "]"},
@@ -440,7 +435,6 @@ static void printHelp(FILE * file, const char *name)
 	fprintf(file,
 		"Example:\n  %s  --verbose --port="
 		d2s(DEFAULT_HTTP_PORT)
-		" --token='azerty'"
 #if WITH_DYNAMIC_BINDING && WITH_DIRENT
 		" --ldpaths=build/bindings:/usr/lib64/agl/bindings"
 #endif
@@ -841,7 +835,6 @@ static void parse_arguments_inner(int argc, char **argv, struct json_object *con
 		case SET_ROOT_HTTP:
 		case SET_ROOT_BASE:
 		case SET_ROOT_API:
-		case SET_TOKEN:
 		case SET_UPLOAD_DIR:
 #endif
 		case SET_WORK_DIR:
@@ -879,7 +872,6 @@ static void parse_arguments_inner(int argc, char **argv, struct json_object *con
 		case SET_MONITORING:
 #endif
 #if WITH_LIBMICROHTTPD
-		case SET_RANDOM_TOKEN:
 		case SET_NO_HTTPD:
 #endif
 #if WITH_MONITORING || WITH_LIBMICROHTTPD || WITH_DYNAMIC_BINDING
@@ -1015,12 +1007,6 @@ static void fulfill_config(struct json_object *config)
 #if WITH_LIBMICROHTTPD
 	if (!config_has(config, SET_PORT) && !config_has(config, ADD_INTERFACE) && !config_has_bool(config, SET_NO_HTTPD))
 		config_set_int(config, SET_PORT, DEFAULT_HTTP_PORT);
-#endif
-
-	// default AUTH_TOKEN
-#if WITH_LIBMICROHTTPD
-	if (config_has_bool(config, SET_RANDOM_TOKEN))
-		config_del(config, SET_TOKEN);
 #endif
 
 #if WITH_MONITORING
