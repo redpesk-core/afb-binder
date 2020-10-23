@@ -32,6 +32,7 @@
 #include <unistd.h>
 #include <limits.h>
 #include <fcntl.h>
+#include <argp.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
 
@@ -1019,19 +1020,21 @@ error:
 int main(int argc, char *argv[])
 {
 	struct json_object *obj;
+
 #if WITH_AFB_DEBUG
 	afb_debug("main-entry");
 #endif
 
 	// ------------- Build session handler & init config -------
-	main_config = afb_daemon_opts_parse(argc, argv);
+	main_config = json_object_new_object();
+	afb_binder_opts_parse(argc, argv, main_config);
+
 	if (afb_sig_monitor_init(
 		!json_object_object_get_ex(main_config, "trap-faults", &obj)
 			|| json_object_get_boolean(obj)) < 0) {
 		ERROR("failed to initialise signal handlers");
 		return 1;
 	}
-
 
 	if (json_object_object_get_ex(main_config, "name", &obj)) {
 		verbose_set_name(json_object_get_string(obj), 0);

@@ -24,5 +24,5 @@
 
 struct json_object;
 
-extern struct json_object *afb_daemon_opts_parse(int argc, char **argv);
+extern int afb_binder_opts_parse(int argc, char **argv, struct json_object *config);
 

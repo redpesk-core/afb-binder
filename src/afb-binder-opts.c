@@ -26,10 +26,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <getopt.h>
 #include <limits.h>
 #include <unistd.h>
 #include <ctype.h>
+#include <argp.h>
 
 #include <json-c/json.h>
 #if !defined(JSON_C_TO_STRING_NOSLASHESCAPE)
@@ -152,97 +152,86 @@
 #define SET_WORK_DIR       'w'
 #define DUMP_CONFIG        'Z'
 
-/* structure for defining of options */
-struct option_desc {
-	int id;		/* id of the option         */
-	int has_arg;	/* is a value required      */
-	char *name;	/* long name of the option  */
-	char *help;	/* help text                */
-};
-
 /* definition of options */
-static struct option_desc optdefs[] = {
+static const struct argp_option optdefs[] = {
 /* *INDENT-OFF* */
-	{SET_VERBOSE,         0, "verbose",     "Verbose Mode, repeat to increase verbosity"},
-	{SET_COLOR,           0, "color",       "Colorize the ouput"},
-	{SET_QUIET,           0, "quiet",       "Quiet Mode, repeat to decrease verbosity"},
-	{SET_LOG,             1, "log",         "Tune log level"},
+	{ .name="verbose",     .key=SET_VERBOSE,         .arg=0, .doc="Verbose Mode, repeat to increase verbosity" },
+	{ .name="color",       .key=SET_COLOR,           .arg=0, .doc="Colorize the ouput" },
+	{ .name="quiet",       .key=SET_QUIET,           .arg=0, .doc="Quiet Mode, repeat to decrease verbosity" },
+	{ .name="log",         .key=SET_LOG,             .arg="LOGSPEC", .doc="Tune log level" },
 
-	{SET_FOREGROUND,      0, "foreground",  "Get all in foreground mode"},
-	{SET_BACKGROUND,      0, "background",  "Get all in background mode"},
-	{SET_DAEMON,          0, "daemon",      "Get all in background mode"},
+	{ .name="foreground",  .key=SET_FOREGROUND,      .arg=0, .doc="Get all in foreground mode" },
+	{ .name="background",  .key=SET_BACKGROUND,      .arg=0, .doc="Get all in background mode" },
+	{ .name="daemon",      .key=SET_DAEMON,          .arg=0, .doc="Get all in background mode" },
 
-	{SET_NAME,            1, "name",        "Set the visible name"},
+	{ .name="name",        .key=SET_NAME,            .arg="NAME", .doc="Set the visible name" },
 
 #if WITH_LIBMICROHTTPD
-	{SET_NO_HTTPD,        0, "no-httpd",    "Forbid HTTP service"},
-	{SET_PORT,            1, "port",        "HTTP listening TCP port  [default " d2s(DEFAULT_HTTP_PORT) "]"},
-	{ADD_INTERFACE,       1, "interface",   "Add HTTP listening interface (ex: tcp:localhost:8080)"},
-	{SET_ROOT_HTTP,       1, "roothttp",    "HTTP Root Directory [default no root http (files not served but apis still available)]"},
-	{SET_ROOT_BASE,       1, "rootbase",    "Angular Base Root URL [default /opa]"},
-	{SET_ROOT_API,        1, "rootapi",     "HTML Root API URL [default /api]"},
-	{ADD_ALIAS,           1, "alias",       "Multiple url map outside of rootdir [eg: --alias=/icons:/usr/share/icons]"},
-	{SET_UPLOAD_DIR,      1, "uploaddir",   "Directory for uploading files [default: workdir] relative to workdir"},
-	{SET_CACHE_TIMEOUT,   1, "cache-eol",   "Client cache end of live [default " d2s(DEFAULT_CACHE_TIMEOUT) "]"},
+	{ .name="no-httpd",    .key=SET_NO_HTTPD,        .arg=0, .doc="Forbid HTTP service" },
+	{ .name="port",        .key=SET_PORT,            .arg="PORT", .doc="HTTP listening TCP port  [default " d2s(DEFAULT_HTTP_PORT) "]" },
+	{ .name="interface",   .key=ADD_INTERFACE,       .arg="INTERFACE", .doc="Add HTTP listening interface (ex: tcp:localhost:8080)" },
+	{ .name="roothttp",    .key=SET_ROOT_HTTP,       .arg="DIRECTORY", .doc="HTTP Root Directory [default no root http (files not served but apis still available)]" },
+	{ .name="rootbase",    .key=SET_ROOT_BASE,       .arg="PATH", .doc="Angular Base Root URL [default /opa]" },
+	{ .name="rootapi",     .key=SET_ROOT_API,        .arg="PATH", .doc="HTML Root API URL [default /api]" },
+	{ .name="alias",       .key=ADD_ALIAS,           .arg="ALIAS", .doc="Multiple url map outside of rootdir [eg: --alias=/icons:/usr/share/icons]" },
+	{ .name="uploaddir",   .key=SET_UPLOAD_DIR,      .arg="DIRECTORY", .doc="Directory for uploading files [default: workdir] relative to workdir" },
+	{ .name="cache-eol",   .key=SET_CACHE_TIMEOUT,   .arg="TIMEOUT", .doc="Client cache end of live [default " d2s(DEFAULT_CACHE_TIMEOUT) "]" },
 #endif
 
-	{SET_API_TIMEOUT,     1, "apitimeout",  "Binding API timeout in seconds [default " d2s(DEFAULT_API_TIMEOUT) "]"},
-	{SET_SESSION_TIMEOUT, 1, "cntxtimeout", "Client Session Context Timeout [default " d2s(DEFAULT_SESSION_TIMEOUT) "]"},
+	{ .name="apitimeout",  .key=SET_API_TIMEOUT,     .arg="TIMEOUT", .doc="Binding API timeout in seconds [default " d2s(DEFAULT_API_TIMEOUT) "]" },
+	{ .name="cntxtimeout", .key=SET_SESSION_TIMEOUT, .arg="TIMEOUT", .doc="Client Session Context Timeout [default " d2s(DEFAULT_SESSION_TIMEOUT) "]" },
 
-	{SET_WORK_DIR,        1, "workdir",     "Set the working directory [default: $PWD or current working directory]"},
-	{SET_ROOT_DIR,        1, "rootdir",     "Root Directory of the application [default: workdir] relative to workdir"},
+	{ .name="workdir",     .key=SET_WORK_DIR,        .arg="DIRECTORY", .doc="Set the working directory [default: $PWD or current working directory]" },
+	{ .name="rootdir",     .key=SET_ROOT_DIR,        .arg="DIRECTORY", .doc="Root Directory of the application [default: workdir] relative to workdir" },
 
 #if WITH_DYNAMIC_BINDING
-	{ADD_BINDING,         1, "binding",     "Load the binding of path"},
+	{ .name="binding",     .key=ADD_BINDING,         .arg="FILENAME", .doc="Load the binding of path" },
 #if WITH_DIRENT
-	{ADD_LDPATH,          1, "ldpaths",     "Load bindings from dir1:dir2:..."},
-	{ADD_WEAK_LDPATH,     1, "weak-ldpaths","Same as --ldpaths but errors are not fatal"},
+	{ .name="ldpaths",     .key=ADD_LDPATH,          .arg="PATHSET", .doc="Load bindings from dir1:dir2:..." },
+	{ .name="weak-ldpaths",.key=ADD_WEAK_LDPATH,     .arg="PATHSET", .doc="Same as --ldpaths but errors are not fatal" },
 #endif
 #endif
-
-	{GET_VERSION,         0, "version",     "Display version and copyright"},
-	{GET_HELP,            0, "help",        "Display this help"},
 
 #if WITH_DBUS_TRANSPARENCY
-	{ADD_DBUS_CLIENT,     1, "dbus-client", "Bind to an afb service through dbus"},
-	{ADD_DBUS_SERVICE,    1, "dbus-server", "Provide an afb service through dbus"},
+	{ .name="dbus-client", .key=ADD_DBUS_CLIENT,     .arg="APINAME", .doc="Bind to an afb service through dbus" },
+	{ .name="dbus-server", .key=ADD_DBUS_SERVICE,    .arg="APINAME", .doc="Provide an afb service through dbus" },
 #endif
-	{ADD_WS_CLIENT,       1, "ws-client",   "Bind to an afb service through websocket"},
-	{ADD_WS_SERVICE,      1, "ws-server",   "Provide an afb service through websockets"},
+	{ .name="ws-client",   .key=ADD_WS_CLIENT,       .arg="SOCKSPEC", .doc="Bind to an afb service through websocket" },
+	{ .name="ws-server",   .key=ADD_WS_SERVICE,      .arg="SOCKSPEC", .doc="Provide an afb service through websockets" },
 
-	{ADD_AUTO_API,        1, "auto-api",    "Automatic load of api of the given directory"},
+	{ .name="auto-api",    .key=ADD_AUTO_API,        .arg="DIRECTORY", .doc="Automatic load of api of the given directory" },
 
-	{SET_SESSIONMAX,      1, "session-max", "Max count of session simultaneously [default " d2s(DEFAULT_MAX_SESSION_COUNT) "]"},
+	{ .name="session-max", .key=SET_SESSIONMAX,      .arg="COUNT", .doc="Max count of session simultaneously [default " d2s(DEFAULT_MAX_SESSION_COUNT) "]" },
 
 #if WITH_AFB_HOOK
-	{SET_TRACEREQ,        1, "tracereq",    "Log the requests: none, common, extra, all"},
-	{SET_TRACEEVT,        1, "traceevt",    "Log the events: none, common, extra, all"},
-	{SET_TRACESES,        1, "traceses",    "Log the sessions: none, all"},
-	{SET_TRACEAPI,        1, "traceapi",    "Log the apis: none, common, api, event, all"},
-	{SET_TRACEGLOB,       1, "traceglob",   "Log the globals: none, all"},
+	{ .name="tracereq",    .key=SET_TRACEREQ,        .arg="VALUE", .doc="Log the requests: none, common, extra, all" },
+	{ .name="traceevt",    .key=SET_TRACEEVT,        .arg="VALUE", .doc="Log the events: none, common, extra, all" },
+	{ .name="traceses",    .key=SET_TRACESES,        .arg="VALUE", .doc="Log the sessions: none, all" },
+	{ .name="traceapi",    .key=SET_TRACEAPI,        .arg="VALUE", .doc="Log the apis: none, common, api, event, all" },
+	{ .name="traceglob",   .key=SET_TRACEGLOB,       .arg="VALUE", .doc="Log the globals: none, all" },
 #if !defined(REMOVE_LEGACY_TRACE)
-	{SET_TRACEDITF,       1, "traceditf",   "Log the daemons: no, common, all"},
-	{SET_TRACESVC,        1, "tracesvc",    "Log the services: no, all"},
+	{ .name="traceditf",   .key=SET_TRACEDITF,       .arg="VALUE", .doc="Log the daemons: no, common, all" },
+	{ .name="tracesvc",    .key=SET_TRACESVC,        .arg="VALUE", .doc="Log the services: no, all" },
 #endif
 #endif
 
-	{ADD_CALL,            1, "call",        "Call at start, format of val: API/VERB:json-args"},
+	{ .name="call",        .key=ADD_CALL,            .arg="CALLSPEC", .doc="Call at start, format of val: API/VERB:json-args" },
 
-	{SET_EXEC,            0, "exec",        "Execute the remaining arguments"},
+	{ .name="exec",        .key=SET_EXEC,            .arg=0, .flags=OPTION_NO_USAGE, .doc="Execute the remaining arguments" },
 
 #if WITH_MONITORING
-	{SET_MONITORING,      0, "monitoring",  "Enable HTTP monitoring at <ROOT>/monitoring/"},
+	{ .name="monitoring",  .key=SET_MONITORING,      .arg=0, .doc="Enable HTTP monitoring at <ROOT>/monitoring/" },
 #endif
 
-	{SET_CONFIG,          1, "config",      "Load options from the given config file"},
-	{DUMP_CONFIG,         0, "dump-config", "Dump the config to stdout and exit"},
+	{ .name="config",      .key=SET_CONFIG,          .arg="FILENAME", .doc="Load options from the given config file" },
+	{ .name="dump-config", .key=DUMP_CONFIG,         .arg=0, .doc="Dump the config to stdout and exit" },
 
-	{ADD_SET,             1, "set",         "Set parameters ([API]/[KEY]:JSON or {\"API\":{\"KEY\":JSON}}" },
-	{SET_OUTPUT,          1, "output",      "Redirect stdout and stderr to output file (when --daemon)"},
+	{ .name="set",         .key=ADD_SET,             .arg="VALUE", .doc="Set parameters ([API]/[KEY]:JSON or {\"API\":{\"KEY\":JSON}}"  },
+	{ .name="output",      .key=SET_OUTPUT,          .arg="FILENAME", .doc="Redirect stdout and stderr to output file (when --daemon)" },
 
-	{SET_TRAP_FAULTS,     1, "trap-faults", "Trap faults: on, off, yes, no, true, false, 1, 0 (default: true)"},
+	{ .name="trap-faults", .key=SET_TRAP_FAULTS,     .arg="VALUE", .doc="Trap faults: on, off, yes, no, true, false, 1, 0 (default: true)" },
 
-	{0, 0, NULL, NULL}
+	{ .name=0,             .key=0,                   .arg=0, .doc=0 }
 /* *INDENT-ON* */
 };
 
@@ -279,9 +268,6 @@ static const struct {
 * preparing items
 ***********************************/
 
-static char *shortopts = NULL;
-static int *id2idx = NULL;
-
 static void *oomchk(void *ptr)
 {
 	if (!ptr) {
@@ -291,44 +277,12 @@ static void *oomchk(void *ptr)
 	return ptr;
 }
 
-static char is_short_option(int val)
-{
-	return (val >= 'a' && val <= 'z') || (val >= 'A' && val <= 'Z') || (val >= '0' && val <= '9');
-}
-
-static void init_options()
-{
-	int i, short_opt_len, idmax, id;
-
-	if (!shortopts) {
-		short_opt_len = 0;
-		idmax = -1;
-		for (i = 0 ; optdefs[i].name ; i++) {
-			id = optdefs[i].id;
-			if (id > idmax)
-				idmax = id;
-			if (is_short_option(id))
-				short_opt_len += 1 + !!optdefs[i].has_arg;
-		}
-		shortopts = oomchk(malloc(2 + short_opt_len));
-		id2idx = oomchk(calloc(1 + idmax, sizeof *id2idx));
-		shortopts[short_opt_len = 0] = ':'; /* no error print */
-		for (i = 0 ; optdefs[i].name ; i++) {
-			id = optdefs[i].id;
-			id2idx[id] = i;
-			if (is_short_option(id)) {
-				shortopts[++short_opt_len] = (char)id;
-				if (optdefs[i].has_arg)
-					shortopts[++short_opt_len] = ':';
-			}
-		}
-		shortopts[++short_opt_len] = 0;
-	}
-}
-
 static const char *name_of_optid(int optid)
 {
-	return optdefs[id2idx[optid]].name;
+	const struct argp_option *iter = optdefs;
+	while(iter->key != optid)
+		iter++;
+	return iter->name;
 }
 
 static int get_enum_val(const char *name, int optid, int (*func)(const char*))
@@ -337,7 +291,7 @@ static int get_enum_val(const char *name, int optid, int (*func)(const char*))
 
 	i = func(name);
 	if (i < 0) {
-		ERROR("option [--%s] bad value (found %s)",
+		ERROR("option --%s bad value (found %s)",
 			name_of_optid(optid), name);
 		exit(1);
 	}
@@ -349,99 +303,44 @@ static int get_enum_val(const char *name, int optid, int (*func)(const char*))
  | printversion
  |   print version and copyright
  +--------------------------------------------------------- */
-static void printVersion(FILE * file)
-{
-	fprintf(file,
-		"\n"
-		"  Application Framework Binder [AFB %s] "
-
+#if 0
+static const char version[] = AFB_VERSION;
+#else
+static const char version[] =
+	"\n"
+	AFB_VERSION
+	" ["
 #if WITH_DBUS_TRANSPARENCY
-		"+"
-#else
-		"-"
+	"+DBUS"
 #endif
-		"DBUS "
-
 #if WITH_MONITORING
-		"+"
-#else
-		"-"
+	"+MONITOR"
 #endif
-		"MONITOR "
 #if WITH_SUPERVISION
-		"+"
-#else
-		"-"
+	"+SUPERVISION"
 #endif
-		"SUPERVISION "
-
 #if WITH_AFB_HOOK
-		"+"
-#else
-		"-"
+	"+HOOK"
 #endif
-		"HOOK "
-
 #if WITH_AFB_TRACE
-		"+"
-#else
-		"-"
+	"+TRACE"
 #endif
-		"TRACE "
-
-		"["
 #if WITH_DYNAMIC_BINDING
-		"+"
-#else
-		"-"
+	"+BINDING"
+	"-V3"
+	"-V4"
 #endif
-		"BINDINGS "
-		"+V3]\n"
-		"\n",
-		AFB_VERSION
-	);
-	fprintf(file,
-		"  Copyright (C) 2015-2020 IoT.bzh Company\n"
-		"  AFB comes with ABSOLUTELY NO WARRANTY.\n"
-		"  Licence Apache 2\n"
-		"\n");
-}
-
-/*----------------------------------------------------------
- | printHelp
- |   print information from long option array
- +--------------------------------------------------------- */
-
-static void printHelp(FILE * file, const char *name)
-{
-	int ind;
-	char command[50], sht[4];
-
-	fprintf(file, "%s:\nallowed options\n", strrchr(name, '/') ? strrchr(name, '/') + 1 : name);
-	sht[3] = 0;
-	for (ind = 0; optdefs[ind].name != NULL; ind++) {
-		if (is_short_option(optdefs[ind].id)) {
-			sht[0] = '-';
-			sht[1] = (char)optdefs[ind].id;
-			sht[2] = ',';
-		} else {
-			sht[0] = sht[1] = sht[2] = ' ';
-		}
-		strcpy(command, optdefs[ind].name);
-		if (optdefs[ind].has_arg)
-			strcat(command, "=xxxx");
-		fprintf(file, " %s --%-17s %s\n", sht, command, optdefs[ind].help);
-	}
-	fprintf(file,
-		"Example:\n  %s  --verbose --port="
-		d2s(DEFAULT_HTTP_PORT)
-#if WITH_DYNAMIC_BINDING && WITH_DIRENT
-		" --ldpaths=build/bindings:/usr/lib64/agl/bindings"
+	"]\nCopyright (C) 2015-2020 IoT.bzh Company\n"
+;
 #endif
-		"\n",
-		name);
-}
 
+static const char docstring[] =
+	"\n"
+	"Options:\n"
+;
+/**********************************
+ * dump config
+ *********************************/
 static void dump(struct json_object *config, FILE *file, const char *prefix, const char *title)
 {
 	const char *head, *tail;
@@ -517,35 +416,6 @@ static int string_to_bool(const char *value)
 	return -1;
 }
 
-static void noarg(int optid)
-{
-	if (optarg) {
-		ERROR("option [--%s] need no value (found %s)", name_of_optid(optid), optarg);
-		exit(1);
-	}
-}
-
-static const char *get_arg(int optid)
-{
-	if (optarg == 0) {
-		ERROR("option [--%s] needs a value i.e. --%s=xxx",
-				name_of_optid(optid), name_of_optid(optid));
-		exit(1);
-	}
-	return optarg;
-}
-
-static int get_arg_bool(int optid)
-{
-	int value = string_to_bool(get_arg(optid));
-	if (value < 0) {
-		ERROR("option [--%s] needs a boolean value: yes/no, true/false, on/off, 1/0",
-				name_of_optid(optid));
-		exit(1);
-	}
-	return value;
-}
-
 __attribute__((unused))
 static void config_del(struct json_object *config, int optid)
 {
@@ -595,11 +465,6 @@ static void config_set_str(struct json_object *config, int optid, const char *va
 	config_set(config, optid, to_jstr(val));
 }
 
-static void config_set_optstr(struct json_object *config, int optid)
-{
-	config_set_str(config, optid, get_arg(optid));
-}
-
 static void config_set_int(struct json_object *config, int optid, int value)
 {
 	config_set(config, optid, to_jint(value));
@@ -608,39 +473,6 @@ static void config_set_int(struct json_object *config, int optid, int value)
 static void config_set_bool(struct json_object *config, int optid, int value)
 {
 	config_set(config, optid, to_jbool(value));
-}
-
-static void config_set_optint_base(struct json_object *config, int optid, int mini, int maxi, int base)
-{
-	const char *beg, *end;
-	long int val;
-
-	beg = get_arg(optid);
-	val = strtol(beg, (char**)&end, base);
-	if (*end || end == beg) {
-		ERROR("option [--%s] requires a valid integer (found %s)",
-			name_of_optid(optid), beg);
-		exit(1);
-	}
-	if (val < (long int)mini || val > (long int)maxi) {
-		ERROR("option [--%s] value %ld out of bounds (not in [%d , %d])",
-			name_of_optid(optid), val, mini, maxi);
-		exit(1);
-	}
-	config_set_int(config, optid, (int)val);
-}
-
-static void config_set_optint(struct json_object *config, int optid, int mini, int maxi)
-{
-	return config_set_optint_base(config, optid, mini, maxi, 10);
-}
-
-__attribute__((unused))
-static void config_set_optenum(struct json_object *config, int optid, int (*func)(const char*))
-{
-	const char *name = get_arg(optid);
-	get_enum_val(name, optid, func);
-	config_set_str(config, optid, name);
 }
 
 static void config_add(struct json_object *config, int optid, struct json_object *val)
@@ -656,11 +488,6 @@ static void config_add(struct json_object *config, int optid, struct json_object
 static void config_add_str(struct json_object *config, int optid, const char *val)
 {
 	config_add(config, optid, to_jstr(val));
-}
-
-static void config_add_optstr(struct json_object *config, int optid)
-{
-	config_add_str(config, optid, get_arg(optid));
 }
 
 static void config_mix2_cb(void *closure, struct json_object *obj, const char *name)
@@ -725,9 +552,63 @@ static void config_mix2_str(struct json_object *config, int optid, const char *v
 	json_object_put(obj);
 }
 
-static void config_mix2_optstr(struct json_object *config, int optid)
+static int get_arg_bool(int optid, char *svalue)
 {
-	config_mix2_str(config, optid, get_arg(optid));
+	int value = string_to_bool(svalue);
+	if (value < 0) {
+		ERROR("option --%s needs a boolean value: yes/no, true/false, on/off, 1/0",
+				name_of_optid(optid));
+		exit(1);
+	}
+	return value;
+}
+
+static void config_set_optstr(struct json_object *config, int optid, char *value)
+{
+	config_set_str(config, optid, value);
+}
+
+static void config_set_optint_base(struct json_object *config, int optid, char *value, int mini, int maxi, int base)
+{
+	const char *beg, *end;
+	long int val;
+
+	beg = value;
+	val = strtol(beg, (char**)&end, base);
+	if (*end || end == beg) {
+		ERROR("option --%s requires a valid integer (found %s)",
+			name_of_optid(optid), beg);
+		exit(1);
+	}
+	if (val < (long int)mini || val > (long int)maxi) {
+		ERROR("option --%s value %ld out of bounds (not in [%d , %d])",
+			name_of_optid(optid), val, mini, maxi);
+		exit(1);
+	}
+	config_set_int(config, optid, (int)val);
+}
+
+static void config_set_optint(struct json_object *config, int optid, char *value, int mini, int maxi)
+{
+	return config_set_optint_base(config, optid, value, mini, maxi, 10);
+}
+
+__attribute__((unused))
+static void config_set_optenum(struct json_object *config, int optid, char *value, int (*func)(const char*))
+{
+	const char *name = value;
+	get_enum_val(name, optid, func);
+	config_set_str(config, optid, name);
+}
+
+static void config_add_optstr(struct json_object *config, int optid, char *value)
+{
+	config_add_str(config, optid, value);
+}
+
+static void config_mix2_optstr(struct json_object *config, int optid, char *value)
+{
+	config_mix2_str(config, optid, value);
 }
 
 /*---------------------------------------------------------
@@ -784,212 +665,186 @@ static void set_log(const char *args)
 /*---------------------------------------------------------
  |   Parse option and launch action
  +--------------------------------------------------------- */
+static int dodump;
 
-static void parse_arguments_inner(int argc, char **argv, struct json_object *config, struct option *options)
+static error_t parsecb(int key, char *value, struct argp_state *state)
 {
 	struct json_object *conf;
-	int optid, cind, dodump = 0;
+	struct json_object *config = state->input;
 
-	for (;;) {
-		cind = optind;
-		optid = getopt_long(argc, argv, shortopts, options, NULL);
-		if (optid < 0) {
-			/* end of options */
-			break;
-		}
-		switch (optid) {
-		case SET_VERBOSE:
-			verbose_inc();
-			break;
+	switch (key) {
+	case SET_VERBOSE:
+		verbose_inc();
+		break;
 
-		case SET_COLOR:
-			verbose_colorize();
-			break;
+	case SET_COLOR:
+		verbose_colorize();
+		break;
 
-		case SET_QUIET:
-			verbose_dec();
-			break;
+	case SET_QUIET:
+		verbose_dec();
+		break;
 
-		case SET_LOG:
-			set_log(get_arg(optid));
-			break;
+	case SET_LOG:
+		set_log(value);
+		break;
 
-		case SET_PORT:
-			config_set_optint(config, optid, 1024, 32767);
-			break;
+	case SET_PORT:
+		config_set_optint(config, key, value, 1024, 32767);
+		break;
 
-		case SET_API_TIMEOUT:
-		case SET_SESSION_TIMEOUT:
+	case SET_API_TIMEOUT:
+	case SET_SESSION_TIMEOUT:
 #if WITH_LIBMICROHTTPD
-		case SET_CACHE_TIMEOUT:
+	case SET_CACHE_TIMEOUT:
 #endif
-			config_set_optint(config, optid, 0, INT_MAX);
-			break;
+		config_set_optint(config, key, value, 0, INT_MAX);
+		break;
 
-		case SET_SESSIONMAX:
-			config_set_optint(config, optid, 1, INT_MAX);
-			break;
+	case SET_SESSIONMAX:
+		config_set_optint(config, key, value, 1, INT_MAX);
+		break;
 
-		case SET_ROOT_DIR:
+	case SET_ROOT_DIR:
 #if WITH_LIBMICROHTTPD
-		case SET_ROOT_HTTP:
-		case SET_ROOT_BASE:
-		case SET_ROOT_API:
-		case SET_UPLOAD_DIR:
+	case SET_ROOT_HTTP:
+	case SET_ROOT_BASE:
+	case SET_ROOT_API:
+	case SET_UPLOAD_DIR:
 #endif
-		case SET_WORK_DIR:
-		case SET_NAME:
-			config_set_optstr(config, optid);
-			break;
+	case SET_WORK_DIR:
+	case SET_NAME:
+		config_set_optstr(config, key, value);
+		break;
 
 #if WITH_DBUS_TRANSPARENCY
-		case ADD_DBUS_CLIENT:
-		case ADD_DBUS_SERVICE:
+	case ADD_DBUS_CLIENT:
+	case ADD_DBUS_SERVICE:
 #endif
 #if WITH_LIBMICROHTTPD
-		case ADD_ALIAS:
+	case ADD_ALIAS:
 #endif
 #if WITH_DYNAMIC_BINDING
 #if WITH_DIRENT
-		case ADD_LDPATH:
-		case ADD_WEAK_LDPATH:
+	case ADD_LDPATH:
+	case ADD_WEAK_LDPATH:
 #endif
-		case ADD_BINDING:
+	case ADD_BINDING:
 #endif
-		case ADD_CALL:
-		case ADD_WS_CLIENT:
-		case ADD_WS_SERVICE:
-		case ADD_AUTO_API:
-		case ADD_INTERFACE:
-			config_add_optstr(config, optid);
-			break;
+	case ADD_CALL:
+	case ADD_WS_CLIENT:
+	case ADD_WS_SERVICE:
+	case ADD_AUTO_API:
+	case ADD_INTERFACE:
+		config_add_optstr(config, key, value);
+		break;
 
-		case ADD_SET:
-			config_mix2_optstr(config, optid);
-			break;
+	case ADD_SET:
+		config_mix2_optstr(config, key, value);
+		break;
 
 #if WITH_MONITORING
-		case SET_MONITORING:
+	case SET_MONITORING:
 #endif
 #if WITH_LIBMICROHTTPD
-		case SET_NO_HTTPD:
+	case SET_NO_HTTPD:
 #endif
-#if WITH_MONITORING || WITH_LIBMICROHTTPD || WITH_DYNAMIC_BINDING
-			noarg(optid);
-			config_set_bool(config, optid, 1);
-			break;
+#if WITH_MONITORING || WITH_LIBMICROHTTPD
+		config_set_bool(config, key, 1);
+		break;
 #endif
 
-		case SET_FOREGROUND:
-		case SET_BACKGROUND:
-		case SET_DAEMON:
-			noarg(optid);
-			config_set_bool(config, SET_DAEMON, optid != SET_FOREGROUND);
-			break;
+	case SET_FOREGROUND:
+	case SET_BACKGROUND:
+	case SET_DAEMON:
+		config_set_bool(config, SET_DAEMON, key != SET_FOREGROUND);
+		break;
 
-		case SET_TRAP_FAULTS:
-			config_set_bool(config, optid, get_arg_bool(optid));
-			break;
+	case SET_TRAP_FAULTS:
+		config_set_bool(config, key, get_arg_bool(key, value));
+		break;
 
 
 #if WITH_AFB_HOOK
-		case SET_TRACEREQ:
-			config_set_optenum(config, optid, afb_hook_flags_req_from_text);
-			break;
+	case SET_TRACEREQ:
+		config_set_optenum(config, key, value, afb_hook_flags_req_from_text);
+		break;
 
-		case SET_TRACEEVT:
-			config_set_optenum(config, optid, afb_hook_flags_evt_from_text);
-			break;
+	case SET_TRACEEVT:
+		config_set_optenum(config, key, value, afb_hook_flags_evt_from_text);
+		break;
 
-		case SET_TRACESES:
-			config_set_optenum(config, optid, afb_hook_flags_session_from_text);
-			break;
+	case SET_TRACESES:
+		config_set_optenum(config, key, value, afb_hook_flags_session_from_text);
+		break;
 
-		case SET_TRACEAPI:
-			config_set_optenum(config, optid, afb_hook_flags_api_from_text);
-			break;
+	case SET_TRACEAPI:
+		config_set_optenum(config, key, value, afb_hook_flags_api_from_text);
+		break;
 
-		case SET_TRACEGLOB:
-			config_set_optenum(config, optid, afb_hook_flags_global_from_text);
-			break;
+	case SET_TRACEGLOB:
+		config_set_optenum(config, key, value, afb_hook_flags_global_from_text);
+		break;
 
 #if !defined(REMOVE_LEGACY_TRACE)
-		case SET_TRACEDITF:
-			config_set_optenum(config, optid, afb_hook_flags_legacy_ditf_from_text);
-			break;
+	case SET_TRACEDITF:
+		config_set_optenum(config, key, value, afb_hook_flags_legacy_ditf_from_text);
+		break;
 
-		case SET_TRACESVC:
-			config_set_optenum(config, optid, afb_hook_flags_legacy_svc_from_text);
-			break;
+	case SET_TRACESVC:
+		config_set_optenum(config, key, value, afb_hook_flags_legacy_svc_from_text);
+		break;
 #endif
 #endif
 
-		case SET_EXEC:
-			if (optind == argc) {
-				ERROR("The option --exec requires arguments");
-				exit(1);
-			}
-			while (optind != argc)
-				config_add_str(config, optid, argv[optind++]);
-			break;
+	case SET_EXEC:
+		state->quoted = 1;
+		while (state->next < state->argc) {
+			config_add_str(config, key, state->argv[state->next++]);
+		}
+		break;
 
-		case SET_CONFIG:
-			conf = json_object_from_file(get_arg(optid));
-			if (!conf) {
-				ERROR("Can't read config file %s", get_arg(optid));
-				exit(1);
-			}
-			wrap_json_object_add(config, conf);
-			json_object_put(conf);
-			break;
-
-		case DUMP_CONFIG:
-			noarg(optid);
-			dodump = 1;
-			break;
-
-		case GET_VERSION:
-			noarg(optid);
-			printVersion(stdout);
-			exit(0);
-
-		case GET_HELP:
-			printHelp(stdout, argv[0]);
-			exit(0);
-
-		default:
-			ERROR("Bad option detected, check %s", argv[cind]);
+	case SET_CONFIG:
+		conf = json_object_from_file(value);
+		if (!conf) {
+			ERROR("Can't read config file %s", value);
 			exit(1);
 		}
+		wrap_json_object_add(config, conf);
+		json_object_put(conf);
+		break;
+
+	case DUMP_CONFIG:
+		dodump = 1;
+		break;
+
+	default:
+		return ARGP_ERR_UNKNOWN;
 	}
-	/* TODO: check for extra value */
+	return 0;
+}
+
+static void parse_arguments(int argc, char **argv, struct json_object *config)
+{
+	struct argp argp;
+	int flags;
+
+	dodump = 0;
+	argp.options = optdefs;
+	argp.parser = parsecb;
+	argp.args_doc = "[--exec program args...]";
+	argp.doc = docstring;
+	argp.children = 0;
+	argp.help_filter = 0;
+	argp.argp_domain = 0;
+	argp_program_version = version;
+	flags = ARGP_IN_ORDER;
+	argp_parse(&argp, argc, argv, flags, 0, config);
 
 	if (dodump) {
 		dump(config, stdout, NULL, NULL);
 		exit(0);
 	}
-}
-
-static void parse_arguments(int argc, char **argv, struct json_object *config)
-{
-	int ind;
-	struct option *options;
-
-	/* create GNU getopt options from optdefs */
-	options = malloc((sizeof optdefs / sizeof * optdefs) * sizeof * options);
-	for (ind = 0; optdefs[ind].name; ind++) {
-		options[ind].name = optdefs[ind].name;
-		options[ind].has_arg = optdefs[ind].has_arg;
-		options[ind].flag = NULL;
-		options[ind].val = optdefs[ind].id;
-	}
-	memset(&options[ind], 0, sizeof options[ind]);
-
-	/* parse the arguments */
-	parse_arguments_inner(argc, argv, config, options);
-
-	/* release the memory of options */
-	free(options);
 }
 
 static void fulfill_config(struct json_object *config)
@@ -1099,22 +954,15 @@ static void parse_environment(struct json_object *config)
 }
 #endif
 
-struct json_object *afb_daemon_opts_parse(int argc, char **argv)
+int afb_binder_opts_parse(int argc, char **argv, struct json_object *config)
 {
-	struct json_object *result;
-
-	init_options();
-
-	result = json_object_new_object();
-
 #if WITH_ENVIRONMENT
-	parse_environment(result);
+	parse_environment(config);
 #endif
-	parse_arguments(argc, argv, result);
-	fulfill_config(result);
+	parse_arguments(argc, argv, config);
+	fulfill_config(config);
 	if (verbose_wants(Log_Level_Info))
-		dump(result, stderr, "--", "CONFIG");
-	return result;
+		dump(config, stderr, "--", "CONFIG");
+	return 0;
 }
-
 
