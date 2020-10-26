@@ -232,12 +232,19 @@ static void on_sighup(int signum, siginfo_t *info, void *uctx)
 	/* TODO */
 }
 
-static void setup_daemon()
+/**
+ * Set the handlers
+ */
+static void setup_handlers()
 {
 	struct sigaction siga;
 
 	/* install signal handlers */
 	memset(&siga, 0, sizeof siga);
+
+	siga.sa_handler = SIG_IGN;
+	sigaction(SIGPIPE, &siga, NULL);
+
 	siga.sa_flags = SA_SIGINFO;
 
 	siga.sa_sigaction = on_sigterm;
@@ -248,9 +255,6 @@ static void setup_daemon()
 
 	/* handle groups */
 	atexit(exit_handler);
-
-	/* ignore any SIGPIPE */
-	signal(SIGPIPE, SIG_IGN);
 }
 
 /*----------------------------------------------------------
@@ -1038,7 +1042,7 @@ int main(int argc, char *argv[])
 	INFO("running with pid %d", getpid());
 
 	/* set the daemon environment */
-	setup_daemon();
+	setup_handlers();
 
 #if WITH_AFB_DEBUG
 	afb_debug("main-start");
