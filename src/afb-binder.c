@@ -119,23 +119,11 @@ static pid_t childpid;
  * @param name name of the variable to set
  * @param value value to set to the variable
  *
- * @return the created entry or NULL or memory depletion
+ * @return zero on success or -1 if error
  */
-static char *addenv(const char *name, const char *value)
+static int addenv(const char *name, const char *value)
 {
-	char *head, *middle;
-
-	head = malloc(2 + strlen(name) + strlen(value));
-	if (head) {
-		middle = stpcpy(head, name);
-		middle[0] = '=';
-		strcpy(&middle[1], value);
-		if (putenv(head)) {
-			free(head);
-			head = 0;
-		}
-	}
-	return head;
+	return setenv(name, value, 1);
 }
 
 /**
@@ -144,13 +132,13 @@ static char *addenv(const char *name, const char *value)
  * @param name name of the variable to set
  * @param path the path value to export to the variable
  *
- * @return the created entry or NULL or memory depletion
+ * @return zero on success or -1 if error
  */
-static char *addenv_realpath(const char *name, const char *path)
+static int addenv_realpath(const char *name, const char *path)
 {
 	char buffer[PATH_MAX];
 	char *p = realpath(path, buffer);
-	return p ? addenv(name, p) : 0;
+	return p ? addenv(name, p) : -1;
 }
 
 /**
@@ -159,9 +147,9 @@ static char *addenv_realpath(const char *name, const char *path)
  * @param name name of the variable to set
  * @param value the integer value to export
  *
- * @return the created entry or NULL or memory depletion
+ * @return zero on success or -1 if error
  */
-static char *addenv_int(const char *name, int value)
+static int addenv_int(const char *name, int value)
 {
 	char buffer[64];
 	snprintf(buffer, sizeof buffer, "%d", value);
@@ -869,8 +857,8 @@ static void start(int signum, void *arg)
 		goto error;
 	}
 #if WITH_ENVIRONMENT
-	if (!addenv_realpath("AFB_WORKDIR", "."     /* resolved by realpath */)
-	 || !addenv_realpath("AFB_ROOTDIR", rootdir /* relative to current directory */)) {
+	if (addenv_realpath("AFB_WORKDIR", "."     /* resolved by realpath */) < 0
+	 || addenv_realpath("AFB_ROOTDIR", rootdir /* relative to current directory */) < 0) {
 		ERROR("can't set DIR environment");
 		goto error;
 	}
@@ -884,7 +872,7 @@ static void start(int signum, void *arg)
 			goto error;
 		}
 #if WITH_ENVIRONMENT
-		if ((http_port > 0 && !addenv_int("AFB_PORT", http_port))) {
+		if ((http_port > 0 && addenv_int("AFB_PORT", http_port) < 0)) {
 			ERROR("can't set HTTP environment");
 			goto error;
 		}
