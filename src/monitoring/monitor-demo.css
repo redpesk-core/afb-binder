@@ -10,7 +10,7 @@
  *  a written agreement between you and The IoT.bzh Company. For licensing terms
  *  and conditions see https://www.iot.bzh/terms-conditions. For further
  *  information use the contact form at https://www.iot.bzh/contact.
- * 
+ *
  * GNU General Public License Usage
  *  Alternatively, this file may be used under the terms of the GNU General
  *  Public license version 3. This license is as published by the Free Software
@@ -185,16 +185,16 @@ html {
 	border: solid 1px #f44; /* red by default */
 }
 
-.logmsg.call { border-color: #ee3; } 
-.logmsg.retok { border-color: #8e8; } 
-.logmsg.event { border-color: #d6f; } 
+.logmsg.call { border-color: #ee3; }
+.logmsg.retok { border-color: #8e8; }
+.logmsg.event { border-color: #d6f; }
 .logmsg.error { border-color: #f66; }
 .logmsg.trace { border-color: #aaa; }
 
 .logmsg .tag { text-align: center; color: black; font-weight: bolder; margin: -2px -2px 1px -2px; }
-.logmsg.call .tag { background: #ee3; } 
-.logmsg.retok .tag { background: #8e8; } 
-.logmsg.event .tag { background: #d6f; } 
+.logmsg.call .tag { background: #ee3; }
+.logmsg.retok .tag { background: #8e8; }
+.logmsg.event .tag { background: #d6f; }
 .logmsg.error .tag { background: #f66; }
 .logmsg.trace .tag { background: #aaa; }
 
@@ -221,7 +221,7 @@ html {
 	padding: 2px;
 }
 
-.closed > .opclo { background-image: url(down.png); } 
+.closed > .opclo { background-image: url(down.png); }
 .opened > .opclo { background-image: url(up.png); }
 
 /*******************************************************************/
@@ -318,9 +318,9 @@ a:visited { color: lightgrey; }
 /*******************************************************************/
 /* json format */
 
-.json.string { color: #fff; } 
-.json.number { color: #ec0; } 
-.json.boolean { color: #0f0; } 
-.json.null { color: #0f0; } 
+.json.string { color: #fff; }
+.json.number { color: #ec0; }
+.json.boolean { color: #0f0; }
+.json.null { color: #0f0; }
 .json.key { color: #99f; }
 

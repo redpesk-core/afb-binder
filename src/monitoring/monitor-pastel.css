@@ -10,7 +10,7 @@
  *  a written agreement between you and The IoT.bzh Company. For licensing terms
  *  and conditions see https://www.iot.bzh/terms-conditions. For further
  *  information use the contact form at https://www.iot.bzh/contact.
- * 
+ *
  * GNU General Public License Usage
  *  Alternatively, this file may be used under the terms of the GNU General
  *  Public license version 3. This license is as published by the Free Software
@@ -177,9 +177,9 @@ body {
 	min-height: 20px;
 }
 
-.logmsg.call { background: #ee3; } 
-.logmsg.retok { background: #8e8; } 
-.logmsg.event { background: #d6f; } 
+.logmsg.call { background: #ee3; }
+.logmsg.retok { background: #8e8; }
+.logmsg.event { background: #d6f; }
 .logmsg.error { background: #f66; }
 .logmsg.trace { background: #aaa; }
 
@@ -205,7 +205,7 @@ body {
 	border: solid 1px black;
 }
 
-.closed > .opclo { background-image: url(down.png); } 
+.closed > .opclo { background-image: url(down.png); }
 .opened > .opclo { background-image: url(up.png); }
 
 /*******************************************************************/
@@ -272,9 +272,9 @@ body {
 /*******************************************************************/
 /* json format */
 
-.json.string { color: teal; } 
-.json.number { color: darkorange; } 
-.json.boolean { color: deepskyblue; } 
-.json.null { color: magenta; } 
+.json.string { color: teal; }
+.json.number { color: darkorange; }
+.json.boolean { color: deepskyblue; }
+.json.null { color: magenta; }
 .json.key { color: red; }
 
