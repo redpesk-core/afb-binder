@@ -793,7 +793,7 @@ static void start(int signum, void *arg)
 	}
 
 	rc = wrap_json_unpack(main_config, "{"
-			"ss ss s?s"
+			"ss ss"
 			"si si si"
 			"s?o"
 			"}",
