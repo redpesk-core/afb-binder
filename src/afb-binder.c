@@ -1002,7 +1002,8 @@ int main(int argc, char *argv[])
 
 	// ------------- Build session handler & init config -------
 	main_config = json_object_new_object();
-	afb_binder_opts_parse(argc, argv, main_config);
+	afb_binder_opts_parse_initial(argc, argv, main_config);
+	afb_binder_opts_parse_final(argc, argv, main_config);
 
 	if (afb_sig_monitor_init(
 		!json_object_object_get_ex(main_config, "trap-faults", &obj)
@@ -1036,4 +1037,3 @@ int main(int argc, char *argv[])
 	WARNING("hoops returned from jobs_enter! [report bug]");
 	return 1;
 }
-

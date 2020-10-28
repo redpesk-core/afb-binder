@@ -96,6 +96,7 @@
 #define ADD_LDPATH          10
 #define ADD_WEAK_LDPATH     11
 #endif
+
 #define SET_API_TIMEOUT     13
 #define SET_SESSION_TIMEOUT 14
 
@@ -117,6 +118,7 @@
 
 #define SET_TRAP_FAULTS     27
 #define ADD_CALL            28
+
 #if WITH_DBUS_TRANSPARENCY
 #   define ADD_DBUS_CLIENT  30
 #   define ADD_DBUS_SERVICE 31
@@ -701,186 +703,6 @@ static void set_color_value(const char *value)
 /*---------------------------------------------------------
  |   Parse option and launch action
  +--------------------------------------------------------- */
-static int dodump;
-
-static error_t parsecb(int key, char *value, struct argp_state *state)
-{
-	const char *cval;
-	struct json_object *conf;
-	struct json_object *config = state->input;
-
-	switch (key) {
-	case SET_VERBOSE:
-		verbose_inc();
-		break;
-
-	case SET_COLOR:
-		cval = normal_color_value(value);
-		if (!cval) {
-			ERROR("Unknown color value %s", value);
-			exit(1);
-		}
-		config_set_optstr(config, SET_COLOR, cval);
-		set_color_value(cval);
-		break;
-
-	case SET_QUIET:
-		verbose_dec();
-		break;
-
-	case SET_LOG:
-		set_log(value);
-		break;
-
-	case SET_PORT:
-		config_set_optint(config, key, value, 1024, 32767);
-		break;
-
-	case SET_API_TIMEOUT:
-	case SET_SESSION_TIMEOUT:
-#if WITH_LIBMICROHTTPD
-	case SET_CACHE_TIMEOUT:
-#endif
-		config_set_optint(config, key, value, 0, INT_MAX);
-		break;
-
-	case SET_SESSIONMAX:
-		config_set_optint(config, key, value, 1, INT_MAX);
-		break;
-
-	case SET_ROOT_DIR:
-#if WITH_LIBMICROHTTPD
-	case SET_ROOT_HTTP:
-	case SET_ROOT_BASE:
-	case SET_ROOT_API:
-	case SET_UPLOAD_DIR:
-#endif
-	case SET_WORK_DIR:
-	case SET_NAME:
-		config_set_optstr(config, key, value);
-		break;
-
-#if WITH_DBUS_TRANSPARENCY
-	case ADD_DBUS_CLIENT:
-	case ADD_DBUS_SERVICE:
-#endif
-#if WITH_LIBMICROHTTPD
-	case ADD_ALIAS:
-#endif
-#if WITH_DYNAMIC_BINDING
-#if WITH_DIRENT
-	case ADD_LDPATH:
-	case ADD_WEAK_LDPATH:
-#endif
-	case ADD_BINDING:
-#endif
-	case ADD_CALL:
-	case ADD_WS_CLIENT:
-	case ADD_WS_SERVICE:
-	case ADD_AUTO_API:
-	case ADD_INTERFACE:
-		config_add_optstr(config, key, value);
-		break;
-
-	case ADD_SET:
-		config_mix2_optstr(config, key, value);
-		break;
-
-#if WITH_MONITORING
-	case SET_MONITORING:
-#endif
-#if WITH_LIBMICROHTTPD
-	case SET_NO_HTTPD:
-#endif
-#if WITH_MONITORING || WITH_LIBMICROHTTPD
-		config_set_bool(config, key, 1);
-		break;
-#endif
-
-	case SET_FOREGROUND:
-	case SET_BACKGROUND:
-	case SET_DAEMON:
-		config_set_bool(config, SET_DAEMON, key != SET_FOREGROUND);
-		break;
-
-	case SET_TRAP_FAULTS:
-		config_set_bool(config, key, get_arg_bool(key, value));
-		break;
-
-
-#if WITH_AFB_HOOK
-	case SET_TRACEREQ:
-		config_set_optenum(config, key, value, afb_hook_flags_req_from_text);
-		break;
-
-	case SET_TRACEEVT:
-		config_set_optenum(config, key, value, afb_hook_flags_evt_from_text);
-		break;
-
-	case SET_TRACESES:
-		config_set_optenum(config, key, value, afb_hook_flags_session_from_text);
-		break;
-
-	case SET_TRACEAPI:
-		config_set_optenum(config, key, value, afb_hook_flags_api_from_text);
-		break;
-
-	case SET_TRACEGLOB:
-		config_set_optenum(config, key, value, afb_hook_flags_global_from_text);
-		break;
-
-#endif
-
-	case SET_EXEC:
-		state->quoted = 1;
-		while (state->next < state->argc) {
-			config_add_str(config, key, state->argv[state->next++]);
-		}
-		break;
-
-	case SET_CONFIG:
-		conf = json_object_from_file(value);
-		if (!conf) {
-			ERROR("Can't read config file %s", value);
-			exit(1);
-		}
-		wrap_json_object_add(config, conf);
-		json_object_put(conf);
-		break;
-
-	case DUMP_CONFIG:
-		dodump = 1;
-		break;
-
-	default:
-		return ARGP_ERR_UNKNOWN;
-	}
-	return 0;
-}
-
-static void parse_arguments(int argc, char **argv, struct json_object *config)
-{
-	struct argp argp;
-	int flags;
-
-	dodump = 0;
-	argp.options = optdefs;
-	argp.parser = parsecb;
-	argp.args_doc = "[--exec program args...]";
-	argp.doc = docstring;
-	argp.children = 0;
-	argp.help_filter = 0;
-	argp.argp_domain = 0;
-	argp_program_version = version;
-	flags = ARGP_IN_ORDER;
-	argp_parse(&argp, argc, argv, flags, 0, config);
-
-	if (dodump) {
-		dump(config, stdout, NULL, NULL);
-		exit(0);
-	}
-}
-
 static void fulfill_config(struct json_object *config)
 {
 	char *logging;
@@ -909,6 +731,9 @@ static void fulfill_config(struct json_object *config)
 #endif
 }
 
+/*---------------------------------------------------------
+ |   Manage environment
+ +--------------------------------------------------------- */
 #if WITH_ENVIRONMENT
 static void on_environment(struct json_object *config, int optid, const char *name, void (*func)(struct json_object*, int, const char*))
 {
@@ -963,7 +788,7 @@ static void on_environment_int(struct json_object *config, int optid, const char
 	}
 }
 
-static void parse_environment(struct json_object *config)
+static void parse_environment_initial(struct json_object *config)
 {
 	on_environment_basic("AFB_LOG", set_log);
 #if WITH_AFB_HOOK
@@ -983,17 +808,248 @@ static void parse_environment(struct json_object *config)
 	on_environment_int(config, SET_PORT, "AFB_SET_PORT");
 #endif
 }
+
 #endif
 
-int afb_binder_opts_parse(int argc, char **argv, struct json_object *config)
+/*---------------------------------------------------------
+ |   Parse options
+ +--------------------------------------------------------- */
+
+static error_t parsecb_initial(int key, char *value, struct argp_state *state)
 {
-#if WITH_ENVIRONMENT
-	parse_environment(config);
+	const char *cval;
+	struct json_object *conf;
+	struct json_object *config = state->input;
+
+	switch (key) {
+	case SET_VERBOSE:
+		verbose_inc();
+		break;
+
+	case SET_COLOR:
+		cval = normal_color_value(value);
+		if (!cval) {
+			ERROR("Unknown color value %s", value);
+			exit(1);
+		}
+		config_set_optstr(config, SET_COLOR, cval);
+		set_color_value(cval);
+		break;
+
+	case SET_QUIET:
+		verbose_dec();
+		break;
+
+	case SET_LOG:
+		set_log(value);
+		break;
+
+	case SET_TRAP_FAULTS:
+		config_set_bool(config, key, get_arg_bool(key, value));
+		break;
+
+#if WITH_AFB_HOOK
+	case SET_TRACEREQ:
+		config_set_optenum(config, key, value, afb_hook_flags_req_from_text);
+		break;
+
+	case SET_TRACEEVT:
+		config_set_optenum(config, key, value, afb_hook_flags_evt_from_text);
+		break;
+
+	case SET_TRACESES:
+		config_set_optenum(config, key, value, afb_hook_flags_session_from_text);
+		break;
+
+	case SET_TRACEAPI:
+		config_set_optenum(config, key, value, afb_hook_flags_api_from_text);
+		break;
+
+	case SET_TRACEGLOB:
+		config_set_optenum(config, key, value, afb_hook_flags_global_from_text);
+		break;
 #endif
-	parse_arguments(argc, argv, config);
+	case SET_CONFIG:
+		conf = json_object_from_file(value);
+		if (!conf) {
+			ERROR("Can't read config file %s", value);
+			exit(1);
+		}
+		wrap_json_object_add(config, conf);
+		json_object_put(conf);
+		break;
+
+	case SET_EXEC:
+		state->quoted = 1;
+		break;
+
+	default:
+		break;
+	}
+	return 0;
+}
+
+static char dodump;
+
+static error_t parsecb_final(int key, char *value, struct argp_state *state)
+{
+	struct json_object *config = state->input;
+
+	switch (key) {
+	/* keys processed initially */
+	case SET_VERBOSE:
+	case SET_COLOR:
+	case SET_QUIET:
+	case SET_LOG:
+#if WITH_AFB_HOOK
+	case SET_TRACEREQ:
+	case SET_TRACEEVT:
+	case SET_TRACESES:
+	case SET_TRACEAPI:
+	case SET_TRACEGLOB:
+#endif
+	case SET_TRAP_FAULTS:
+	case SET_CONFIG:
+		break;
+
+	/* other keys */
+#if WITH_LIBMICROHTTPD
+	case SET_PORT:
+		config_set_optint(config, key, value, 1024, 32767);
+		break;
+
+	case SET_CACHE_TIMEOUT:
+		config_set_optint(config, key, value, 0, INT_MAX);
+		break;
+
+	case SET_ROOT_HTTP:
+	case SET_ROOT_BASE:
+	case SET_ROOT_API:
+	case SET_UPLOAD_DIR:
+		config_set_optstr(config, key, value);
+		break;
+
+	case ADD_ALIAS:
+		config_add_optstr(config, key, value);
+		break;
+
+	case SET_NO_HTTPD:
+		config_set_bool(config, key, 1);
+		break;
+#endif
+
+	case SET_API_TIMEOUT:
+	case SET_SESSION_TIMEOUT:
+		config_set_optint(config, key, value, 0, INT_MAX);
+		break;
+
+	case SET_SESSIONMAX:
+		config_set_optint(config, key, value, 1, INT_MAX);
+		break;
+
+	case SET_ROOT_DIR:
+	case SET_WORK_DIR:
+	case SET_NAME:
+		config_set_optstr(config, key, value);
+		break;
+
+#if WITH_DBUS_TRANSPARENCY
+	case ADD_DBUS_CLIENT:
+	case ADD_DBUS_SERVICE:
+#endif
+#if WITH_DYNAMIC_BINDING
+	case ADD_BINDING:
+#if WITH_DIRENT
+	case ADD_LDPATH:
+	case ADD_WEAK_LDPATH:
+#endif
+#endif
+	case ADD_CALL:
+	case ADD_WS_CLIENT:
+	case ADD_WS_SERVICE:
+	case ADD_AUTO_API:
+	case ADD_INTERFACE:
+		config_add_optstr(config, key, value);
+		break;
+
+	case ADD_SET:
+		config_mix2_optstr(config, key, value);
+		break;
+
+#if WITH_MONITORING
+	case SET_MONITORING:
+		config_set_bool(config, key, 1);
+		break;
+#endif
+
+	case SET_FOREGROUND:
+	case SET_BACKGROUND:
+	case SET_DAEMON:
+		config_set_bool(config, SET_DAEMON, key != SET_FOREGROUND);
+		break;
+
+
+	case SET_EXEC:
+		state->quoted = 1;
+		while (state->next < state->argc) {
+			config_add_str(config, key, state->argv[state->next++]);
+		}
+		break;
+
+	case DUMP_CONFIG:
+		dodump = 1;
+		break;
+
+	default:
+		return ARGP_ERR_UNKNOWN;
+	}
+	return 0;
+}
+
+int afb_binder_opts_parse_initial(int argc, char **argv, struct json_object *config)
+{
+	struct argp argp;
+	int flags;
+
+#if WITH_ENVIRONMENT
+	parse_environment_initial(config);
+#endif
+	argp.options = optdefs;
+	argp.parser = parsecb_initial;
+	argp.args_doc = "[--exec program args...]";
+	argp.doc = docstring;
+	argp.children = 0;
+	argp.help_filter = 0;
+	argp.argp_domain = 0;
+	argp_program_version = version;
+	flags = ARGP_IN_ORDER | ARGP_SILENT;
+	argp_parse(&argp, argc, argv, flags, 0, config);
+	return 0;
+}
+
+int afb_binder_opts_parse_final(int argc, char **argv, struct json_object *config)
+{
+	struct argp argp;
+	int flags;
+
+	dodump = 0;
+	argp.options = optdefs;
+	argp.parser = parsecb_final;
+	argp.args_doc = "[--exec program args...]";
+	argp.doc = docstring;
+	argp.children = 0;
+	argp.help_filter = 0;
+	argp.argp_domain = 0;
+	argp_program_version = version;
+	flags = ARGP_IN_ORDER;
+	argp_parse(&argp, argc, argv, flags, 0, config);
+
 	fulfill_config(config);
+	if (dodump) {
+		dump(config, stdout, NULL, NULL);
+		exit(0);
+	}
 	if (verbose_wants(Log_Level_Info))
 		dump(config, stderr, "--", "CONFIG");
 	return 0;
 }
-
