@@ -605,7 +605,7 @@ static void config_mix2_optstr(struct json_object *config, int optid, char *valu
 }
 
 /*---------------------------------------------------------
- |   set the log levels
+ |   set and get the log levels
  +--------------------------------------------------------- */
 
 static void set_log(const char *args)
@@ -653,6 +653,27 @@ static void set_log(const char *args)
 		}
 		break;
 	}
+}
+
+static char *get_log()
+{
+	int level;
+	char buffer[50];
+	size_t i;
+	const char *name;
+
+	i = 0;
+	for (level = Log_Level_Error ; level <= Log_Level_Debug ; level++) {
+		if (verbose_wants(level)) {
+			if (i > 0 && i < sizeof buffer - 1)
+				buffer[i++] = '+';
+			name = verbose_name_of_level(level);
+			while (*name && i < sizeof buffer - 1)
+				buffer[i++] = *name++;
+		}
+	}
+	buffer[i] = 0;
+	return strdup(buffer);
 }
 
 /*---------------------------------------------------------
@@ -833,6 +854,7 @@ static void parse_arguments(int argc, char **argv, struct json_object *config)
 
 static void fulfill_config(struct json_object *config)
 {
+	char *logging;
 	int i;
 
 	for (i = 0 ; i < sizeof default_optint_values / sizeof * default_optint_values ; i++)
@@ -842,6 +864,10 @@ static void fulfill_config(struct json_object *config)
 	for (i = 0 ; i < sizeof default_optstr_values / sizeof * default_optstr_values ; i++)
 		if (!config_has(config, default_optstr_values[i].optid))
 			config_set_str(config, default_optstr_values[i].optid, default_optstr_values[i].valdef);
+
+	logging = get_log();
+	config_set_str(config, SET_LOG, logging);
+	free(logging);
 
 #if WITH_LIBMICROHTTPD
 	if (!config_has(config, SET_PORT) && !config_has(config, ADD_INTERFACE) && !config_has_bool(config, SET_NO_HTTPD))
