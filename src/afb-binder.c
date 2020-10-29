@@ -761,9 +761,6 @@ static void start(int signum, void *arg)
 #if WITH_AFB_HOOK
 	const char *tracereq = NULL, *traceapi = NULL, *traceevt = NULL;
 	const char *traceses = NULL, *traceglob = NULL;
-#if !defined(REMOVE_LEGACY_TRACE)
-	const char *tracesvc = NULL, *traceditf = NULL;
-#endif
 #endif
 	const char *workdir = NULL, *rootdir = NULL;
 	struct json_object *settings = NULL;
@@ -822,16 +819,9 @@ static void start(int signum, void *arg)
 
 #if WITH_AFB_HOOK
 	rc = wrap_json_unpack(main_config, "{"
-#if !defined(REMOVE_LEGACY_TRACE)
-			"s?s s?s"
-#endif
 			"s?s s?s s?s s?s s?s"
 			"}",
 
-#if !defined(REMOVE_LEGACY_TRACE)
-			"tracesvc", &tracesvc,
-			"traceditf", &traceditf,
-#endif
 			"tracereq", &tracereq,
 			"traceapi", &traceapi,
 			"traceevt", &traceevt,
@@ -906,15 +896,8 @@ static void start(int signum, void *arg)
 	/* install hooks */
 	if (tracereq)
 		afb_hook_create_req(NULL, NULL, NULL, afb_hook_flags_req_from_text(tracereq), NULL, NULL);
-#if !defined(REMOVE_LEGACY_TRACE)
-	if (traceapi || tracesvc || traceditf)
-		afb_hook_create_api(NULL, afb_hook_flags_api_from_text(traceapi)
-			| afb_hook_flags_legacy_ditf_from_text(traceditf)
-			| afb_hook_flags_legacy_svc_from_text(tracesvc), NULL, NULL);
-#else
 	if (traceapi)
 		afb_hook_create_api(NULL, afb_hook_flags_api_from_text(traceapi), NULL, NULL);
-#endif
 	if (traceevt)
 		afb_hook_create_evt(NULL, afb_hook_flags_evt_from_text(traceevt), NULL, NULL);
 	if (traceses)

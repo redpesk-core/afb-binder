@@ -114,10 +114,7 @@
 #define SET_TRACEREQ        22
 #define SET_TRACEAPI        23
 #define SET_TRACEGLOB       24
-#if !defined(REMOVE_LEGACY_TRACE)
-#define SET_TRACEDITF       25
-#define SET_TRACESVC        26
-#endif
+
 #define SET_TRAP_FAULTS     27
 #define ADD_CALL            28
 #if WITH_DBUS_TRANSPARENCY
@@ -209,10 +206,6 @@ static const struct argp_option optdefs[] = {
 	{ .name="traceses",    .key=SET_TRACESES,        .arg="VALUE", .doc="Log the sessions: none, all" },
 	{ .name="traceapi",    .key=SET_TRACEAPI,        .arg="VALUE", .doc="Log the apis: none, common, api, event, all" },
 	{ .name="traceglob",   .key=SET_TRACEGLOB,       .arg="VALUE", .doc="Log the globals: none, all" },
-#if !defined(REMOVE_LEGACY_TRACE)
-	{ .name="traceditf",   .key=SET_TRACEDITF,       .arg="VALUE", .doc="Log the daemons: no, common, all" },
-	{ .name="tracesvc",    .key=SET_TRACESVC,        .arg="VALUE", .doc="Log the services: no, all" },
-#endif
 #endif
 
 	{ .name="call",        .key=ADD_CALL,            .arg="CALLSPEC", .doc="Call at start, format of val: API/VERB:json-args" },
@@ -786,15 +779,6 @@ static error_t parsecb(int key, char *value, struct argp_state *state)
 		config_set_optenum(config, key, value, afb_hook_flags_global_from_text);
 		break;
 
-#if !defined(REMOVE_LEGACY_TRACE)
-	case SET_TRACEDITF:
-		config_set_optenum(config, key, value, afb_hook_flags_legacy_ditf_from_text);
-		break;
-
-	case SET_TRACESVC:
-		config_set_optenum(config, key, value, afb_hook_flags_legacy_svc_from_text);
-		break;
-#endif
 #endif
 
 	case SET_EXEC:
@@ -868,10 +852,6 @@ static void fulfill_config(struct json_object *config)
 	if (config_has_bool(config, SET_MONITORING) && !config_has_str(config, ADD_ALIAS, MONITORING_ALIAS))
 		config_add_str(config, ADD_ALIAS, MONITORING_ALIAS);
 #endif
-
-#if !defined(REMOVE_LEGACY_TRACE) && 0
-	config->traceapi |= config->traceditf | config->tracesvc;
-#endif
 }
 
 #if WITH_ENVIRONMENT
@@ -937,10 +917,6 @@ static void parse_environment(struct json_object *config)
 	on_environment_enum(config, SET_TRACESES, "AFB_TRACESES", afb_hook_flags_session_from_text);
 	on_environment_enum(config, SET_TRACEAPI, "AFB_TRACEAPI", afb_hook_flags_api_from_text);
 	on_environment_enum(config, SET_TRACEGLOB, "AFB_TRACEGLOB", afb_hook_flags_global_from_text);
-#if !defined(REMOVE_LEGACY_TRACE)
-	on_environment_enum(config, SET_TRACEDITF, "AFB_TRACEDITF", afb_hook_flags_legacy_ditf_from_text);
-	on_environment_enum(config, SET_TRACESVC, "AFB_TRACESVC", afb_hook_flags_legacy_svc_from_text);
-#endif
 #endif
 #if WITH_DYNAMIC_BINDING && WITH_DIRENT
 	on_environment(config, ADD_LDPATH, "AFB_LDPATHS", config_add_str);
