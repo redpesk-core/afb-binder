@@ -153,7 +153,7 @@
 static const struct argp_option optdefs[] = {
 /* *INDENT-OFF* */
 	{ .name="verbose",     .key=SET_VERBOSE,         .arg=0, .doc="Verbose Mode, repeat to increase verbosity" },
-	{ .name="color",       .key=SET_COLOR,           .arg=0, .doc="Colorize the ouput" },
+	{ .name="color",       .key=SET_COLOR,           .arg="VALUE", .flags=OPTION_ARG_OPTIONAL, .doc="Colorize the ouput" },
 	{ .name="quiet",       .key=SET_QUIET,           .arg=0, .doc="Quiet Mode, repeat to decrease verbosity" },
 	{ .name="log",         .key=SET_LOG,             .arg="LOGSPEC", .doc="Tune log level" },
 
@@ -556,7 +556,7 @@ static int get_arg_bool(int optid, char *svalue)
 	return value;
 }
 
-static void config_set_optstr(struct json_object *config, int optid, char *value)
+static void config_set_optstr(struct json_object *config, int optid, const char *value)
 {
 	config_set_str(config, optid, value);
 }
@@ -677,12 +677,35 @@ static char *get_log()
 }
 
 /*---------------------------------------------------------
+ |   manage color value
+ +--------------------------------------------------------- */
+
+static const char color_values[] = "yes\0no\0auto";
+
+static const char *normal_color_value(const char *value)
+{
+	if (!value || !strcmp(value, &color_values[0]))
+		return &color_values[0];
+	if (!strcmp(value, &color_values[4]))
+		return &color_values[4];
+	if (!strcmp(value, &color_values[7]))
+		return &color_values[7];
+	return 0;
+}
+
+static void set_color_value(const char *value)
+{
+	verbose_colorize(*value == 'y' ? 1 : *value == 'n' ? 0 : -1);
+}
+
+/*---------------------------------------------------------
  |   Parse option and launch action
  +--------------------------------------------------------- */
 static int dodump;
 
 static error_t parsecb(int key, char *value, struct argp_state *state)
 {
+	const char *cval;
 	struct json_object *conf;
 	struct json_object *config = state->input;
 
@@ -692,7 +715,13 @@ static error_t parsecb(int key, char *value, struct argp_state *state)
 		break;
 
 	case SET_COLOR:
-		verbose_colorize();
+		cval = normal_color_value(value);
+		if (!cval) {
+			ERROR("Unknown color value %s", value);
+			exit(1);
+		}
+		config_set_optstr(config, SET_COLOR, cval);
+		set_color_value(cval);
 		break;
 
 	case SET_QUIET:
