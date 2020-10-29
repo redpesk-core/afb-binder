@@ -43,6 +43,7 @@
 #endif
 
 #include "afb-binder-opts.h"
+#include <libafb/extend/afb-extend.h>
 
 #define _d2s_(x)  #x
 #define d2s(x)    _d2s_(x)
@@ -151,6 +152,8 @@
 #define GET_VERSION        'V'
 #define SET_VERBOSE        'v'
 #define SET_WORK_DIR       'w'
+#define ADD_EXTENSION      'x'
+#define ADD_EXTPATH        'X'
 #define DUMP_CONFIG        'Z'
 
 
@@ -192,6 +195,13 @@ static const struct argp_option optdefs[] = {
 #if WITH_DIRENT
 	{ .name="ldpaths",     .key=ADD_LDPATH,          .arg="PATHSET", .doc="Load bindings from dir1:dir2:..." },
 	{ .name="weak-ldpaths",.key=ADD_WEAK_LDPATH,     .arg="PATHSET", .doc="Same as --ldpaths but errors are not fatal" },
+#endif
+#endif
+
+#if WITH_EXTENSION
+	{ .name="extension",   .key=ADD_EXTENSION,       .arg="FILENAME", .doc="Load the extension of path"},
+#if WITH_DIRENT
+	{ .name="extpaths",    .key=ADD_EXTPATH,         .arg="PATHSET", .doc="Load extensions from dir1:dir2:..."},
 #endif
 #endif
 
@@ -811,6 +821,9 @@ static void parse_environment_initial(struct json_object *config)
 	on_environment(config, ADD_LDPATH, "AFB_LDPATHS", config_add_str);
 	on_environment(config, ADD_WEAK_LDPATH, "AFB_WEAK_LDPATHS", config_add_str);
 #endif
+#if WITH_EXTENSION && WITH_DIRENT
+	on_environment(config, ADD_EXTPATH, "AFB_EXTPATH", config_add_str);
+#endif
 	on_environment(config, ADD_SET, "AFB_SET", config_mix2_str);
 	on_environment_bool(config, SET_TRAP_FAULTS, "AFB_TRAP_FAULTS");
 #if WITH_LIBMICROHTTPD
@@ -852,6 +865,15 @@ static error_t parsecb_initial(int key, char *value, struct argp_state *state)
 	case SET_LOG:
 		set_log(value);
 		break;
+
+#if WITH_EXTENSION
+	case ADD_EXTENSION:
+#if WITH_DIRENT
+	case ADD_EXTPATH:
+#endif
+		config_add_optstr(config, key, value);
+		break;
+#endif
 
 	case SET_TRAP_FAULTS:
 		config_set_bool(config, key, get_arg_bool(key, value));
@@ -898,18 +920,41 @@ static error_t parsecb_initial(int key, char *value, struct argp_state *state)
 	return 0;
 }
 
-static char dodump;
+struct children_data {
+	const struct argp_option *options;
+	struct json_object *config;
+};
+
+struct final_data {
+	struct json_object *config;
+	struct children_data *children_data;
+	int nchildren;
+	int dodump;
+};
 
 static error_t parsecb_final(int key, char *value, struct argp_state *state)
 {
-	struct json_object *config = state->input;
+	int i;
+	struct final_data *data = state->input;
+	struct json_object *config = data->config;
 
 	switch (key) {
+	case ARGP_KEY_INIT:
+		for (i = 0 ; i < data->nchildren ; i++)
+			state->child_inputs[i] = &data->children_data[i];
+		break;
+
 	/* keys processed initially */
 	case SET_VERBOSE:
 	case SET_COLOR:
 	case SET_QUIET:
 	case SET_LOG:
+#if WITH_EXTENSION
+	case ADD_EXTENSION:
+#if WITH_DIRENT
+	case ADD_EXTPATH:
+#endif
+#endif
 #if WITH_AFB_HOOK
 	case SET_TRACEREQ:
 	case SET_TRACEEVT:
@@ -1008,13 +1053,40 @@ static error_t parsecb_final(int key, char *value, struct argp_state *state)
 		break;
 
 	case DUMP_CONFIG:
-		dodump = 1;
+		data->dodump = 1;
 		break;
 
 	default:
 		return ARGP_ERR_UNKNOWN;
 	}
 	return 0;
+}
+
+static error_t parsecb_extension(int key, char *value, struct argp_state *state)
+{
+	struct children_data *data = state->input;
+	struct json_object *config = data->config;
+	const struct argp_option *options = data->options;
+	struct json_object *a, *v;
+
+	if (!options)
+		return 0;
+	while(options->name) {
+		if (options->key == key) {
+			if (!json_object_object_get_ex(config, options->name, &a)) {
+				a = json_object_new_array();
+				json_object_object_add(config, options->name, a);
+			}
+			v = value ? json_object_new_string(value) : json_object_new_boolean(1);
+			json_object_array_add(a, v);
+			return 0;
+		}
+		options++;
+	}
+
+	return ARGP_ERR_UNKNOWN;
+	
+
 }
 
 int afb_binder_opts_parse_initial(int argc, char **argv, struct json_object *config)
@@ -1042,25 +1114,82 @@ int afb_binder_opts_parse_final(int argc, char **argv, struct json_object *confi
 {
 	struct argp argp;
 	int flags;
+	int next, iext, rc;
+	const struct argp_option **options;
+	const char **names;
+	struct argp_child *children;
+	struct argp *children_argp;
+	struct children_data *children_data;
+	struct json_object *root, *obj;
+	struct final_data data;
 
-	dodump = 0;
+	next = afb_extend_get_options(&options, &names);
+	if (next < 0) {
+		ERROR("Can't get options of extensions");
+		exit(1);
+	}
+	if (next == 0) {
+		children = 0;
+		children_argp = 0;
+		children_data = 0;
+	} else {
+		children = calloc(1 + next, sizeof *children);
+		children_argp = calloc(next, sizeof *children_argp);
+		children_data = calloc(next, sizeof *children_data);
+		if (!children || !children_argp || !children_data)
+			rc = -1;
+		else {
+			if (!json_object_object_get_ex(config, "@extconfig", &root)) {
+				root = json_object_new_object();
+				json_object_object_add(config, "@extconfig", root);
+			}
+			for (rc = iext = 0 ; rc >= 0 && iext < next ; iext++) {
+				children[iext].argp = &children_argp[iext];
+				rc = asprintf((char**)&children[iext].header, "===== EXTENSION %s =====", names[iext]);
+				children_argp[iext].options = options[iext];
+				children_argp[iext].parser = parsecb_extension;
+				if (!json_object_object_get_ex(root, names[iext], &obj)) {
+					obj = json_object_new_object();
+					json_object_object_add(root, names[iext], obj);
+				}
+				children_data[iext].options = children_argp[iext].options;
+				children_data[iext].config = obj;
+			}
+		}
+		if (rc < 0) {
+			ERROR("Unable to process options of extensions");
+			exit(1);
+		}
+	}
+
+	data.config = config;
+	data.children_data = children_data;
+	data.nchildren = next;
+	data.dodump = 0;
+
 	argp.options = optdefs;
 	argp.parser = parsecb_final;
 	argp.args_doc = "[--exec program args...]";
 	argp.doc = docstring;
-	argp.children = 0;
+	argp.children = children;
 	argp.help_filter = 0;
 	argp.argp_domain = 0;
 	argp_program_version = version;
 	flags = ARGP_IN_ORDER;
-	argp_parse(&argp, argc, argv, flags, 0, config);
+	argp_parse(&argp, argc, argv, flags, 0, &data);
 
 	fulfill_config(config);
-	if (dodump) {
+	if (data.dodump) {
 		dump(config, stdout, NULL, NULL);
 		exit(0);
 	}
 	if (verbose_wants(Log_Level_Info))
 		dump(config, stderr, "--", "CONFIG");
+
+	for (iext = 0 ; iext < next ; iext++)
+		free((char**)children[iext].header);
+	free(children);
+	free(children_argp);
+	free(children_data);
 	return 0;
 }

@@ -38,6 +38,7 @@
 
 #include <json-c/json.h>
 #include "afb-binder-opts.h"
+#include <libafb/extend/afb-extend.h>
 
 #if WITH_CALL_PERSONALITY
 #include <sys/personality.h>
@@ -906,6 +907,11 @@ static void start(int signum, void *arg)
 		afb_hook_create_global(afb_hook_flags_global_from_text(traceglob), NULL, NULL);
 #endif
 
+#if WITH_EXTENSION
+	/* prepare extensions */
+	afb_extend_config(main_config);
+#endif
+
 	/* load bindings and apis */
 #if WITH_AFB_DEBUG
 	afb_debug("start-load");
@@ -922,6 +928,10 @@ static void start(int signum, void *arg)
 	apiset_start_list("dbus-client", afb_api_dbus_add_client, "the afb-dbus client");
 #endif
 	apiset_start_list("ws-client", afb_api_ws_add_client_weak, "the afb-websocket client");
+#if WITH_EXTENSION
+	/* declare extensions */
+	afb_extend_declare(main_apiset, main_apiset);
+#endif
 
 	DEBUG("Init config done");
 
@@ -939,6 +949,10 @@ static void start(int signum, void *arg)
 	apiset_start_list("ws-server", afb_api_ws_add_server, "the afb-websocket service");
 #if WITH_DBUS_TRANSPARENCY
 	apiset_start_list("dbus-server", afb_api_dbus_add_server, "the afb-dbus service");
+#endif
+#if WITH_EXTENSION
+	/* start extensions */
+	afb_extend_serve(main_apiset);
 #endif
 
 	/* start the HTTP server */
@@ -1004,6 +1018,12 @@ int main(int argc, char *argv[])
 	// ------------- Build session handler & init config -------
 	main_config = json_object_new_object();
 	afb_binder_opts_parse_initial(argc, argv, main_config);
+
+#if WITH_EXTENSION
+	/* load extensions */
+	afb_extend_load(main_config);
+#endif
+
 	afb_binder_opts_parse_final(argc, argv, main_config);
 
 	if (afb_sig_monitor_init(

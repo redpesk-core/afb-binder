@@ -34,7 +34,10 @@ include_directories(
 	${libafb_INCLUDE_DIRS}
 )
 
-add_executable(afb-binder afb-binder.c afb-binder-opts.c)
+add_executable(afb-binder
+	afb-binder.c
+	afb-binder-opts.c
+)
 
 target_link_libraries(afb-binder
 	${json-c_LDFLAGS}

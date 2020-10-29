@@ -39,6 +39,7 @@ INCLUDE(GNUInstallDirs)
 # possible settings
 
 option(WITH_MONITORING            "Activates installation of monitoring"   ON)
+option(WITH_EXTENSION             "Activates installation of extensions"   ON)
 option(PROVIDE_AFB_DAEMON         "Provide afb-daemon compatibility items" OFF)
 
 set(DATADIR                ${CMAKE_INSTALL_FULL_DATADIR}/afb-binder CACHE STRING "Path to datadir")
