@@ -483,7 +483,7 @@ static void wait_child(int signum, void* arg)
 		if (!SELF_PGROUP)
 			killpg(pidchld, SIGKILL);
 		waitpid(pidchld, NULL, 0);
-		afb_sched_exit(exit_at_end);
+		afb_sched_exit(0, exit_at_end);
 	} else {
 		waitpid(pid, NULL, 0);
 	}
