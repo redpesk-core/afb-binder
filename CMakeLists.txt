@@ -44,6 +44,11 @@ option(PROVIDE_AFB_DAEMON         "Provide afb-daemon compatibility items" OFF)
 set(DATADIR                ${CMAKE_INSTALL_FULL_DATADIR}/afb-binder CACHE STRING "Path to datadir")
 set(MONITORING_INSTALL_DIR ${DATADIR}/monitoring CACHE STRING "Path to install monitoring")
 
+set(DEFAULT_JOBS_MIN      10 CACHE STRING "Default minimum count of jobs queueable")
+set(DEFAULT_JOBS_MAX     200 CACHE STRING "Default maximum count of jobs queueable")
+set(DEFAULT_THREADS_MIN    1 CACHE STRING "Default minimum count of managed threads")
+set(DEFAULT_THREADS_MAX    1 CACHE STRING "Default maximum count of managed threads")
+
 ###########################################################################
 
 link_libraries(-Wl,--as-needed -Wl,--gc-sections -Wl,--no-undefined)
@@ -73,7 +78,13 @@ set(CMAKE_C_FLAGS_COVERAGE     "-g -O2 --coverage")
 PKG_CHECK_MODULES(json-c REQUIRED json-c)
 PKG_CHECK_MODULES(libafb REQUIRED libafb)
 
-ADD_DEFINITIONS(-DAFB_VERSION="${PROJECT_VERSION}")
+ADD_DEFINITIONS(
+	-DAFB_VERSION="${PROJECT_VERSION}"
+	-DDEFAULT_JOBS_MIN=${DEFAULT_JOBS_MIN}
+	-DDEFAULT_JOBS_MAX=${DEFAULT_JOBS_MAX}
+	-DDEFAULT_THREADS_MIN=${DEFAULT_THREADS_MIN}
+	-DDEFAULT_THREADS_MAX=${DEFAULT_THREADS_MAX}
+)
 
 add_subdirectory(src)
 

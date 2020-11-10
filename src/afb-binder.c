@@ -995,6 +995,7 @@ error:
 int main(int argc, char *argv[])
 {
 	struct json_object *obj;
+	int njobs, nthr;
 
 #if WITH_AFB_DEBUG
 	afb_debug("main-entry");
@@ -1032,8 +1033,21 @@ int main(int argc, char *argv[])
 	afb_debug("main-start");
 #endif
 
+	njobs = DEFAULT_JOBS_MAX;
+	if (json_object_object_get_ex(main_config, "jobs-max", &obj)) {
+		njobs = json_object_get_int(obj);
+		if (njobs < DEFAULT_JOBS_MIN)
+			njobs = DEFAULT_JOBS_MIN;
+	}
+	nthr = DEFAULT_THREADS_MAX;
+	if (json_object_object_get_ex(main_config, "threads-max", &obj)) {
+		nthr = json_object_get_int(obj);
+		if (nthr < DEFAULT_THREADS_MIN)
+			nthr = DEFAULT_THREADS_MIN;
+	}
+
 	/* enter job processing */
-	afb_sched_start(3, 0, 2000, start, NULL);
+	afb_sched_start(nthr, 0, njobs, start, NULL);
 	WARNING("hoops returned from jobs_enter! [report bug]");
 	return 1;
 }
