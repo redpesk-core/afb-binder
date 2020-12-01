@@ -44,6 +44,7 @@ option(PROVIDE_AFB_DAEMON         "Provide afb-daemon compatibility items" OFF)
 
 set(DATADIR                ${CMAKE_INSTALL_FULL_DATADIR}/afb-binder CACHE STRING "Path to datadir")
 set(MONITORING_INSTALL_DIR ${DATADIR}/monitoring CACHE STRING "Path to install monitoring")
+set(DEVTOOLS_INSTALL_DIR   ${CMAKE_INSTALL_FULL_DATADIR}/afb-ui-devtools/binder CACHE STRING "Path to devtools")
 
 set(DEFAULT_JOBS_MIN      10 CACHE STRING "Default minimum count of jobs queueable")
 set(DEFAULT_JOBS_MAX     200 CACHE STRING "Default maximum count of jobs queueable")

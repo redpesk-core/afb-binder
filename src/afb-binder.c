@@ -363,6 +363,17 @@ static int init_http_server(struct afb_hsrv *hsrv)
 	if (run_for_config_array_opt("alias", init_alias, hsrv))
 		return 0;
 
+	/*
+	 * TODO: access is used here because add_alias would print an error
+	 * if the directory doesn't exist. It could be cool to have a lazy
+	 * or weak option allowing to add an alias on some not still existing
+	 * path
+	 */
+	if (access(DEVTOOLS_INSTALL_DIR, R_OK) == 0) {
+		if (!add_alias(hsrv, "/devtools", DEVTOOLS_INSTALL_DIR, 0, 1))
+			return 0;
+	}
+
 	if (roothttp != NULL) {
 		if (!add_alias(hsrv, "", roothttp, -10, 1))
 			return 0;
