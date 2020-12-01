@@ -314,6 +314,16 @@ static void daemonize()
  |   Handles the HTTP server
  +--------------------------------------------------------- */
 #if WITH_LIBMICROHTTPD
+
+static int add_alias(struct afb_hsrv *hsrv, const char *prefix, const char *alias, int priority, int relax)
+{
+#if WITH_OPENAT
+	return afb_hsrv_add_alias(hsrv, prefix, afb_common_rootdir_get_fd(), alias, priority, relax);
+#else
+	return afb_hsrv_add_alias_path(hsrv, prefix, afb_common_rootdir_get_path(), alias, priority, relax);
+#endif
+}
+
 static int init_alias(void *closure, const char *spec)
 {
 	struct afb_hsrv *hsrv = closure;
@@ -325,13 +335,7 @@ static int init_alias(void *closure, const char *spec)
 	}
 	*path++ = 0;
 	INFO("Alias for url=%s to path=%s", spec, path);
-#if WITH_OPENAT
-	return afb_hsrv_add_alias(hsrv, spec, afb_common_rootdir_get_fd(), path,
-				  0, 1);
-#else
-	return afb_hsrv_add_alias_path(hsrv, spec, afb_common_rootdir_get_path(), path,
-				  0, 1);
-#endif
+	return add_alias(hsrv, spec, path, 0, 1);
 }
 
 static int init_http_server(struct afb_hsrv *hsrv)
@@ -361,13 +365,7 @@ static int init_http_server(struct afb_hsrv *hsrv)
 		return 0;
 
 	if (roothttp != NULL) {
-#if WITH_OPENAT
-		if (!afb_hsrv_add_alias(hsrv, "",
-			afb_common_rootdir_get_fd(), roothttp, -10, 1))
-#else
-		if (!afb_hsrv_add_alias_path(hsrv, "",
-			afb_common_rootdir_get_path(), roothttp, -10, 1))
-#endif
+		if (!add_alias(hsrv, "", roothttp, -10, 1))
 			return 0;
 	}
 
