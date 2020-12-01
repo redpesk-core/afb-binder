@@ -60,7 +60,6 @@
 #include <libafb/core/afb-v4.h>
 #include <libafb/core/afb-json-legacy.h>
 
-#include <libafb/core/afb-jobs.h>
 #include <libafb/core/afb-sched.h>
 #include <libafb/core/afb-sig-monitor.h>
 #include <libafb/core/containerof.h>
@@ -495,7 +494,7 @@ static void on_sigchld(int signum, siginfo_t *info, void *uctx)
 		case CLD_EXITED:
 		case CLD_KILLED:
 		case CLD_DUMPED:
-			afb_jobs_queue(0, 0, wait_child, (void*)(intptr_t)info->si_pid);
+			afb_sched_post_job(0, 0, 0, wait_child, (void*)(intptr_t)info->si_pid);
 		default:
 			break;
 		}
