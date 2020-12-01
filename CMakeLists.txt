@@ -28,7 +28,7 @@ set(PROJECT_NAME afb-binder)
 set(PROJECT_PRETTY_NAME "Application Framework Binder")
 set(PROJECT_DESCRIPTION "Secured binder of API for clients of the Application framework")
 set(PROJECT_VERSION 4.0.0alpha)
-set(PROJECT_URL "https://github.com/redpesk/afb-libafb")
+set(PROJECT_URL "https://github.com/redpesk-core/afb-libafb")
 set(PROJECT_LANGUAGE C)
 
 

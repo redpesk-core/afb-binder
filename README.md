@@ -3,7 +3,7 @@
 This project provides the binder component of the microservice architecture
 for Application Framework.
 
-This project is available here <https://github.com/redpesk/afb-binder>.
+This project is available here <https://github.com/redpesk-core/afb-binder>.
 
 
 ## License and copying
@@ -19,7 +19,7 @@ on most Linux distributions.
 
 It requires the following libraries
 
-* libafb (<https://github.com/redpesk/afb-libafb>)
+* libafb (<https://github.com/redpesk-core/afb-libafb>)
 * json-c
 
 ### Simple compilation
@@ -29,7 +29,7 @@ The following commands will install the binder in your subdirectory
 *CMAKE_INSTALL_PREFIX* isn't set).
 
 ```sh
-git clone https://github.com/redpesk/afb-binder
+git clone https://github.com/redpesk-core/afb-binder
 cd afb-binder
 mkdir build
 cd build
@@ -40,7 +40,7 @@ make install
 or
 
 ```sh
-git clone https://github.com/redpesk/afb-binder
+git clone https://github.com/redpesk-core/afb-binder
 cd afb-binder
 ./mkbuild.sh -p $HOME/.local install
 ```
