@@ -392,7 +392,7 @@ static int add_interface(void *closure, const char *value)
 	int rc;
 
 	rc = afb_hsrv_add_interface(hsrv, value);
-	return rc > 0;
+	return rc >= 0;
 }
 
 static struct afb_hsrv *start_http_server()
