@@ -48,8 +48,10 @@ set(DEVTOOLS_INSTALL_DIR   ${CMAKE_INSTALL_FULL_DATADIR}/afb-ui-devtools/binder 
 
 set(DEFAULT_JOBS_MIN      10 CACHE STRING "Default minimum count of jobs queueable")
 set(DEFAULT_JOBS_MAX     200 CACHE STRING "Default maximum count of jobs queueable")
+
+# bench shew that 5 is minimal if synchronous calls are used, otherwise 1 is enought for asynchromous calls
 set(DEFAULT_THREADS_MIN    1 CACHE STRING "Default minimum count of managed threads")
-set(DEFAULT_THREADS_MAX    1 CACHE STRING "Default maximum count of managed threads")
+set(DEFAULT_THREADS_MAX    5 CACHE STRING "Default maximum count of managed threads")
 
 ###########################################################################
 
