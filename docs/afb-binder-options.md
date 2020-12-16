@@ -223,8 +223,8 @@ Forbids HTTP serve
 
 Must be the last option for afb-binder. The remaining
 arguments define a command that afb-binder will launch.
-The sequences @p, @t and @@ of the arguments are replaced
-with the port, the token and @.
+The sequences @p and @@ of the arguments are replaced
+with the port and @.
 
 ## tracereq=xxxx
 
@@ -289,7 +289,6 @@ Example:
 		--binding /home/15646/bindings/binding3.so \
 		--tracereq common \
 		--port 5555 \
-		--token SPYER \
 		--set api45/key:54027a5e3c6cb2ca5ddb97679ce32f185b067b0a557d16a8333758910bc25a72 \
 		--exec /home/15646/bin/test654 @p @t
 
@@ -307,7 +306,6 @@ when the file **/home/15646/config1** is:
 	  ],
 	  "tracereq": "common",
 	  "port": 5555,
-	  "token": "SPYER",
 	  "set" : {
 	    "api45": {
 	      "key": "54027a5e3c6cb2ca5ddb97679ce32f185b067b0a557d16a8333758910bc25a72"

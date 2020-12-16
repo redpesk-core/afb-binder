@@ -97,20 +97,10 @@ Here is that code:
 
 ```javascript
 /*
- * Copyright (C) 2017-2019 "IoT.bzh"
+ * Copyright (C) 2015-2020 IoT.bzh Company
  * Author: José Bollo <jose.bollo@iot.bzh>
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * SPDX-License-Identifier: LGPL-3.0-only
  */
 AFB = function(base, initialtoken){
 
@@ -119,7 +109,10 @@ if (typeof base != "object")
 
 var initial = {
    base: base.base || "api",
-   token: base.token || initialtoken || "HELLO",
+   token: initialtoken || base.token
+      || URLSearchParams(window.location.search).get('access_token')
+      || URLSearchParams(window.location.search).get('token')
+      || "HELLO",
    host: base.host || window.location.host,
    url: base.url || undefined
 };
@@ -165,12 +158,13 @@ var AFB_websocket;
    var PROTO1 = "x-afb-ws-json1";
 
    AFB_websocket = function(on_open, on_abort) {
-      var u = urlws;
+      var u = urlws, p = '?';
       if (AFB_context.token) {
          u = u + '?x-afb-token=' + AFB_context.token;
-         if (AFB_context.uuid)
-            u = u + '&x-afb-uuid=' + AFB_context.uuid;
+         p = '&';
       }
+      if (AFB_context.uuid)
+         u = u + p + 'x-afb-uuid=' + AFB_context.uuid;
       this.ws = new WebSocket(u, [ PROTO1 ]);
       this.url = u;
       this.pendings = {};
@@ -189,7 +183,7 @@ var AFB_websocket;
       if (f) {
          delete this.onopen;
          delete this.onabort;
-         f && f(this);
+         f(this);
       }
       this.onerror && this.onerror(this);
    }
@@ -202,8 +196,15 @@ var AFB_websocket;
    }
 
    function onclose(event) {
+      var err = {
+         jtype: 'afb-reply',
+         request: {
+            status:   'disconnected',
+            info: 'server hung up'
+         }
+      };
       for (var id in this.pendings) {
-         try { this.pendings[id][1](); } catch (x) {/*TODO?*/}
+         try { this.pendings[id][1](err); } catch (x) {/*NOTHING*/}
       }
       this.pendings = {};
       this.onclose && this.onclose();
@@ -212,16 +213,16 @@ var AFB_websocket;
    function fire(awaitens, name, data) {
       var a = awaitens[name];
       if (a)
-         a.forEach(function(handler){handler(data);});
+         a.forEach(function(handler){handler(data, name);});
       var i = name.indexOf("/");
       if (i >= 0) {
          a = awaitens[name.substring(0,i)];
          if (a)
-            a.forEach(function(handler){handler(data);});
+            a.forEach(function(handler){handler(data, name);});
       }
       a = awaitens["*"];
       if (a)
-         a.forEach(function(handler){handler(data);});
+         a.forEach(function(handler){handler(data, name);});
    }
 
    function reply(pendings, id, ans, offset) {
