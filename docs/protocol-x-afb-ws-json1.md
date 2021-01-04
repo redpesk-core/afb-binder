@@ -97,7 +97,7 @@ Here is that code:
 
 ```javascript
 /*
- * Copyright (C) 2015-2020 IoT.bzh Company
+ * Copyright (C) 2015-2021 IoT.bzh Company
  * Author: José Bollo <jose.bollo@iot.bzh>
  *
  * SPDX-License-Identifier: LGPL-3.0-only
