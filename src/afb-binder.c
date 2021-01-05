@@ -340,7 +340,7 @@ static int init_alias(void *closure, const char *spec)
 static int init_http_server(struct afb_hsrv *hsrv)
 {
 	int rc;
-	const char *rootapi, *roothttp, *rootbase;
+	const char *rootapi, *roothttp, *rootbase, *tmp;
 
 	roothttp = NULL;
 	rc = wrap_json_unpack(main_config, "{ss ss s?s}",
@@ -366,11 +366,20 @@ static int init_http_server(struct afb_hsrv *hsrv)
 	/*
 	 * TODO: access is used here because add_alias would print an error
 	 * if the directory doesn't exist. It could be cool to have a lazy
-	 * or weak option allowing to add an alias on some not still existing
+	 * or weak option allowing to add an alias on some not already existing
 	 * path
 	 */
 	if (access(DEVTOOLS_INSTALL_DIR, R_OK) == 0) {
 		if (!add_alias(hsrv, "/devtools", DEVTOOLS_INSTALL_DIR, 0, 1))
+			return 0;
+	}
+	if (access(WELL_KNOWN_DIR, R_OK) == 0) {
+		if (!add_alias(hsrv, "/.well-known", WELL_KNOWN_DIR, -15, 1))
+			return 0;
+	}
+	tmp = secure_getenv("AFB_BINDER_WELL_KNOWN_DIR");
+	if (tmp && access(tmp, R_OK) == 0) {
+		if (!add_alias(hsrv, "/.well-known", tmp, -13, 1))
 			return 0;
 	}
 

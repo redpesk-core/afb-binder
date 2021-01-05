@@ -27,10 +27,9 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
 set(PROJECT_NAME afb-binder)
 set(PROJECT_PRETTY_NAME "Application Framework Binder")
 set(PROJECT_DESCRIPTION "Secured binder of API for clients of the Application framework")
-set(PROJECT_VERSION 4.0.0alpha)
-set(PROJECT_URL "https://github.com/redpesk-core/afb-libafb")
+set(PROJECT_VERSION 4.0.0beta2)
+set(PROJECT_URL "https://github.com/redpesk-core/afb-binder")
 set(PROJECT_LANGUAGE C)
-
 
 INCLUDE(FindPkgConfig)
 INCLUDE(GNUInstallDirs)
@@ -45,6 +44,7 @@ option(PROVIDE_AFB_DAEMON         "Provide afb-daemon compatibility items" OFF)
 set(DATADIR                ${CMAKE_INSTALL_FULL_DATADIR}/afb-binder CACHE STRING "Path to datadir")
 set(MONITORING_INSTALL_DIR ${DATADIR}/monitoring CACHE STRING "Path to install monitoring")
 set(DEVTOOLS_INSTALL_DIR   ${CMAKE_INSTALL_FULL_DATADIR}/afb-ui-devtools/binder CACHE STRING "Path to devtools")
+set(WELL_KNOWN_DIR         well-known CACHE STRING "Path to well known directory")
 
 set(DEFAULT_JOBS_MIN      10 CACHE STRING "Default minimum count of jobs queueable")
 set(DEFAULT_JOBS_MAX     200 CACHE STRING "Default maximum count of jobs queueable")
@@ -53,6 +53,13 @@ set(DEFAULT_JOBS_MAX     200 CACHE STRING "Default maximum count of jobs queueab
 set(DEFAULT_THREADS_MIN    1 CACHE STRING "Default minimum count of managed threads")
 set(DEFAULT_THREADS_MAX    5 CACHE STRING "Default maximum count of managed threads")
 
+###########################################################################
+string(REGEX MATCH "^/" WELL_KNOWN_DIR_IS_ABSOLUTE ${WELL_KNOWN_DIR})
+if(${WELL_KNOWN_DIR_IS_ABSOLUTE})
+	set(REAL_WELL_KNOWN_DIR "${WELL_KNOWN_DIR}")
+else(${WELL_KNOWN_DIR_IS_ABSOLUTE})
+	set(REAL_WELL_KNOWN_DIR "${DATADIR}/${WELL_KNOWN_DIR}")
+endif(${WELL_KNOWN_DIR_IS_ABSOLUTE})
 ###########################################################################
 
 link_libraries(-Wl,--as-needed -Wl,--gc-sections -Wl,--no-undefined)
