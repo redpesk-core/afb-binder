@@ -24,12 +24,12 @@
 
 CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
 
-set(PROJECT_NAME afb-binder)
+project(afb-binder C)
+
 set(PROJECT_PRETTY_NAME "Application Framework Binder")
 set(PROJECT_DESCRIPTION "Secured binder of API for clients of the Application framework")
 set(PROJECT_VERSION 4.0.0beta2)
 set(PROJECT_URL "https://github.com/redpesk-core/afb-binder")
-set(PROJECT_LANGUAGE C)
 
 INCLUDE(FindPkgConfig)
 INCLUDE(GNUInstallDirs)
