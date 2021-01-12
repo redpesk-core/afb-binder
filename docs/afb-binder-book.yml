@@ -10,6 +10,8 @@ books:
     chapters:
     - url: "afb-overview.md"
       name: Overview
+    - url: "afb-getting.md"
+      name: Getting the binder
     - url: "afb-binder-vocabulary.md"
       name: Binder's vocabulary
     - name: Annexes
