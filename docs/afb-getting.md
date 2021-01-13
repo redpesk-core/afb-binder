@@ -6,12 +6,12 @@ It is valuable to install the binder *afb-binder*, its simple client *afb-client
 and the headers for developing bindings *afb-binding* on its development environment,
 because it allows two important things:
 
-- communicate with redpesk services
+- communication with redpesk services
 - first step debugging within a rich environment
 
 ## Installing from packages
 
-IoT.bzh provides a SDK for some common linux distributions at the download URL
+IoT.bzh provides an SDK for some common linux distributions at the download URL
 
     https://download.redpesk.bzh/redpesk-devel/releases/33/sdk/
 
@@ -105,7 +105,7 @@ Install the packages
 
 ## Installing from rebuild
 
-For oldest distributions that are not supported by IoT.bzh,
+For older distributions that are not supported by IoT.bzh,
 or for less commonly used distributions (gentoo, arch, ...)
 it is possible to build from sources.
 
@@ -131,7 +131,7 @@ your distribution. The procedure below applies on widely used distributions.
 
 ### Get the sources
 
-Building the binder and the client from the sources requires to clone the following repositories:
+Building the binder and the client from the sources requires cloning of the following repositories:
 
 - afb-binding: https://github.com/redpesk-core/afb-binding
 - afb-libafb:  https://github.com/redpesk-core/afb-libafb
@@ -148,14 +148,14 @@ It can be achieved as below:
 ### Compile and install
 
 Before compiling you have to choose the base directory where you want to
-install the programs and developpement files. That directory is noted PREFIX.
+install the programs and development files. That directory is noted PREFIX.
 The common values of PREFIX are:
 
 - /usr
 - /usr/local
 - $HOME/.local
 
-The two first require to be root, the lastest doesn't.
+The two first require to have privilege (as user root), the latter doesn't.
 
 Then to compile the whole set, enter the following commands:
 
