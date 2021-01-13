@@ -19,61 +19,23 @@ You must first add the repository to your list of repositories.
 
 Then you have to install the packages.
 
-### Installing for Fedora 32:
+### Installing for Fedora:
 
 Add the repository to your list of repositories.
 
-    cat << EOC | sudo tee /etc/yum.repos.d/iot.bzh.repo > /dev/null
-    [iot.bzh]
-    name=iot.bzh
-    baseurl=https://download.redpesk.bzh/redpesk-devel/releases/33/sdk/Fedora_32/
-    enabled=1
-    EOC
+    sudo dnf config-manager --add-repo https://download.redpesk.bzh/redpesk-devel/releases/33/sdk/redpesk-sdk_fedora.repo
 
 Install the packages
 
     sudo dnf install afb-binder afb-client afb-binding-devel
 
-### Installing for Fedora 33:
+### Installing for open SUSE:
 
 Add the repository to your list of repositories.
 
-    cat << EOC | sudo tee /etc/yum.repos.d/iot.bzh.repo > /dev/null
-    [iot.bzh]
-    name=iot.bzh
-    baseurl=https://download.redpesk.bzh/redpesk-devel/releases/33/sdk/Fedora_33/
-    enabled=1
-    EOC
-
-Install the packages
-
-    sudo dnf install afb-binder afb-client afb-binding-devel
-
-### Installing for open SUSE Leap 15.2:
-
-Add the repository to your list of repositories.
-
-    cat << EOC | sudo tee /etc/yum.repos.d/iot.bzh.repo > /dev/null
-    [iot.bzh]
-    name=iot.bzh
-    baseurl=https://download.redpesk.bzh/redpesk-devel/releases/33/sdk/openSUSE_Leap_15.2/
-    enabled=1
-    EOC
-
-Install the packages
-
-    sudo zypper in afb-binder afb-client afb-binding-devel
-
-### Installing for open SUSE Tumbleweed:
-
-Add the repository to your list of repositories.
-
-    cat << EOC | sudo tee /etc/yum.repos.d/iot.bzh.repo > /dev/null
-    [iot.bzh]
-    name=iot.bzh
-    baseurl=https://download.redpesk.bzh/redpesk-devel/releases/33/sdk/openSUSE_Tumbleweed/
-    enabled=1
-    EOC
+    sudo zypper ar -f -r https://download.redpesk.bzh/redpesk-devel/releases/33/sdk/redpesk-sdk_suse.repo redpesk-sdk
+    sudo zypper --gpg-auto-import-keys ref
+    sudo zypper dup --from redpesk-sdk
 
 Install the packages
 
@@ -83,25 +45,25 @@ Install the packages
 
 Add the repository to your list of repositories.
 
-    cat << EOC | sudo tee /etc/apt/sources.list.d/iotbzh.list > /dev/null
-    deb https://download.redpesk.bzh/redpesk-devel/releases/33/sdk/Debian_10/ iotbzh main
-    EOC
+    wget -O - https://download.redpesk.bzh/redpesk-devel/releases/33/sdk/Debian_10/Release.key | apt-key add -
+    sudo apt-add-repository 'deb https://download.redpesk.bzh/redpesk-devel/releases/33/sdk/xUbuntu_20.04/ ./'
 
 Install the packages
 
-    sudo apt update && sudo apt install afb-binder afb-client afb-binding-dev
+    sudo apt update
+    sudo apt install afb-binder afb-client afb-binding-dev
 
 ### Installing on Ubuntu 20
 
 Add the repository to your list of repositories.
 
-    cat << EOC | sudo tee /etc/apt/sources.list.d/iotbzh.list > /dev/null
-    deb https://download.redpesk.bzh/redpesk-devel/releases/33/sdk/xUbuntu_20.04/ iotbzh main
-    EOC
+    wget -O - https://download.redpesk.bzh/redpesk-devel/releases/33/sdk/xUbuntu_20.04/Release.key | apt-key add -
+    sudo apt-add-repository 'deb https://download.redpesk.bzh/redpesk-devel/releases/33/sdk/xUbuntu_20.04/ ./'
 
 Install the packages
 
-    sudo apt update && sudo apt install afb-binder afb-client afb-binding-dev
+    sudo apt update
+    sudo apt install afb-binder afb-client afb-binding-dev
 
 ## Installing from rebuild
 
