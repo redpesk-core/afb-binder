@@ -94,7 +94,7 @@
 #include <libafb/sys/x-realpath.h>
 
 #if !defined(DEFAULT_BINDER_INTERFACE)
-#  define DEFAULT_BINDER_INTERFACE NULL
+#  define DEFAULT_BINDER_INTERFACE "*"
 #endif
 
 /*
@@ -326,6 +326,11 @@ static int add_alias(struct afb_hsrv *hsrv, const char *prefix, const char *alia
 #endif
 }
 
+static int add_alias_weak(struct afb_hsrv *hsrv, const char *prefix, const char *alias, int priority, int relax)
+{
+	return access(alias, R_OK) != 0 || add_alias(hsrv, prefix, alias, priority, relax);
+}
+
 static int init_alias(void *closure, const char *spec)
 {
 	struct afb_hsrv *hsrv = closure;
@@ -340,64 +345,6 @@ static int init_alias(void *closure, const char *spec)
 	return add_alias(hsrv, spec, path, 0, 1);
 }
 
-static int init_http_server(struct afb_hsrv *hsrv)
-{
-	int rc;
-	const char *rootapi, *roothttp, *rootbase, *tmp;
-
-	roothttp = NULL;
-	rc = wrap_json_unpack(afb_binder_main_config, "{ss ss s?s}",
-				"rootapi", &rootapi,
-				"rootbase", &rootbase,
-				"roothttp", &roothttp);
-	if (rc < 0) {
-		ERROR("Can't get HTTP server config");
-		exit(1);
-	}
-
-	if (!afb_hsrv_add_handler(hsrv, rootapi,
-			afb_hswitch_websocket_switch, afb_binder_main_apiset, 20))
-		return 0;
-
-	if (!afb_hsrv_add_handler(hsrv, rootapi,
-			afb_hswitch_apis, afb_binder_main_apiset, 10))
-		return 0;
-
-	if (run_for_config_array_opt("alias", init_alias, hsrv))
-		return 0;
-
-	/*
-	 * TODO: access is used here because add_alias would print an error
-	 * if the directory doesn't exist. It could be cool to have a lazy
-	 * or weak option allowing to add an alias on some not already existing
-	 * path
-	 */
-	if (access(DEVTOOLS_INSTALL_DIR, R_OK) == 0) {
-		if (!add_alias(hsrv, "/devtools", DEVTOOLS_INSTALL_DIR, 0, 1))
-			return 0;
-	}
-	if (access(WELL_KNOWN_DIR, R_OK) == 0) {
-		if (!add_alias(hsrv, "/.well-known", WELL_KNOWN_DIR, -15, 1))
-			return 0;
-	}
-	tmp = secure_getenv("AFB_BINDER_WELL_KNOWN_DIR");
-	if (tmp && access(tmp, R_OK) == 0) {
-		if (!add_alias(hsrv, "/.well-known", tmp, -13, 1))
-			return 0;
-	}
-
-	if (roothttp != NULL) {
-		if (!add_alias(hsrv, "", roothttp, -10, 1))
-			return 0;
-	}
-
-	if (!afb_hsrv_add_handler(hsrv, rootbase,
-			afb_hswitch_one_page_api_redirect, NULL, -20))
-		return 0;
-
-	return 1;
-}
-
 static int add_interface(void *closure, const char *value)
 {
 	struct afb_hsrv *hsrv = closure;
@@ -407,98 +354,203 @@ static int add_interface(void *closure, const char *value)
 	return rc >= 0;
 }
 
-static struct afb_hsrv *start_http_server()
+static int http_server_create(struct afb_hsrv **result)
 {
 	int rc;
-	const char *uploaddir, *rootdir, *errs;
-	struct afb_hsrv *hsrv;
-	int cache_timeout, http_port;
-	struct json_object *junk;
+	const char *uploaddir, *rootdir, *itfspec;
+	const char *rootapi, *roothttp = NULL, *rootbase, *tmp;
+	struct afb_hsrv *hsrv = NULL;
+	struct json_object *itfs;
+	int cache_timeout, http_port = -1;
 	int session_timeout;
-	const char *rootapi = NULL;
 	int no_httpd = 0;
+	struct json_object *obj;
 
+	/* default result: NULL */
+	*result = NULL;
+
+	/* read parameters */
 	http_port = -1;
-	rc = wrap_json_unpack(afb_binder_main_config, "{ss ss si s?i s?s s?b si}",
+	rc = wrap_json_unpack(afb_binder_main_config, "{ss ss si s?i ss s?b si ss s?s s?o}",
 				"uploaddir", &uploaddir,
 				"rootdir", &rootdir,
 				"cache-eol", &cache_timeout,
+
 				"port", &http_port,
 				"rootapi", &rootapi,
 				"no-httpd", &no_httpd,
-				"cntxtimeout", &session_timeout
+
+				"cntxtimeout", &session_timeout,
+				"rootbase", &rootbase,
+				"roothttp", &roothttp,
+				"interface", &itfs
 			);
 	if (rc < 0) {
-		ERROR("Can't get HTTP server start config");
+		ERROR("Can't get HTTP server config");
 		exit(1);
 	}
 
 	/* is http service allowed ? */
 	if (no_httpd) {
-		return NULL;
+		return 0;
 	}
 
+	/* checking port */
+	if (http_port < 0) {
+		/* not set, check existing interfaces */
+		obj = itfs;
+		if (json_object_get_type(obj) == json_type_array)
+			obj = json_object_array_length(obj) ? json_object_array_get_idx(obj, 0) : NULL;
+		if (obj == NULL) {
+			ERROR("No port and no interface ");
+			rc= X_EINVAL;
+			goto end;
+		}
+		itfspec = json_object_get_string(obj);
+		rc = 0;
+		while (itfspec[rc] && itfspec[rc] != '/') rc++;
+		while (rc && itfspec[rc - 1] != ':') rc--;
+		http_port = atoi(&itfspec[rc]);
+
+	} else if (http_port == 0) {
+		ERROR("random port is not implemented");
+		rc= X_EINVAL;
+		goto end;
+	} else {
+		char buffer[1000];
+
+		/* normalize itf as array */
+		if (itfs == NULL || json_object_get_type(itfs) != json_type_array) {
+			obj = json_object_new_array();
+			if (obj == NULL) {
+				rc = X_ENOMEM;
+				goto end;
+			}
+			if (itfs != NULL)
+				json_object_array_add(obj, json_object_get(itfs));
+			json_object_object_add(afb_binder_main_config, "interface", obj);
+			itfs = obj;
+		}
+
+		/* add the default interface */
+		rc = snprintf(buffer, sizeof buffer, "tcp:%s:%d", DEFAULT_BINDER_INTERFACE, http_port);
+		if (rc < 0 || rc >= sizeof buffer) {
+			rc = X_ENOMEM;
+			goto end;
+		}
+
+		obj = json_object_new_string(buffer);
+		if (obj == NULL) {
+			rc = X_ENOMEM;
+			goto end;
+		}
+
+		json_object_array_add(itfs, obj);
+		NOTICE("Browser URL= http://localhost:%d", http_port);
+
+	}
+#if WITH_ENVIRONMENT
+	if (http_port && addenv_int("AFB_PORT", http_port) < 0) {
+		ERROR("can't set HTTP environment");
+		goto error;
+	}
+#endif
+
+	/* setting up */
+	NOTICE("Serving rootdir=%s uploaddir=%s", rootdir, uploaddir);
+
+	/* setup of cookies */
 	if (!afb_hreq_init_cookie(http_port, rootapi, session_timeout)) {
 		ERROR("initialisation of HTTP cookies failed");
-		return NULL;
+		rc = X_ENOMEM;
+		goto end;
 	}
 
-	if (afb_hreq_init_download_path(uploaddir)) {
+	/* setup of download directory */
+	rc = afb_hreq_init_download_path(uploaddir);
+	if (rc < 0) {
 		static const char fallback_uploaddir[] = "/tmp";
 		WARNING("unable to set the upload directory %s", uploaddir);
-		if (afb_hreq_init_download_path(fallback_uploaddir)) {
+		rc = afb_hreq_init_download_path(fallback_uploaddir);
+		if (rc < 0) {
 			ERROR("unable to fallback to upload directory %s", fallback_uploaddir);
-			return NULL;
+			goto end;
 		}
 		uploaddir = fallback_uploaddir;
 	}
 
+	/* setup of download directory */
 	hsrv = afb_hsrv_create();
 	if (hsrv == NULL) {
 		ERROR("memory allocation failure");
-		return NULL;
+		rc = X_ENOMEM;
+		goto end;
 	}
 
-	if (!afb_hsrv_set_cache_timeout(hsrv, cache_timeout)
-	    || !init_http_server(hsrv)) {
-		ERROR("initialisation of httpd failed");
-		afb_hsrv_put(hsrv);
-		return NULL;
-	}
+	/* initialize the cache timeout */
+	if (!afb_hsrv_set_cache_timeout(hsrv, cache_timeout))
+		goto error;
+
+	/* set the root api handlers */
+	if (!afb_hsrv_add_handler(hsrv, rootapi,
+			afb_hswitch_websocket_switch, afb_binder_main_apiset, 20))
+		goto error;
+	if (!afb_hsrv_add_handler(hsrv, rootapi,
+			afb_hswitch_apis, afb_binder_main_apiset, 10))
+		goto error;
+
+	/* set alias of config */
+	if (run_for_config_array_opt("alias", init_alias, hsrv))
+		goto error;
+
+	/* set predefined aliases */
+	if (!add_alias_weak(hsrv, "/devtools", DEVTOOLS_INSTALL_DIR, 0, 1))
+		goto error;
+	if (!add_alias_weak(hsrv, "/.well-known", WELL_KNOWN_DIR, -15, 1))
+		goto error;
+	tmp = secure_getenv("AFB_BINDER_WELL_KNOWN_DIR");
+	if (tmp && !add_alias_weak(hsrv, "/.well-known", tmp, -13, 1))
+		goto error;
+
+	/* set the root of http */
+	if (roothttp != NULL && !add_alias(hsrv, "", roothttp, -10, 1))
+		goto error;
+
+	/* set the root of One Page Applications */
+	if (!afb_hsrv_add_handler(hsrv, rootbase,
+			afb_hswitch_one_page_api_redirect, NULL, -20))
+		goto error;
+
+	*result = hsrv;
+	return 0;
+
+error:
+	ERROR("initialisation of httpd failed");
+	rc = X_ECANCELED;
+	afb_hsrv_put(hsrv);
+end:
+	*result = NULL;
+	return rc;
+}
+
+static int http_server_start(struct afb_hsrv *hsrv)
+{
+	int rc;
+	const char *errs;
 
 	rc = afb_hsrv_start(hsrv, 15);
 	if (!rc) {
 		ERROR("starting of httpd failed");
-		afb_hsrv_put(hsrv);
-		return NULL;
-	}
-
-	NOTICE("Serving rootdir=%s uploaddir=%s", rootdir, uploaddir);
-
-	/* check if port is set */
-	if (http_port < 0) {
-		/* not set, check existing interfaces */
-		if (!json_object_object_get_ex(afb_binder_main_config, "interface", &junk)) {
-			ERROR("No port and no interface ");
-		}
-	} else {
-		rc = afb_hsrv_add_interface_tcp(hsrv, DEFAULT_BINDER_INTERFACE, (uint16_t) http_port);
-		if (rc < 0) {
-			ERROR("setting interface failed");
-			afb_hsrv_put(hsrv);
-			return NULL;
-		}
-		NOTICE("Browser URL= http://localhost:%d", http_port);
+		return X_ECANCELED;
 	}
 
 	errs = run_for_config_array_opt("interface", add_interface, hsrv);
 	if (errs) {
 		ERROR("setting interface %s failed", errs);
-		afb_hsrv_put(hsrv);
-		return NULL;
+		return X_ECANCELED;
 	}
 
-	return hsrv;
+	return 0;
 }
 #endif
 
@@ -677,7 +729,7 @@ static int execute_command()
 	if (json_object_object_get_ex(afb_binder_main_config, "port", &oport))
 		port = json_object_get_string(oport);
 	else
-		port = 0;
+		port = getenv("AFB_PORT");
 	/* instantiate arguments and environment */
 	args = instanciate_command_args(exec, port);
 	if (args && instanciate_environ(port) >= 0) {
@@ -893,22 +945,6 @@ static void start(int signum, void *arg)
 	}
 #endif
 
-#if WITH_LIBMICROHTTPD
-	/* setup HTTP */
-	if (!no_httpd) {
-		if (http_port == 0) {
-			ERROR("random port is not implemented");
-			goto error;
-		}
-#if WITH_ENVIRONMENT
-		if ((http_port > 0 && addenv_int("AFB_PORT", http_port) < 0)) {
-			ERROR("can't set HTTP environment");
-			goto error;
-		}
-#endif
-	}
-#endif
-
 	/* configure the daemon */
 	afb_api_common_set_config(settings);
 	afb_binder_main_apiset = afb_apiset_create("main", api_timeout);
@@ -923,6 +959,14 @@ static void start(int signum, void *arg)
 #if WITH_SUPERVISION
 	if (afb_supervision_init(afb_binder_main_apiset, afb_binder_main_config) < 0) {
 		ERROR("failed to setup supervision");
+		goto error;
+	}
+#endif
+
+#if WITH_LIBMICROHTTPD
+	rc = http_server_create(&afb_binder_http_server);
+	if (rc < 0) {
+		ERROR("can't create HTTP server");
 		goto error;
 	}
 #endif
@@ -994,9 +1038,9 @@ static void start(int signum, void *arg)
 #if WITH_AFB_DEBUG
 	afb_debug("start-http");
 #endif
-	if (!no_httpd) {
-		afb_binder_http_server = start_http_server();
-		if (afb_binder_http_server == NULL)
+	if (afb_binder_http_server != NULL) {
+		rc = http_server_start(afb_binder_http_server);
+		if (rc < 0)
 			goto error;
 	}
 #endif
