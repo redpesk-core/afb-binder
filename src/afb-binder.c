@@ -414,16 +414,33 @@ static struct afb_hsrv *start_http_server()
 	struct afb_hsrv *hsrv;
 	int cache_timeout, http_port;
 	struct json_object *junk;
+	int session_timeout;
+	const char *rootapi = NULL;
+	int no_httpd = 0;
 
 	http_port = -1;
-	rc = wrap_json_unpack(afb_binder_main_config, "{ss ss si s?i}",
+	rc = wrap_json_unpack(afb_binder_main_config, "{ss ss si s?i s?s s?b si}",
 				"uploaddir", &uploaddir,
 				"rootdir", &rootdir,
 				"cache-eol", &cache_timeout,
-				"port", &http_port);
+				"port", &http_port,
+				"rootapi", &rootapi,
+				"no-httpd", &no_httpd,
+				"cntxtimeout", &session_timeout
+			);
 	if (rc < 0) {
 		ERROR("Can't get HTTP server start config");
 		exit(1);
+	}
+
+	/* is http service allowed ? */
+	if (no_httpd) {
+		return NULL;
+	}
+
+	if (!afb_hreq_init_cookie(http_port, rootapi, session_timeout)) {
+		ERROR("initialisation of HTTP cookies failed");
+		return NULL;
 	}
 
 	if (afb_hreq_init_download_path(uploaddir)) {
@@ -788,7 +805,6 @@ static void start(int signum, void *arg)
 	int max_session_count, session_timeout, api_timeout;
 	int rc;
 #if WITH_LIBMICROHTTPD
-	const char *rootapi = NULL;
 	int no_httpd = 0, http_port = -1;
 #endif
 
@@ -824,12 +840,11 @@ static void start(int signum, void *arg)
 
 #if WITH_LIBMICROHTTPD
 	rc = wrap_json_unpack(afb_binder_main_config, "{"
-			"s?b s?i s?s"
+			"s?b s?i"
 			"}",
 
 			"no-httpd", &no_httpd,
-			"port", &http_port,
-			"rootapi", &rootapi
+			"port", &http_port
 			);
 	if (rc < 0) {
 		ERROR("Unable to get http config");
@@ -980,11 +995,6 @@ static void start(int signum, void *arg)
 	afb_debug("start-http");
 #endif
 	if (!no_httpd) {
-		if (!afb_hreq_init_cookie(http_port, rootapi, session_timeout)) {
-			ERROR("initialisation of HTTP cookies failed");
-			goto error;
-		}
-
 		afb_binder_http_server = start_http_server();
 		if (afb_binder_http_server == NULL)
 			goto error;
