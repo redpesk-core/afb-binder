@@ -86,39 +86,39 @@
 #define SET_FOREGROUND       2
 #define SET_ROOT_DIR         3
 
-#if WITH_LIBMICROHTTPD
-#define SET_ROOT_BASE        4
-#define SET_ROOT_API         5
-#define ADD_ALIAS            6
-#define SET_CACHE_TIMEOUT    7
-#endif
+#define SET_API_TIMEOUT      4
+#define SET_SESSION_TIMEOUT  5
+
+#define SET_SESSIONMAX       6
+
+#define ADD_WS_CLIENT        7
+#define ADD_WS_SERVICE       8
+
+#define SET_TRACEEVT         9
+#define SET_TRACESES        10
+#define SET_TRACEREQ        11
+#define SET_TRACEAPI        12
+#define SET_TRACEGLOB       13
+
+#define SET_TRAP_FAULTS     14
+#define ADD_CALL            15
 
 #if WITH_DYNAMIC_BINDING && WITH_DIRENT
-#define ADD_LDPATH          10
-#define ADD_WEAK_LDPATH     11
+#define ADD_LDPATH          16
+#define ADD_WEAK_LDPATH     17
 #endif
-
-#define SET_API_TIMEOUT     13
-#define SET_SESSION_TIMEOUT 14
-
-#define SET_SESSIONMAX      15
-
-#define ADD_WS_CLIENT       16
-#define ADD_WS_SERVICE      17
 
 #if WITH_LIBMICROHTTPD
-#define SET_ROOT_HTTP       18
-#define SET_NO_HTTPD        19
+#define SET_ROOT_BASE       18
+#define SET_ROOT_API        19
+#define ADD_ALIAS           20
+#define SET_CACHE_TIMEOUT   21
+#define SET_ROOT_HTTP       22
+#define SET_NO_HTTPD        23
+#define SET_HTTPS           24
+#define SET_HTTPS_CERT      25
+#define SET_HTTPS_KEY       26
 #endif
-
-#define SET_TRACEEVT        20
-#define SET_TRACESES        21
-#define SET_TRACEREQ        22
-#define SET_TRACEAPI        23
-#define SET_TRACEGLOB       24
-
-#define SET_TRAP_FAULTS     27
-#define ADD_CALL            28
 
 #if WITH_DBUS_TRANSPARENCY
 #   define ADD_DBUS_CLIENT  30
@@ -182,6 +182,9 @@ static const struct argp_option optdefs[] = {
 	{ .name="alias",       .key=ADD_ALIAS,           .arg="ALIAS", .doc="Multiple url map outside of rootdir [eg: --alias=/icons:/usr/share/icons]" },
 	{ .name="uploaddir",   .key=SET_UPLOAD_DIR,      .arg="DIRECTORY", .doc="Directory for uploading files [default: workdir] relative to workdir" },
 	{ .name="cache-eol",   .key=SET_CACHE_TIMEOUT,   .arg="TIMEOUT", .doc="Client cache end of live [default " d2s(DEFAULT_CACHE_TIMEOUT) "]" },
+	{ .name="https",       .key=SET_HTTPS,           .arg=0, .doc="Activates HTTPS" },
+	{ .name="https-cert",  .key=SET_HTTPS_CERT,      .arg="FILE", .doc="File containing the certificate (pem)" },
+	{ .name="https-key",   .key=SET_HTTPS_KEY,       .arg="KEY", .doc="File containing the private key (pem)" },
 #endif
 
 	{ .name="apitimeout",  .key=SET_API_TIMEOUT,     .arg="TIMEOUT", .doc="Binding API timeout in seconds [default " d2s(DEFAULT_API_TIMEOUT) "]" },
@@ -828,6 +831,9 @@ static void parse_environment_initial(struct json_object *config)
 	on_environment_bool(config, SET_TRAP_FAULTS, "AFB_TRAP_FAULTS");
 #if WITH_LIBMICROHTTPD
 	on_environment_int(config, SET_PORT, "AFB_SET_PORT");
+	on_environment_bool(config, SET_HTTPS, "AFB_HTTPS");
+	on_environment(config, SET_HTTPS_CERT, "AFB_HTTPS_CERT", config_set_str);
+	on_environment(config, SET_HTTPS_KEY, "AFB_HTTPS_KEY", config_set_str);
 #endif
 }
 
@@ -980,6 +986,9 @@ static error_t parsecb_final(int key, char *value, struct argp_state *state)
 	case SET_ROOT_BASE:
 	case SET_ROOT_API:
 	case SET_UPLOAD_DIR:
+	case SET_HTTPS_CERT:
+	case SET_HTTPS_KEY:
+
 		config_set_optstr(config, key, value);
 		break;
 
@@ -987,6 +996,7 @@ static error_t parsecb_final(int key, char *value, struct argp_state *state)
 		config_add_optstr(config, key, value);
 		break;
 
+	case SET_HTTPS:
 	case SET_NO_HTTPD:
 		config_set_bool(config, key, 1);
 		break;

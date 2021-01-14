@@ -360,10 +360,10 @@ static int http_server_create(struct afb_hsrv **result)
 	const char *uploaddir, *rootdir, *itfspec;
 	const char *rootapi, *roothttp = NULL, *rootbase, *tmp;
 	struct afb_hsrv *hsrv = NULL;
-	struct json_object *itfs;
+	struct json_object *itfs = NULL;
 	int cache_timeout, http_port = -1;
 	int session_timeout;
-	int no_httpd = 0;
+	int no_httpd = 0, is_https = 0;
 	struct json_object *obj;
 
 	/* default result: NULL */
@@ -371,7 +371,7 @@ static int http_server_create(struct afb_hsrv **result)
 
 	/* read parameters */
 	http_port = -1;
-	rc = wrap_json_unpack(afb_binder_main_config, "{ss ss si s?i ss s?b si ss s?s s?o}",
+	rc = wrap_json_unpack(afb_binder_main_config, "{ss ss si s?i ss s?b s?b si ss s?s s?o}",
 				"uploaddir", &uploaddir,
 				"rootdir", &rootdir,
 				"cache-eol", &cache_timeout,
@@ -379,6 +379,7 @@ static int http_server_create(struct afb_hsrv **result)
 				"port", &http_port,
 				"rootapi", &rootapi,
 				"no-httpd", &no_httpd,
+				"https", &is_https,
 
 				"cntxtimeout", &session_timeout,
 				"rootbase", &rootbase,
@@ -446,8 +447,7 @@ static int http_server_create(struct afb_hsrv **result)
 		}
 
 		json_object_array_add(itfs, obj);
-		NOTICE("Browser URL= http://localhost:%d", http_port);
-
+		NOTICE("Browser URL= http%s://localhost:%d", "s"+!is_https, http_port);
 	}
 #if WITH_ENVIRONMENT
 	if (http_port && addenv_int("AFB_PORT", http_port) < 0) {
@@ -533,17 +533,113 @@ end:
 	return rc;
 }
 
+static int readfile(const char *filename, char **buffer, size_t *size)
+{
+	int rc, fd;
+	off_t of;
+	size_t sz;
+	char *buf;
+
+	fd = open(filename, O_RDONLY);
+	if (fd < 0)
+		rc = -errno;
+	else {
+		of = lseek(fd, 0, SEEK_END);
+		if (of < 0 || lseek(fd, 0, SEEK_SET) < 0)
+			rc = -errno;
+		else if (of >= SIZE_MAX)
+			rc = X_E2BIG;
+		else {
+			sz = (size_t)of;
+			buf = malloc(sz + 1);
+			if (buf == NULL)
+				rc = X_ENOMEM;
+			else if (read(fd, buf, sz) != (ssize_t)sz) {
+				rc = -errno;
+				free(buf);
+			}
+			else {
+				buf[sz] = 0;
+				*buffer = buf;
+				if (size)
+					*size = sz;
+				rc = 0;
+			}
+		}
+		close(fd);
+	}
+	return rc;
+}
+
+static int get_https_value(const char *key, const char *filename, char **value)
+{
+	char buffer[PATH_MAX];
+	int rc;
+	if (!filename) {
+		filename = secure_getenv("AFB_HTTPS_PREFIX") ?: SYS_CONFIG_DIR "/.https/";
+		rc = snprintf(buffer, sizeof buffer, "%s%s.pem", filename, key);
+		if (rc < 0 || rc >= sizeof buffer)
+			return X_EINVAL;
+		filename = buffer;
+	}
+	rc = readfile(filename, value, NULL);
+	if (rc < 0) {
+		ERROR("can't read file %s: %s", filename, strerror(-rc));
+		return rc;
+	}
+	return 0;
+}
+
+static int get_https_config(char **key, char **cert)
+{
+	int rc, is_https;
+	const char *okey, *ocert;
+
+	/* read HTTPS parameters if any */
+	is_https = 0;
+	ocert = okey = *key = *cert = NULL;
+	rc = wrap_json_unpack(afb_binder_main_config, "{s?b s?s s?s}",
+				"https", &is_https,
+				"https-key", &okey,
+				"https-cert", &ocert
+			);
+	if (rc < 0)
+		rc = X_ECANCELED;
+	else if (!is_https)
+		rc = 0; /* no https */
+	else {
+		rc = get_https_value("key", okey, key);
+		if (rc >= 0) {
+			rc = get_https_value("cert", ocert, cert);
+			if (rc >= 0)
+				rc = 1; /* yes https */
+		}
+	}
+	return rc;
+}
+
 static int http_server_start(struct afb_hsrv *hsrv)
 {
 	int rc;
 	const char *errs;
+	char *key, *cert;
 
-	rc = afb_hsrv_start(hsrv, 15);
+	/* get HTTPS config if any */
+	rc = get_https_config(&key, &cert);
+	if (rc < 0) {
+		ERROR("wrong HTTPS configuration");
+		return rc;
+	}
+
+	/* start the daemon */
+	INFO("HTTP%s server starting", "S"+!rc);
+	rc = afb_hsrv_start_tls(hsrv, 15, cert, key);
 	if (!rc) {
 		ERROR("starting of httpd failed");
 		return X_ECANCELED;
 	}
 
+	/* add interfaces */
 	errs = run_for_config_array_opt("interface", add_interface, hsrv);
 	if (errs) {
 		ERROR("setting interface %s failed", errs);

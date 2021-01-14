@@ -32,10 +32,11 @@ var initial = {
 		|| URLSearchParams(window.location.search).get('token')
 		|| "HELLO",
 	host: base.host || window.location.host,
+	scheme: base.scheme || (window.location.protocol == "https:" ? "wss:" : "ws:"),
 	url: base.url || undefined
 };
 
-var urlws = initial.url || "ws://"+initial.host+"/"+initial.base;
+var urlws = initial.url = initial.url || initial.scheme+"//"+initial.host+"/"+initial.base;
 
 /*********************************************/
 /****                                     ****/

@@ -17,6 +17,9 @@ The launch options for binder **afb-binder** are:
   -D, --daemon               Get all in background mode
   -e, --exec                 Execute the remaining arguments
       --foreground           Get all in foreground mode
+      --https                Activates HTTPS
+      --https-cert=FILE      File containing the certificate (pem)
+      --https-key=KEY        File containing the private key (pem)
   -i, --interface=INTERFACE  Add HTTP listening interface (ex:
                              tcp:localhost:8080)
   -j, --jobs-max=VALUE       Maximum count of jobs that can be queued  [default
@@ -153,6 +156,18 @@ Example: --alias=/icons:/usr/share/icons maps the
 content of /usr/share/icons within the subpath /icons.
 
 This option can be repeated.
+
+## https
+
+If the option is present, it activates HTTPS
+
+## https-cert=FILE
+
+Path to the file containing the certificate of the HTTPS server.
+
+## https-key=KEY
+
+Path to the file containing the private key of the HTTPS server.
 
 ## apitimeout=xxxx
 
@@ -389,3 +404,21 @@ Load the given binder extension
 ## extpath=PATHSET
 
 Load the extensions found recursively in the given pathset
+
+
+# Running HTTPS
+
+The HTTPS secured protocol of the HTTP server is activated by the
+option --https.
+
+The options --https-cert and --htps-key can be used to tell
+the binder whose certificate and private key to use.
+
+The environment variables AFB_HTTPS, AFB_HTTPS_CERT, AFB_HTTPS_KEY
+can be used to set the default option values.
+
+When HTTPS is required but neither command line argument nor
+environment variable set the certificate and or key,
+the binder will search the files 'key.pem' and/or
+'cert.pem' prefixed with $AFB_HTTPS_PREFIX if defined or else
+'/etc/afb/.https/'
