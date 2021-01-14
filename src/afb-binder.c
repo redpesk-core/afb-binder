@@ -103,8 +103,11 @@
 */
 #define SELF_PGROUP 0
 
-struct afb_apiset *main_apiset;
-struct json_object *main_config;
+struct afb_apiset *afb_binder_main_apiset;
+struct json_object *afb_binder_main_config;
+#if WITH_LIBMICROHTTPD
+struct afb_hsrv *afb_binder_http_server;
+#endif
 
 static pid_t childpid;
 
@@ -168,7 +171,7 @@ static const char *run_for_config_array_opt(const char *name,
 	int i, n, rc;
 	struct json_object *array, *value;
 
-	if (json_object_object_get_ex(main_config, name, &array)) {
+	if (json_object_object_get_ex(afb_binder_main_config, name, &array)) {
 		if (!json_object_is_type(array, json_type_array))
 			return json_object_get_string(array);
 		n = (int)json_object_array_length(array);
@@ -185,7 +188,7 @@ static const char *run_for_config_array_opt(const char *name,
 static int run_start(void *closure, const char *value)
 {
 	int (*starter) (const char *value, struct afb_apiset *declare_set, struct afb_apiset *call_set) = closure;
-	return starter(value, main_apiset, main_apiset) >= 0;
+	return starter(value, afb_binder_main_apiset, afb_binder_main_apiset) >= 0;
 }
 
 static void apiset_start_list(const char *name,
@@ -269,7 +272,7 @@ static void daemonize()
 
 	daemon = 0;
 	output = NULL;
-	wrap_json_unpack(main_config, "{s?b s?s}", "daemon", &daemon, "output", &output);
+	wrap_json_unpack(afb_binder_main_config, "{s?b s?s}", "daemon", &daemon, "output", &output);
 	nostdin = 0;
 
 	if (output) {
@@ -343,7 +346,7 @@ static int init_http_server(struct afb_hsrv *hsrv)
 	const char *rootapi, *roothttp, *rootbase, *tmp;
 
 	roothttp = NULL;
-	rc = wrap_json_unpack(main_config, "{ss ss s?s}",
+	rc = wrap_json_unpack(afb_binder_main_config, "{ss ss s?s}",
 				"rootapi", &rootapi,
 				"rootbase", &rootbase,
 				"roothttp", &roothttp);
@@ -353,11 +356,11 @@ static int init_http_server(struct afb_hsrv *hsrv)
 	}
 
 	if (!afb_hsrv_add_handler(hsrv, rootapi,
-			afb_hswitch_websocket_switch, main_apiset, 20))
+			afb_hswitch_websocket_switch, afb_binder_main_apiset, 20))
 		return 0;
 
 	if (!afb_hsrv_add_handler(hsrv, rootapi,
-			afb_hswitch_apis, main_apiset, 10))
+			afb_hswitch_apis, afb_binder_main_apiset, 10))
 		return 0;
 
 	if (run_for_config_array_opt("alias", init_alias, hsrv))
@@ -413,7 +416,7 @@ static struct afb_hsrv *start_http_server()
 	struct json_object *junk;
 
 	http_port = -1;
-	rc = wrap_json_unpack(main_config, "{ss ss si s?i}",
+	rc = wrap_json_unpack(afb_binder_main_config, "{ss ss si s?i}",
 				"uploaddir", &uploaddir,
 				"rootdir", &rootdir,
 				"cache-eol", &cache_timeout,
@@ -458,7 +461,7 @@ static struct afb_hsrv *start_http_server()
 	/* check if port is set */
 	if (http_port < 0) {
 		/* not set, check existing interfaces */
-		if (!json_object_object_get_ex(main_config, "interface", &junk)) {
+		if (!json_object_object_get_ex(afb_binder_main_config, "interface", &junk)) {
 			ERROR("No port and no interface ");
 		}
 	} else {
@@ -636,7 +639,7 @@ static int execute_command()
 	char **args;
 
 	/* check whether a command is to execute or not */
-	if (!json_object_object_get_ex(main_config, "exec", &exec))
+	if (!json_object_object_get_ex(afb_binder_main_config, "exec", &exec))
 		return 0;
 
 	if (SELF_PGROUP)
@@ -654,7 +657,7 @@ static int execute_command()
 		return 0;
 
 	/* compute the string for port */
-	if (json_object_object_get_ex(main_config, "port", &oport))
+	if (json_object_object_get_ex(afb_binder_main_config, "port", &oport))
 		port = json_object_get_string(oport);
 	else
 		port = 0;
@@ -743,7 +746,7 @@ static void startup_call_current(struct startup_req *sreq)
 				afb_req_common_init(&sreq->comreq, &startup_req_common_itf, sreq->api, sreq->verb, 1, &arg0);
 				afb_req_common_set_session(&sreq->comreq, sreq->session);
 				sreq->comreq.validated = 1;
-				afb_req_common_process(&sreq->comreq, main_apiset);
+				afb_req_common_process(&sreq->comreq, afb_binder_main_apiset);
 				return;
 			}
 		}
@@ -758,7 +761,7 @@ static void run_startup_calls()
 	struct startup_req *sreq;
 	int count;
 
-	if (json_object_object_get_ex(main_config, "call", &calls)
+	if (json_object_object_get_ex(afb_binder_main_config, "call", &calls)
 	 && json_object_is_type(calls, json_type_array)
 	 && (count = (int)json_object_array_length(calls))) {
 		sreq = calloc(1, sizeof *sreq);
@@ -787,7 +790,6 @@ static void start(int signum, void *arg)
 #if WITH_LIBMICROHTTPD
 	const char *rootapi = NULL;
 	int no_httpd = 0, http_port = -1;
-	struct afb_hsrv *hsrv;
 #endif
 
 
@@ -800,7 +802,7 @@ static void start(int signum, void *arg)
 		exit(1);
 	}
 
-	rc = wrap_json_unpack(main_config, "{"
+	rc = wrap_json_unpack(afb_binder_main_config, "{"
 			"ss ss"
 			"si si si"
 			"s?o"
@@ -821,7 +823,7 @@ static void start(int signum, void *arg)
 	}
 
 #if WITH_LIBMICROHTTPD
-	rc = wrap_json_unpack(main_config, "{"
+	rc = wrap_json_unpack(afb_binder_main_config, "{"
 			"s?b s?i s?s"
 			"}",
 
@@ -836,7 +838,7 @@ static void start(int signum, void *arg)
 #endif
 
 #if WITH_AFB_HOOK
-	rc = wrap_json_unpack(main_config, "{"
+	rc = wrap_json_unpack(afb_binder_main_config, "{"
 			"s?s s?s s?s s?s s?s"
 			"}",
 
@@ -894,17 +896,17 @@ static void start(int signum, void *arg)
 
 	/* configure the daemon */
 	afb_api_common_set_config(settings);
-	main_apiset = afb_apiset_create("main", api_timeout);
-	if (!main_apiset) {
+	afb_binder_main_apiset = afb_apiset_create("main", api_timeout);
+	if (!afb_binder_main_apiset) {
 		ERROR("can't create main api set");
 		goto error;
 	}
-	if (afb_monitor_init(main_apiset, main_apiset) < 0) {
+	if (afb_monitor_init(afb_binder_main_apiset, afb_binder_main_apiset) < 0) {
 		ERROR("failed to setup monitor");
 		goto error;
 	}
 #if WITH_SUPERVISION
-	if (afb_supervision_init(main_apiset, main_config) < 0) {
+	if (afb_supervision_init(afb_binder_main_apiset, afb_binder_main_config) < 0) {
 		ERROR("failed to setup supervision");
 		goto error;
 	}
@@ -926,7 +928,7 @@ static void start(int signum, void *arg)
 
 #if WITH_EXTENSION
 	/* prepare extensions */
-	afb_extend_config(main_config);
+	afb_extend_config(afb_binder_main_config);
 #endif
 
 	/* load bindings and apis */
@@ -947,7 +949,7 @@ static void start(int signum, void *arg)
 	apiset_start_list("ws-client", afb_api_ws_add_client_weak, "the afb-websocket client");
 #if WITH_EXTENSION
 	/* declare extensions */
-	afb_extend_declare(main_apiset, main_apiset);
+	afb_extend_declare(afb_binder_main_apiset, afb_binder_main_apiset);
 #endif
 
 	DEBUG("Init config done");
@@ -959,7 +961,7 @@ static void start(int signum, void *arg)
 #if WITH_CALL_PERSONALITY
 	personality((unsigned long)-1L);
 #endif
-	if (afb_apiset_start_all_services(main_apiset) < 0)
+	if (afb_apiset_start_all_services(afb_binder_main_apiset) < 0)
 		goto error;
 
 	/* export started apis */
@@ -969,7 +971,7 @@ static void start(int signum, void *arg)
 #endif
 #if WITH_EXTENSION
 	/* start extensions */
-	afb_extend_serve(main_apiset);
+	afb_extend_serve(afb_binder_main_apiset);
 #endif
 
 	/* start the HTTP server */
@@ -983,8 +985,8 @@ static void start(int signum, void *arg)
 			goto error;
 		}
 
-		hsrv = start_http_server();
-		if (hsrv == NULL)
+		afb_binder_http_server = start_http_server();
+		if (afb_binder_http_server == NULL)
 			goto error;
 	}
 #endif
@@ -1033,24 +1035,24 @@ int main(int argc, char *argv[])
 #endif
 
 	// ------------- Build session handler & init config -------
-	main_config = json_object_new_object();
-	afb_binder_opts_parse_initial(argc, argv, main_config);
+	afb_binder_main_config = json_object_new_object();
+	afb_binder_opts_parse_initial(argc, argv, afb_binder_main_config);
 
 #if WITH_EXTENSION
 	/* load extensions */
-	afb_extend_load(main_config);
+	afb_extend_load(afb_binder_main_config);
 #endif
 
-	afb_binder_opts_parse_final(argc, argv, main_config);
+	afb_binder_opts_parse_final(argc, argv, afb_binder_main_config);
 
 	if (afb_sig_monitor_init(
-		!json_object_object_get_ex(main_config, "trap-faults", &obj)
+		!json_object_object_get_ex(afb_binder_main_config, "trap-faults", &obj)
 			|| json_object_get_boolean(obj)) < 0) {
 		ERROR("failed to initialise signal handlers");
 		return 1;
 	}
 
-	if (json_object_object_get_ex(main_config, "name", &obj)) {
+	if (json_object_object_get_ex(afb_binder_main_config, "name", &obj)) {
 		verbose_set_name(json_object_get_string(obj), 0);
 		process_name_set_name(json_object_get_string(obj));
 		process_name_replace_cmdline(argv, json_object_get_string(obj));
@@ -1071,13 +1073,13 @@ int main(int argc, char *argv[])
 #endif
 
 	njobs = DEFAULT_JOBS_MAX;
-	if (json_object_object_get_ex(main_config, "jobs-max", &obj)) {
+	if (json_object_object_get_ex(afb_binder_main_config, "jobs-max", &obj)) {
 		njobs = json_object_get_int(obj);
 		if (njobs < DEFAULT_JOBS_MIN)
 			njobs = DEFAULT_JOBS_MIN;
 	}
 	nthr = DEFAULT_THREADS_MAX;
-	if (json_object_object_get_ex(main_config, "threads-max", &obj)) {
+	if (json_object_object_get_ex(afb_binder_main_config, "threads-max", &obj)) {
 		nthr = json_object_get_int(obj);
 		if (nthr < DEFAULT_THREADS_MIN)
 			nthr = DEFAULT_THREADS_MIN;
