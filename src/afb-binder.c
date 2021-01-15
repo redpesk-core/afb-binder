@@ -952,10 +952,6 @@ static void start(int signum, void *arg)
 	struct json_object *settings = NULL;
 	int max_session_count, session_timeout, api_timeout;
 	int rc;
-#if WITH_LIBMICROHTTPD
-	int no_httpd = 0, http_port = -1;
-#endif
-
 
 #if WITH_AFB_DEBUG
 	afb_debug("start-entry");
@@ -985,20 +981,6 @@ static void start(int signum, void *arg)
 		ERROR("Unable to get start config");
 		exit(1);
 	}
-
-#if WITH_LIBMICROHTTPD
-	rc = wrap_json_unpack(afb_binder_main_config, "{"
-			"s?b s?i"
-			"}",
-
-			"no-httpd", &no_httpd,
-			"port", &http_port
-			);
-	if (rc < 0) {
-		ERROR("Unable to get http config");
-		exit(1);
-	}
-#endif
 
 #if WITH_AFB_HOOK
 	rc = wrap_json_unpack(afb_binder_main_config, "{"
@@ -1059,14 +1041,6 @@ static void start(int signum, void *arg)
 	}
 #endif
 
-#if WITH_LIBMICROHTTPD
-	rc = http_server_create(&afb_binder_http_server);
-	if (rc < 0) {
-		ERROR("can't create HTTP server");
-		goto error;
-	}
-#endif
-
 #if WITH_AFB_HOOK
 	/* install hooks */
 	if (tracereq)
@@ -1084,6 +1058,14 @@ static void start(int signum, void *arg)
 #if WITH_EXTENSION
 	/* prepare extensions */
 	afb_extend_config(afb_binder_main_config);
+#endif
+
+#if WITH_LIBMICROHTTPD
+	rc = http_server_create(&afb_binder_http_server);
+	if (rc < 0) {
+		ERROR("can't create HTTP server");
+		goto error;
+	}
 #endif
 
 	/* load bindings and apis */
