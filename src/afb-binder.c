@@ -1087,6 +1087,9 @@ static void start(int signum, void *arg)
 #if WITH_EXTENSION
 	/* declare extensions */
 	afb_extend_declare(afb_binder_main_apiset, afb_binder_main_apiset);
+#if WITH_LIBMICROHTTPD
+	afb_extend_http(afb_binder_http_server);
+#endif
 #endif
 
 	DEBUG("Init config done");
