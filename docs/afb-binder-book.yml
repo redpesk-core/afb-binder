@@ -8,18 +8,20 @@ books:
     author: "IotBzh"
     version: master
     chapters:
-    - url: "afb-overview.md"
+    - url: afb-overview.md
       name: Overview
-    - url: "afb-getting.md"
+    - url: afb-getting.md
       name: Getting the binder
-    - url: "afb-binder-vocabulary.md"
+    - url: afb-binder-vocabulary.md
       name: Binder's vocabulary
     - name: Annexes
       children:
-          - url: "afb-binder-options.md"
+          - url: afb-binder-options.md
             name: Options of afb-binder
-          - url: "afb-binder-debugging.md"
+          - url: afb-binder-https.md
+            name: Setting HTTPS up
+          - url: afb-binder-debugging.md
             name: Debugging binder and its bindings
-          - url: "protocol-x-afb-ws-json1.md"
+          - url: protocol-x-afb-ws-json1.md
             name: WebSocket protocol x-afb-ws-json1
 

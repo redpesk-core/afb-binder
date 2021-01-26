@@ -406,19 +406,3 @@ Load the given binder extension
 Load the extensions found recursively in the given pathset
 
 
-# Running HTTPS
-
-The HTTPS secured protocol of the HTTP server is activated by the
-option --https.
-
-The options --https-cert and --htps-key can be used to tell
-the binder whose certificate and private key to use.
-
-The environment variables AFB_HTTPS, AFB_HTTPS_CERT, AFB_HTTPS_KEY
-can be used to set the default option values.
-
-When HTTPS is required but neither command line argument nor
-environment variable set the certificate and or key,
-the binder will search the files 'key.pem' and/or
-'cert.pem' prefixed with $AFB_HTTPS_PREFIX if defined or else
-'/etc/afb/.https/'
