@@ -605,8 +605,11 @@ static int get_https_config(char **key, char **cert)
 			);
 	if (rc < 0)
 		rc = X_ECANCELED;
-	else if (!is_https)
+	else if (!is_https) {
+		if (okey || ocert)
+			WARNING("HTTPS disabled but option set for HTTPS certificate and/or key");
 		rc = 0; /* no https */
+	}
 	else {
 		rc = get_https_value("key", okey, key);
 		if (rc >= 0) {
