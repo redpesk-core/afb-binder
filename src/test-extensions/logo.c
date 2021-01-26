@@ -51,6 +51,12 @@ int AfbExtensionDeclareV1(void *data, struct afb_apiset *declare_set, struct afb
 	return 0;
 }
 
+int AfbExtensionHTTPV1(void *data, struct afb_hsrv *hsrv)
+{
+	NOTICE("Extension %s got HTTP %s", AfbExtensionManifest.name, data == &AfbExtensionManifest ? "ok" : "error");
+	return 0;
+}
+
 int AfbExtensionServeV1(void *data, struct afb_apiset *call_set)
 {
 	NOTICE("Extension %s got to serve %s", AfbExtensionManifest.name, data == &AfbExtensionManifest ? "ok" : "error");
