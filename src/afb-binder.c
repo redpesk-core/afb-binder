@@ -1178,7 +1178,10 @@ int main(int argc, char *argv[])
 
 #if WITH_EXTENSION
 	/* load extensions */
-	afb_extend_load(afb_binder_main_config);
+	if (afb_extend_load(afb_binder_main_config) < 0) {
+		ERROR("loading extension failed");
+		return 1;
+	}
 #endif
 
 	afb_binder_opts_parse_final(argc, argv, afb_binder_main_config);

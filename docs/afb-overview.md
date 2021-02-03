@@ -6,15 +6,19 @@ the services that it needs.
 It provides a fast way to securely offer APIs to applications
 written in any language and running almost anywhere.
 
-- The ***binder*** is developed for AGL (Automotive Grade Linux) but it is not bound to AGL.
+- The ***binder*** is developed for redpesk and AGL (Automotive Grade Linux)
+  but it is not bound to them.
 - The ***binder*** is the usual name.
 - The binary is named **afb-binder**.
 - The name **afb-binder** stands for ***Application Framework Binder***.
 
-Each ***binder*** **afb-binder** is in charge to bind one instance of 
-an application or service to the rest of the system, applications and services.  
-Within AGL, the connection between services and/or applications 
-is tuned by the AGL framework and the AGL system.
+Each ***binder*** is in charge to bind one instance of  an application or
+service to the rest of the system, applications and services.
+
+Within Redpesk, the connection between services and applications 
+is automatically set up by the
+[application framework]({% chapter_link application-framework.introduction %}),
+using the binder.
 
 ## The basis of the binder
 
@@ -29,8 +33,8 @@ The shown elements are:
 
   The primary intention of any ***binder*** is to provide
   a secured environment for any application.  
-  On AGL, the   **security context** is ensured by [Smack] 
-  , the security context of the application or service.
+  On redpesk, the **security context** is ensured by [Smack],
+  the security context of the application or service.
 
 - The BINDER
 
@@ -84,4 +88,21 @@ The application **A** might use an **API** that is shown as a
 local ***binding*** but that in reality runs within the context
 of **D**.
 
-The framework AGL takes care of making the plumbing working.
+The [application framework]({% chapter_link application-framework.introduction %})
+of Redpesk takes care of making the plumbing working.
+
+## Role of binders in micro service architecture
+
+Inside the redpesk micro-service architecture, the binder is used for
+two main purposes, either together or separately:
+
+1. Entry point of user applications for using micro-services
+2. Interconnection of services together
+
+The interconnection of services together
+
+## Bindings
+
+The bindings are dynamically loaded libraries that bring callable
+APIs to the binder. The API brought by bindings can be exported
+to other bindings 

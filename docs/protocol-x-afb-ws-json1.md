@@ -63,7 +63,7 @@ Below, an example of exchange:
 
 ```txt
 C->S:   [2,"156","hello/ping",null]
-S->C:   [3,"156",{"response":"Some String","jtype":"afb-reply","request":{"status":"success","info":"Ping Binder Daemon tag=pingSample count=1 query=\"null\"","uuid":"ec30120c-6997-4529-9d63-c0de0cce56c0"}}]
+S->C:   [3,"156",{"response":"Some String","jtype":"afb-reply","request":{"status":"success","info":"Ping Binder Daemon tag=pingSample count=1 query=\"null\""}}]
 ```
 
 ## History
