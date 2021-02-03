@@ -1033,12 +1033,14 @@ static void start(int signum, void *arg)
 		ERROR("can't create main api set");
 		goto error;
 	}
-	if (afb_monitor_init(afb_binder_main_apiset, afb_binder_main_apiset) < 0) {
+	rc = afb_monitor_init(afb_binder_main_apiset, afb_binder_main_apiset);
+	if (rc < 0) {
 		ERROR("failed to setup monitor");
 		goto error;
 	}
 #if WITH_SUPERVISION
-	if (afb_supervision_init(afb_binder_main_apiset, afb_binder_main_config) < 0) {
+	rc = afb_supervision_init(afb_binder_main_apiset, afb_binder_main_config);
+	if (rc < 0) {
 		ERROR("failed to setup supervision");
 		goto error;
 	}
@@ -1060,7 +1062,11 @@ static void start(int signum, void *arg)
 
 #if WITH_EXTENSION
 	/* prepare extensions */
-	afb_extend_config(afb_binder_main_config);
+	rc = afb_extend_config(afb_binder_main_config);
+	if (rc < 0) {
+		ERROR("Extension config failed");
+		goto error;
+	}
 #endif
 
 #if WITH_LIBMICROHTTPD
@@ -1089,9 +1095,17 @@ static void start(int signum, void *arg)
 	apiset_start_list("ws-client", afb_api_ws_add_client_weak, "the afb-websocket client");
 #if WITH_EXTENSION
 	/* declare extensions */
-	afb_extend_declare(afb_binder_main_apiset, afb_binder_main_apiset);
+	rc = afb_extend_declare(afb_binder_main_apiset, afb_binder_main_apiset);
+	if (rc < 0) {
+		ERROR("Extension declare failed");
+		goto error;
+	}
 #if WITH_LIBMICROHTTPD
-	afb_extend_http(afb_binder_http_server);
+	rc = afb_extend_http(afb_binder_http_server);
+	if (rc < 0) {
+		ERROR("Extension http failed");
+		goto error;
+	}
 #endif
 #endif
 
@@ -1104,8 +1118,11 @@ static void start(int signum, void *arg)
 #if WITH_CALL_PERSONALITY
 	personality((unsigned long)-1L);
 #endif
-	if (afb_apiset_start_all_services(afb_binder_main_apiset) < 0)
+	rc = afb_apiset_start_all_services(afb_binder_main_apiset);
+	if (rc < 0) {
+		ERROR("Services start failed");
 		goto error;
+	}
 
 	/* export started apis */
 	apiset_start_list("ws-server", afb_api_ws_add_server, "the afb-websocket service");
@@ -1114,7 +1131,11 @@ static void start(int signum, void *arg)
 #endif
 #if WITH_EXTENSION
 	/* start extensions */
-	afb_extend_serve(afb_binder_main_apiset);
+	rc = afb_extend_serve(afb_binder_main_apiset);
+	if (rc < 0) {
+		ERROR("Extension serve failed");
+		goto error;
+	}
 #endif
 
 	/* start the HTTP server */
