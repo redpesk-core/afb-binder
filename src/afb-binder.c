@@ -460,7 +460,7 @@ static int http_server_create(struct afb_hsrv **result)
 	NOTICE("Serving rootdir=%s uploaddir=%s", rootdir, uploaddir);
 
 	/* setup of cookies */
-	if (!afb_hreq_init_cookie(http_port, rootapi, session_timeout)) {
+	if (!afb_hreq_init_cookie(http_port, 0, session_timeout)) {
 		ERROR("initialisation of HTTP cookies failed");
 		rc = X_ENOMEM;
 		goto end;
