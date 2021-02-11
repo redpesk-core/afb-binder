@@ -950,6 +950,7 @@ static void start(int signum, void *arg)
 #if WITH_AFB_HOOK
 	const char *tracereq = NULL, *traceapi = NULL, *traceevt = NULL;
 	const char *traceses = NULL, *traceglob = NULL;
+	unsigned flags;
 #endif
 	const char *workdir = NULL, *rootdir = NULL;
 	struct json_object *settings = NULL;
@@ -1048,16 +1049,46 @@ static void start(int signum, void *arg)
 
 #if WITH_AFB_HOOK
 	/* install hooks */
-	if (tracereq)
-		afb_hook_create_req(NULL, NULL, NULL, afb_hook_flags_req_from_text(tracereq), NULL, NULL);
-	if (traceapi)
-		afb_hook_create_api(NULL, afb_hook_flags_api_from_text(traceapi), NULL, NULL);
-	if (traceevt)
-		afb_hook_create_evt(NULL, afb_hook_flags_evt_from_text(traceevt), NULL, NULL);
-	if (traceses)
-		afb_hook_create_session(NULL, afb_hook_flags_session_from_text(traceses), NULL, NULL);
-	if (traceglob)
-		afb_hook_create_global(afb_hook_flags_global_from_text(traceglob), NULL, NULL);
+	if (tracereq) {
+		rc = afb_hook_flags_req_from_text(tracereq, &flags);
+		if (rc < 0) {
+			ERROR("invalid tracereq spec '%s'", tracereq);
+			goto error;
+		}
+		afb_hook_create_req(NULL, NULL, NULL, flags, NULL, NULL);
+	}
+	if (traceapi) {
+		rc = afb_hook_flags_api_from_text(traceapi, &flags);
+		if (rc < 0) {
+			ERROR("invalid traceapi spec '%s'", traceapi);
+			goto error;
+		}
+		afb_hook_create_api(NULL, flags, NULL, NULL);
+	}
+	if (traceevt) {
+		rc = afb_hook_flags_evt_from_text(traceevt, &flags);
+		if (rc < 0) {
+			ERROR("invalid traceevt spec '%s'", traceevt);
+			goto error;
+		}
+		afb_hook_create_evt(NULL, flags, NULL, NULL);
+	}
+	if (traceses) {
+		rc = afb_hook_flags_session_from_text(traceses, &flags);
+		if (rc < 0) {
+			ERROR("invalid traceses spec '%s'", traceses);
+			goto error;
+		}
+		afb_hook_create_session(NULL, flags, NULL, NULL);
+	}
+	if (traceglob) {
+		rc = afb_hook_flags_global_from_text(traceglob, &flags);
+		if (rc < 0) {
+			ERROR("invalid traceglob spec '%s'", traceglob);
+			goto error;
+		}
+		afb_hook_create_global(flags, NULL, NULL);
+	}
 #endif
 
 #if WITH_EXTENSION

@@ -302,20 +302,6 @@ static const char *name_of_optid(int optid)
 	return iter->name;
 }
 
-static int get_enum_val(const char *name, int optid, int (*func)(const char*))
-{
-	int i;
-
-	i = func(name);
-	if (i < 0) {
-		ERROR("option --%s bad value (found %s)",
-			name_of_optid(optid), name);
-		exit(1);
-	}
-	return i;
-}
-
-
 /*----------------------------------------------------------
  | printversion
  |   print version and copyright
@@ -519,7 +505,7 @@ static void config_mix2_cb(void *closure, struct json_object *obj, const char *n
 		json_object_object_add(base, name, dest);
 	}
 	if (json_object_is_type(obj, json_type_object))
-		wrap_json_object_add(dest, obj);
+		wrap_json_object_merge(dest, obj, wrap_json_merge_option_join_or_replace);
 	else
 		json_object_object_add(dest, "", json_object_get(obj));
 }
@@ -611,11 +597,16 @@ static void config_set_optint(struct json_object *config, int optid, char *value
 }
 
 __attribute__((unused))
-static void config_set_optenum(struct json_object *config, int optid, char *value, int (*func)(const char*))
+static void config_set_optflags(struct json_object *config, int optid,
+				char *value, int (*func)(const char*,unsigned*))
 {
-	const char *name = value;
-	get_enum_val(name, optid, func);
-	config_set_str(config, optid, name);
+
+	if (func(value, 0) < 0) {
+		ERROR("option --%s bad value (found %s)",
+			name_of_optid(optid), value);
+		exit(1);
+	}
+	config_set_str(config, optid, value);
 }
 
 static void config_add_optstr(struct json_object *config, int optid, char *value)
@@ -773,12 +764,13 @@ static void on_environment_basic(const char *name, void (*func)(const char*))
 }
 
 __attribute__((unused))
-static void on_environment_enum(struct json_object *config, int optid, const char *name, int (*func)(const char*))
+static void on_environment_flags(struct json_object *config, int optid,
+			const char *name, int (*func)(const char*,unsigned*))
 {
 	char *value = secure_getenv(name);
 
 	if (value) {
-		if (func(value) == -1)
+		if (func(value, 0) < 0)
 			WARNING("Unknown value %s for environment variable %s, ignored", value, name);
 		else
 			config_set_str(config, optid, value);
@@ -814,11 +806,11 @@ static void parse_environment_initial(struct json_object *config)
 {
 	on_environment_basic("AFB_LOG", set_log);
 #if WITH_AFB_HOOK
-	on_environment_enum(config, SET_TRACEREQ, "AFB_TRACEREQ", afb_hook_flags_req_from_text);
-	on_environment_enum(config, SET_TRACEEVT, "AFB_TRACEEVT", afb_hook_flags_evt_from_text);
-	on_environment_enum(config, SET_TRACESES, "AFB_TRACESES", afb_hook_flags_session_from_text);
-	on_environment_enum(config, SET_TRACEAPI, "AFB_TRACEAPI", afb_hook_flags_api_from_text);
-	on_environment_enum(config, SET_TRACEGLOB, "AFB_TRACEGLOB", afb_hook_flags_global_from_text);
+	on_environment_flags(config, SET_TRACEREQ, "AFB_TRACEREQ", afb_hook_flags_req_from_text);
+	on_environment_flags(config, SET_TRACEEVT, "AFB_TRACEEVT", afb_hook_flags_evt_from_text);
+	on_environment_flags(config, SET_TRACESES, "AFB_TRACESES", afb_hook_flags_session_from_text);
+	on_environment_flags(config, SET_TRACEAPI, "AFB_TRACEAPI", afb_hook_flags_api_from_text);
+	on_environment_flags(config, SET_TRACEGLOB, "AFB_TRACEGLOB", afb_hook_flags_global_from_text);
 #endif
 #if WITH_DYNAMIC_BINDING && WITH_DIRENT
 	on_environment(config, ADD_LDPATH, "AFB_LDPATHS", config_add_str);
@@ -887,23 +879,23 @@ static error_t parsecb_initial(int key, char *value, struct argp_state *state)
 
 #if WITH_AFB_HOOK
 	case SET_TRACEREQ:
-		config_set_optenum(config, key, value, afb_hook_flags_req_from_text);
+		config_set_optflags(config, key, value, afb_hook_flags_req_from_text);
 		break;
 
 	case SET_TRACEEVT:
-		config_set_optenum(config, key, value, afb_hook_flags_evt_from_text);
+		config_set_optflags(config, key, value, afb_hook_flags_evt_from_text);
 		break;
 
 	case SET_TRACESES:
-		config_set_optenum(config, key, value, afb_hook_flags_session_from_text);
+		config_set_optflags(config, key, value, afb_hook_flags_session_from_text);
 		break;
 
 	case SET_TRACEAPI:
-		config_set_optenum(config, key, value, afb_hook_flags_api_from_text);
+		config_set_optflags(config, key, value, afb_hook_flags_api_from_text);
 		break;
 
 	case SET_TRACEGLOB:
-		config_set_optenum(config, key, value, afb_hook_flags_global_from_text);
+		config_set_optflags(config, key, value, afb_hook_flags_global_from_text);
 		break;
 #endif
 	case SET_CONFIG:
@@ -912,7 +904,7 @@ static error_t parsecb_initial(int key, char *value, struct argp_state *state)
 			ERROR("Can't read config file %s", value);
 			exit(1);
 		}
-		wrap_json_object_add(config, conf);
+		wrap_json_object_merge(config, conf, wrap_json_merge_option_join_or_replace);
 		json_object_put(conf);
 		break;
 
