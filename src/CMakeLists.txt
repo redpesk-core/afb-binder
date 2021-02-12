@@ -37,6 +37,7 @@ include_directories(
 add_executable(afb-binder
 	afb-binder.c
 	afb-binder-opts.c
+	afb-binder-config.c
 )
 
 target_link_libraries(afb-binder

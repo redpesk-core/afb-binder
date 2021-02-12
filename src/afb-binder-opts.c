@@ -43,6 +43,7 @@
 #endif
 
 #include "afb-binder-opts.h"
+#include "afb-binder-config.h"
 #include <libafb/extend/afb-extend.h>
 
 #define _d2s_(x)  #x
@@ -194,7 +195,8 @@ static const struct argp_option optdefs[] = {
 	{ .name="rootdir",     .key=SET_ROOT_DIR,        .arg="DIRECTORY", .doc="Root Directory of the application [default: workdir] relative to workdir" },
 
 #if WITH_DYNAMIC_BINDING
-	{ .name="binding",     .key=ADD_BINDING,         .arg="FILENAME", .doc="Load the binding of path" },
+	{ .name="binding",     .key=ADD_BINDING,         .arg="SPEC", .doc="Load the binding of SPEC where SPEC is BINDING[:[UID:]CONFIG], "
+	                                                                   "the path of the BINDING, the path of the CONFIG, the UID" },
 #if WITH_DIRENT
 	{ .name="ldpaths",     .key=ADD_LDPATH,          .arg="PATHSET", .doc="Load bindings from dir1:dir2:..." },
 	{ .name="weak-ldpaths",.key=ADD_WEAK_LDPATH,     .arg="PATHSET", .doc="Same as --ldpaths but errors are not fatal" },
@@ -380,6 +382,12 @@ static struct json_object *joomchk(struct json_object *value)
 static struct json_object *to_jstr(const char *value)
 {
 	return joomchk(json_object_new_string(value));
+}
+
+/** create a string json-object of given length */
+static struct json_object *to_jstr_len(const char *value, size_t len)
+{
+	return joomchk(json_object_new_string_len(value,(int)len));
 }
 
 static struct json_object *to_jint(int value)
@@ -612,6 +620,60 @@ static void config_set_optflags(struct json_object *config, int optid,
 static void config_add_optstr(struct json_object *config, int optid, char *value)
 {
 	config_add_str(config, optid, value);
+}
+
+/**
+ * Add a binding to the configuration. The string defining the binding
+ * is interpreted as colon separated fields of the grammar "PATH[:[UID:]CONFIG]"
+ * The function creates a json object made as below, reflecting that string:
+ *  { "path": "PATH", "uid": "UID", "config": { "$ref": "CONFIG" } }
+ * where fields "uid" and "config" are optionnals
+ */
+static void config_add_path_conf_uid(struct json_object *config, int optid, char *value)
+{
+	const char separator = ':';
+	struct json_object *obj, *str, *ref = NULL;
+
+	size_t pathlen, uidlen = 0, conflen = 0;
+	char *pathstr, *uidstr = NULL, *confstr = NULL;
+
+	/* get sizes and strings */
+	for (pathstr = value; *value && *value != separator ; value++);
+	pathlen = value - pathstr;
+	if (*value) {
+		for (uidstr = ++value; *value && *value != separator ; value++);
+		if (!*value) {
+			confstr = uidstr;
+			conflen = value - confstr;
+			uidstr = NULL;
+		}
+		else {
+			uidlen = value - uidstr;
+			confstr = ++value;
+			conflen = strlen(confstr);
+		}
+	}
+
+	/* create the object */
+	obj = oomchk(json_object_new_object());
+
+	str = to_jstr_len(pathstr, pathlen);
+	json_object_object_add(obj, "path", str);
+
+	if (uidstr != NULL && uidlen != 0) {
+		str = to_jstr_len(uidstr, uidlen);
+		json_object_object_add(obj, "uid", str);
+	}
+
+	if (confstr != NULL && conflen != 0) {
+		ref = oomchk(json_object_new_object());
+		str = to_jstr_len(confstr, conflen);
+		json_object_object_add(ref, "$ref", str);
+		json_object_object_add(obj, "config", ref);
+	}
+
+	/* add the computed object */
+	config_add(config, optid, obj);
 }
 
 static void config_mix2_optstr(struct json_object *config, int optid, char *value)
@@ -866,6 +928,8 @@ static error_t parsecb_initial(int key, char *value, struct argp_state *state)
 
 #if WITH_EXTENSION
 	case ADD_EXTENSION:
+		config_add_path_conf_uid(config, key, value);
+		break;
 #if WITH_DIRENT
 	case ADD_EXTPATH:
 #endif
@@ -1011,16 +1075,18 @@ static error_t parsecb_final(int key, char *value, struct argp_state *state)
 		config_set_optstr(config, key, value);
 		break;
 
-#if WITH_DBUS_TRANSPARENCY
-	case ADD_DBUS_CLIENT:
-	case ADD_DBUS_SERVICE:
-#endif
 #if WITH_DYNAMIC_BINDING
 	case ADD_BINDING:
+		config_add_path_conf_uid(config, key, value);
+		break;
 #if WITH_DIRENT
 	case ADD_LDPATH:
 	case ADD_WEAK_LDPATH:
 #endif
+#endif
+#if WITH_DBUS_TRANSPARENCY
+	case ADD_DBUS_CLIENT:
+	case ADD_DBUS_SERVICE:
 #endif
 	case ADD_CALL:
 	case ADD_WS_CLIENT:
@@ -1069,18 +1135,25 @@ static error_t parsecb_extension(int key, char *value, struct argp_state *state)
 	struct children_data *data = state->input;
 	struct json_object *config = data->config;
 	const struct argp_option *options = data->options;
-	struct json_object *a, *v;
+	struct json_object *a, *v, *na;
 
 	if (!options)
 		return 0;
 	while(options->name) {
 		if (options->key == key) {
-			if (!json_object_object_get_ex(config, options->name, &a)) {
-				a = json_object_new_array();
-				json_object_object_add(config, options->name, a);
-			}
 			v = value ? json_object_new_string(value) : json_object_new_boolean(1);
-			json_object_array_add(a, v);
+			if (!json_object_object_get_ex(config, options->name, &a)) {
+				json_object_object_add(config, options->name, v);
+			}
+			else if (json_object_is_type(a, json_type_array)) {
+				json_object_array_add(a, v);
+			}
+			else {
+				na = json_object_new_array();
+				json_object_array_add(na, json_object_get(a));
+				json_object_array_add(na, v);
+				json_object_object_add(config, options->name, na);
+			}
 			return 0;
 		}
 		options++;
@@ -1091,13 +1164,13 @@ static error_t parsecb_extension(int key, char *value, struct argp_state *state)
 
 }
 
-int afb_binder_opts_parse_initial(int argc, char **argv, struct json_object *config)
+int afb_binder_opts_parse_initial(int argc, char **argv, struct json_object **config)
 {
 	struct argp argp;
 	int flags;
 
 #if WITH_ENVIRONMENT
-	parse_environment_initial(config);
+	parse_environment_initial(*config);
 #endif
 	argp.options = optdefs;
 	argp.parser = parsecb_initial;
@@ -1108,11 +1181,11 @@ int afb_binder_opts_parse_initial(int argc, char **argv, struct json_object *con
 	argp.argp_domain = 0;
 	argp_program_version = version;
 	flags = ARGP_IN_ORDER | ARGP_SILENT;
-	argp_parse(&argp, argc, argv, flags, 0, config);
+	argp_parse(&argp, argc, argv, flags, 0, *config);
 	return 0;
 }
 
-int afb_binder_opts_parse_final(int argc, char **argv, struct json_object *config)
+int afb_binder_opts_parse_final(int argc, char **argv, struct json_object **config)
 {
 	struct argp argp;
 	int flags;
@@ -1141,9 +1214,9 @@ int afb_binder_opts_parse_final(int argc, char **argv, struct json_object *confi
 		if (!children || !children_argp || !children_data)
 			rc = -1;
 		else {
-			if (!json_object_object_get_ex(config, "@extconfig", &root)) {
+			if (!json_object_object_get_ex(*config, "@extconfig", &root)) {
 				root = json_object_new_object();
-				json_object_object_add(config, "@extconfig", root);
+				json_object_object_add(*config, "@extconfig", root);
 			}
 			for (rc = iext = 0 ; rc >= 0 && iext < next ; iext++) {
 				children[iext].argp = &children_argp[iext];
@@ -1164,7 +1237,7 @@ int afb_binder_opts_parse_final(int argc, char **argv, struct json_object *confi
 		}
 	}
 
-	data.config = config;
+	data.config = *config;
 	data.children_data = children_data;
 	data.nchildren = next;
 	data.dodump = 0;
@@ -1180,18 +1253,21 @@ int afb_binder_opts_parse_final(int argc, char **argv, struct json_object *confi
 	flags = ARGP_IN_ORDER;
 	argp_parse(&argp, argc, argv, flags, 0, &data);
 
-	fulfill_config(config);
+	fulfill_config(*config);
 	if (data.dodump) {
-		dump(config, stdout, NULL, NULL);
+		dump(*config, stdout, NULL, NULL);
 		exit(0);
 	}
+	if (verbose_wants(Log_Level_Debug))
+		dump(*config, stderr, "--", "CONFIG");
+	rc = expand_config(config, 1);
 	if (verbose_wants(Log_Level_Info))
-		dump(config, stderr, "--", "CONFIG");
+		dump(*config, stderr, "--", "CONFIG");
 
 	for (iext = 0 ; iext < next ; iext++)
 		free((char**)children[iext].header);
 	free(children);
 	free(children_argp);
 	free(children_data);
-	return 0;
+	return rc;
 }

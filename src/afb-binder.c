@@ -202,6 +202,58 @@ static void apiset_start_list(const char *name,
 	}
 }
 
+#if WITH_DYNAMIC_BINDING
+/**
+ * Loads the binding specified by the object 'value'
+ *
+ * @param closure not used
+ * @param value an object describing the binding to load
+ */
+static void load_one_binding_cb(void *closure, struct json_object *value)
+{
+	struct json_object *path;
+	const char *pathstr;
+	int rc;
+
+	/* mainstream type is an object { path, uid, config } */
+	if (json_object_is_type(value, json_type_object)
+		&& json_object_object_get_ex(value, "path", &path)) {
+		pathstr = json_object_get_string(path);
+	}
+	/* try legacy plain strings if config files for it exist */
+	else if (json_object_is_type(value, json_type_string)) {
+		pathstr = json_object_get_string(value);
+		value = NULL;
+	}
+	else {
+		/* unrecognized binding specification */
+		ERROR("unrecognized binding option %s", json_object_get_string(value));
+		exit(1);
+	}
+
+	/* add the binding now */
+	rc = afb_api_so_add_binding_config(pathstr, afb_binder_main_apiset, afb_binder_main_apiset, value);
+	if (rc < 0) {
+		ERROR("can't load binding %s", pathstr);
+		exit(1);
+	}
+}
+
+/**
+ * Load the bindings within the given 'name' of the config.
+ *
+ * @param name name of the array of bindings to load
+ */
+static void load_bindings(const char *name)
+{
+	struct json_object *array;
+
+	/* check if the name exists */
+	if (json_object_object_get_ex(afb_binder_main_config, name, &array))
+		wrap_json_optarray_for_all(array, load_one_binding_cb, NULL);
+}
+#endif
+
 /*----------------------------------------------------------
  | exit_handler
  |   Handles on exit specific actions
@@ -941,8 +993,51 @@ static void run_startup_calls()
 	}
 }
 
+/**
+ * Set directories
+ */
+static void setup_directories()
+{
+	struct json_object *obj;
+	const char *workdir, *rootdir, *str;
+
+	/* get the directories */
+	workdir = ".";
+	if (json_object_object_get_ex(afb_binder_main_config, "workdir", &obj)
+	 && json_object_is_type(obj, json_type_string))
+		workdir = json_object_get_string(obj);
+
+	rootdir = ".";
+	if (json_object_object_get_ex(afb_binder_main_config, "rootdir", &obj)
+	 && json_object_is_type(obj, json_type_string))
+		rootdir = json_object_get_string(obj);
+
+#if WITH_ENVIRONMENT
+	str = getenv("PWD");
+	addenv_realpath("OLDPWD", str ?: ".");
+#endif
+	/* set the directories */
+	mkdir(workdir, S_IRWXU | S_IRGRP | S_IXGRP);
+	if (chdir(workdir) < 0) {
+		ERROR("Can't enter working dir %s", workdir);
+		exit(1);
+	}
+	if (afb_common_rootdir_set(rootdir) < 0) {
+		ERROR("failed to set common root directory %s", rootdir);
+		exit(1);
+	}
+#if WITH_ENVIRONMENT
+	if (addenv_realpath("AFB_WORKDIR", "."     /* resolved by realpath */) < 0
+	 || addenv_realpath("PWD", "."     /* resolved by realpath */) < 0
+	 || addenv_realpath("AFB_ROOTDIR", rootdir /* relative to current directory */) < 0) {
+		ERROR("can't set DIR environment");
+		exit(1);
+	}
+#endif
+}
+
 /*---------------------------------------------------------
- | job for starting the daemon
+ | job starting the binder
  +--------------------------------------------------------- */
 
 static void start(int signum, void *arg)
@@ -952,7 +1047,6 @@ static void start(int signum, void *arg)
 	const char *traceses = NULL, *traceglob = NULL;
 	unsigned flags;
 #endif
-	const char *workdir = NULL, *rootdir = NULL;
 	struct json_object *settings = NULL;
 	int max_session_count, session_timeout, api_timeout;
 	int rc;
@@ -966,14 +1060,12 @@ static void start(int signum, void *arg)
 		exit(1);
 	}
 
+	setup_directories();
+
 	rc = wrap_json_unpack(afb_binder_main_config, "{"
-			"ss ss"
 			"si si si"
 			"s?o"
 			"}",
-
-			"rootdir", &rootdir,
-			"workdir", &workdir,
 
 			"apitimeout", &api_timeout,
 			"cntxtimeout", &session_timeout,
@@ -1008,24 +1100,6 @@ static void start(int signum, void *arg)
 		ERROR("initialisation of session manager failed");
 		goto error;
 	}
-
-	/* set the directories */
-	mkdir(workdir, S_IRWXU | S_IRGRP | S_IXGRP);
-	if (chdir(workdir) < 0) {
-		ERROR("Can't enter working dir %s", workdir);
-		goto error;
-	}
-	if (afb_common_rootdir_set(rootdir) < 0) {
-		ERROR("failed to set common root directory %s", rootdir);
-		goto error;
-	}
-#if WITH_ENVIRONMENT
-	if (addenv_realpath("AFB_WORKDIR", "."     /* resolved by realpath */) < 0
-	 || addenv_realpath("AFB_ROOTDIR", rootdir /* relative to current directory */) < 0) {
-		ERROR("can't set DIR environment");
-		goto error;
-	}
-#endif
 
 	/* configure the daemon */
 	afb_api_common_set_config(settings);
@@ -1113,7 +1187,7 @@ static void start(int signum, void *arg)
 	afb_debug("start-load");
 #endif
 #if WITH_DYNAMIC_BINDING
-	apiset_start_list("binding", afb_api_so_add_binding, "the binding");
+	load_bindings("binding");
 #if WITH_DIRENT
 	apiset_start_list("ldpaths", afb_api_so_add_pathset_fails, "the binding path set");
 	apiset_start_list("weak-ldpaths", afb_api_so_add_pathset_nofails, "the weak binding path set");
@@ -1226,7 +1300,7 @@ int main(int argc, char *argv[])
 
 	// ------------- Build session handler & init config -------
 	afb_binder_main_config = json_object_new_object();
-	afb_binder_opts_parse_initial(argc, argv, afb_binder_main_config);
+	afb_binder_opts_parse_initial(argc, argv, &afb_binder_main_config);
 
 #if WITH_EXTENSION
 	/* load extensions */
@@ -1236,7 +1310,7 @@ int main(int argc, char *argv[])
 	}
 #endif
 
-	afb_binder_opts_parse_final(argc, argv, afb_binder_main_config);
+	afb_binder_opts_parse_final(argc, argv, &afb_binder_main_config);
 
 	if (afb_sig_monitor_init(
 		!json_object_object_get_ex(afb_binder_main_config, "trap-faults", &obj)

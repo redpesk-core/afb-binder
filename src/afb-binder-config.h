@@ -24,6 +24,5 @@
 
 struct json_object;
 
-extern int afb_binder_opts_parse_initial(int argc, char **argv, struct json_object **config);
-extern int afb_binder_opts_parse_final(int argc, char **argv, struct json_object **config);
+extern int expand_config(struct json_object **config, int readrefs);
 
