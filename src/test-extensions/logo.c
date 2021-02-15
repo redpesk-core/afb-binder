@@ -29,6 +29,8 @@
 #include <libafb/sys/verbose.h>
 
 #include <libafb/extend/afb-extension.h>
+#include <libafb/http/afb-hsrv.h>
+#include <libafb/http/afb-hreq.h>
 
 AFB_EXTENSION(test-logo)
 
@@ -51,9 +53,21 @@ int AfbExtensionDeclareV1(void *data, struct afb_apiset *declare_set, struct afb
 	return 0;
 }
 
+/**
+ * Tiny example to show a page
+ */
+static int reply_hello_logo(struct afb_hreq *hreq, void *data)
+{
+	static const char coucou[] = "<html><title>Hello from LOGO</title><body><h1>Hello from LOGO";
+	afb_hreq_reply_static(hreq, 200, (sizeof coucou) - 1, coucou, NULL);
+	return 1;
+}
+
 int AfbExtensionHTTPV1(void *data, struct afb_hsrv *hsrv)
 {
 	NOTICE("Extension %s got HTTP %s", AfbExtensionManifest.name, data == &AfbExtensionManifest ? "ok" : "error");
+	/* add a handler for queries of path /logo/... */
+	afb_hsrv_add_handler(hsrv,"/logo",reply_hello_logo,0,30);
 	return 0;
 }
 
