@@ -980,7 +980,7 @@ static error_t parsecb_final(int key, char *value, struct argp_state *state)
 	case SET_UPLOAD_DIR:
 	case SET_HTTPS_CERT:
 	case SET_HTTPS_KEY:
-
+	case SET_OUTPUT:
 		config_set_optstr(config, key, value);
 		break;
 
