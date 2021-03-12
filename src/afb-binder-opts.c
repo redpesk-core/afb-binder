@@ -493,6 +493,10 @@ static void config_add(struct json_object *config, int optid, struct json_object
 		a = joomchk(json_object_new_array());
 		json_object_object_add(config, name_of_optid(optid), a);
 	}
+	else if (!json_object_is_type(a, json_type_array)) {
+		ERROR("The configuration item %s MUST be an array", name_of_optid(optid));
+		exit(1);
+	}
 	json_object_array_add(a, val);
 }
 
