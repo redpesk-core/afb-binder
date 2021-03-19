@@ -28,9 +28,8 @@
 #include <json-c/json.h>
 #include <libafb/sys/verbose.h>
 
-#include <libafb/extend/afb-extension.h>
-#include <libafb/http/afb-hsrv.h>
-#include <libafb/http/afb-hreq.h>
+#include <libafb/afb-extension.h>
+#include <libafb/afb-http.h>
 
 AFB_EXTENSION(test-logo)
 
@@ -40,7 +39,7 @@ const struct argp_option AfbExtensionOptionsV1[] = {
 	{ .name=0, .key=0, .doc=0 }
 };
 
-int AfbExtensionConfigV1(void **data, struct json_object *config)
+int AfbExtensionConfigV1(void **data, struct json_object *config, const char *uid)
 {
 	*data = &AfbExtensionManifest;
 	NOTICE("Extension %s got config %s", AfbExtensionManifest.name, json_object_get_string(config));
