@@ -4,7 +4,9 @@
  *
  * SPDX-License-Identifier: MIT
  */
-AFB = function(base, initialtoken){
+"use strict";
+
+var AFB = function (base, initialtoken) {
 
 if (typeof base != "object")
 	base = { base: base, token: initialtoken };
@@ -22,6 +24,14 @@ var initial = {
 
 var urlws = initial.url = initial.url || initial.scheme+"//"+initial.host+"/"+initial.base;
 
+var setURL = function (location, port) {
+	let u = (window.location.protocol == "https:" ? "wss://" : "ws://") + location;
+	if (port) {
+		u += ':' + port;
+	}
+	urlws = u + '/' + initial.base;
+}
+
 /*********************************************/
 /****                                     ****/
 /****             AFB_context             ****/
@@ -32,16 +42,16 @@ var AFB_context;
 	var UUID = undefined;
 	var TOKEN = initial.token;
 
-	var context = function(token, uuid) {
+	var context = function (token, uuid) {
 		this.token = token;
 		this.uuid = uuid;
 	}
 
 	context.prototype = {
-		get token() {return TOKEN;},
-		set token(tok) {if(tok) TOKEN=tok;},
-		get uuid() {return UUID;},
-		set uuid(id) {if(id) UUID=id;}
+		get token() { return TOKEN; },
+		set token(tok) { if (tok) TOKEN = tok; },
+		get uuid() { return UUID; },
+		set uuid(id) { if (id) UUID = id; }
 	};
 
 	AFB_context = new context();
@@ -60,7 +70,7 @@ var AFB_websocket;
 
 	var PROTO1 = "x-afb-ws-json1";
 
-	AFB_websocket = function(on_open, on_abort) {
+	AFB_websocket = function (on_open, on_abort) {
 		var u = urlws, p = '?';
 		if (AFB_context.token) {
 			u = u + '?x-afb-token=' + AFB_context.token;
@@ -68,7 +78,7 @@ var AFB_websocket;
 		}
 		if (AFB_context.uuid)
 			u = u + p + 'x-afb-uuid=' + AFB_context.uuid;
-		this.ws = new WebSocket(u, [ PROTO1 ]);
+		this.ws = new WebSocket(u, [PROTO1]);
 		this.url = u;
 		this.pendings = {};
 		this.awaitens = {};
@@ -102,7 +112,7 @@ var AFB_websocket;
 		var err = {
 			jtype: 'afb-reply',
 			request: {
-				status:	'disconnected',
+				status: 'disconnected',
 				info: 'server hung up'
 			}
 		};
@@ -116,16 +126,16 @@ var AFB_websocket;
 	function fire(awaitens, name, data) {
 		var a = awaitens[name];
 		if (a)
-			a.forEach(function(handler){handler(data, name);});
+			a.forEach(function(handler){ handler(data, name); });
 		var i = name.indexOf("/");
 		if (i >= 0) {
-			a = awaitens[name.substring(0,i)];
+			a = awaitens[name.substring(0, i)];
 			if (a)
-				a.forEach(function(handler){handler(data, name);});
+				a.forEach(function(handler){ handler(data, name); });
 		}
 		a = awaitens["*"];
 		if (a)
-			a.forEach(function(handler){handler(data, name);});
+			a.forEach(function(handler){ handler(data, name); });
 	}
 
 	function reply(pendings, id, ans, offset) {
@@ -167,19 +177,19 @@ var AFB_websocket;
 	}
 
 	function call(method, request, callid) {
-		return new Promise((function(resolve, reject){
+		return new Promise((function (resolve, reject) {
 			var id, arr;
 			if (callid) {
 				id = String(callid);
 				if (id in this.pendings)
-					throw new Error("pending callid("+id+") exists");
+					throw new Error("pending callid(" + id + ") exists");
 			} else {
 				do {
 					id = String(this.counter = 4095 & (this.counter + 1));
 				} while (id in this.pendings);
 			}
-			this.pendings[id] = [ resolve, reject ];
-			arr = [CALL, id, method, request ];
+			this.pendings[id] = [resolve, reject];
+			arr = [CALL, id, method, request];
 			if (AFB_context.token) arr.push(AFB_context.token);
 			this.ws.send(JSON.stringify(arr));
 		}).bind(this));
@@ -204,7 +214,9 @@ var AFB_websocket;
 /*********************************************/
 return {
 	context: AFB_context,
-	ws: AFB_websocket
+	ws: AFB_websocket,
+	setURL: setURL
 };
 };
 
+exports.AFB = AFB;
