@@ -38,7 +38,6 @@
 
 #include <json-c/json.h>
 #include "afb-binder-opts.h"
-#include <libafb/extend/afb-extend.h>
 
 #if WITH_CALL_PERSONALITY
 #include <sys/personality.h>
@@ -48,50 +47,17 @@
 #   include <systemd/sd-daemon.h>
 #endif
 
-#include <libafb/core/afb-apiset.h>
-#include <libafb/core/afb-api-common.h>
-#include <libafb/core/afb-req-common.h>
-#include <libafb/core/afb-session.h>
-#include <libafb/core/afb-common.h>
-#include <libafb/core/afb-data.h>
-#include <libafb/core/afb-type.h>
-#include <libafb/core/afb-type-predefined.h>
+#include <libafb/afb-core.h>
+#include <libafb/afb-apis.h>
+#include <libafb/afb-misc.h>
+#include <libafb/afb-extend.h>
 
-#include <libafb/core/afb-v4.h>
-#include <libafb/core/afb-json-legacy.h>
-
-#include <libafb/core/afb-sched.h>
-#include <libafb/core/afb-sig-monitor.h>
-#include <libafb/core/containerof.h>
-#if WITH_AFB_HOOK
-#   include <libafb/core/afb-hook.h>
-#   include <libafb/core/afb-hook-flags.h>
-#endif
-#include <libafb/misc/afb-monitor.h>
-
-#include <libafb/apis/afb-api-ws.h>
-#include <libafb/misc/afb-autoset.h>
-#include <libafb/apis/afb-api-so.h>
-#if WITH_DBUS_TRANSPARENCY
-#   include <libafb/apis/afb-api-dbus.h>
-#endif
-#if WITH_AFB_DEBUG
-#   include <libafb/misc/afb-debug.h>
-#endif
-#if WITH_SUPERVISION
-#   include <libafb/misc/afb-supervision.h>
-#endif
 #if WITH_LIBMICROHTTPD
-#   include <libafb/http/afb-hsrv.h>
-#   include <libafb/http/afb-hreq.h>
-#   include <libafb/http/afb-hswitch.h>
+#include <libafb/afb-http.h>
 #endif
 
-#include <libafb/sys/process-name.h>
-#include <libafb/utils/wrap-json.h>
-#include <libafb/misc/afb-watchdog.h>
-#include <libafb/sys/verbose.h>
-#include <libafb/sys/x-realpath.h>
+#include <libafb/afb-sys.h>
+#include <libafb/afb-utils.h>
 
 #if !defined(DEFAULT_BINDER_INTERFACE)
 #  define DEFAULT_BINDER_INTERFACE "*"
