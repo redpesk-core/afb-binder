@@ -1074,6 +1074,7 @@ static void start(int signum, void *arg)
 		ERROR("can't create main api set");
 		goto error;
 	}
+	afb_global_api_init(afb_binder_main_apiset);
 	rc = afb_monitor_init(afb_binder_main_apiset, afb_binder_main_apiset);
 	if (rc < 0) {
 		ERROR("failed to setup monitor");
