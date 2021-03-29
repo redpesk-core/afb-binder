@@ -385,7 +385,7 @@ Example:
 		--tracereq common \
 		--port 5555 \
 		--set api45/key:54027a5e3c6cb2ca5ddb97679ce32f185b067b0a557d16a8333758910bc25a72 \
-		--exec /home/15646/bin/test654 @p @t
+		--exec /home/15646/bin/test654 @p
 ```
 
 is equivalent to:
@@ -412,8 +412,7 @@ when the file **/home/15646/config1** is:
 	  },
 	  "exec": [
 	    "\/home\/15646\/bin\/test654",
-	    "@p",
-	    "@t"
+	    "@p"
 	  ]
 	}
 ```
