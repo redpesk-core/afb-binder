@@ -277,8 +277,13 @@ to client sessions indexed using a unique session identifier.
 	See discussion below.
 
 *-Z, --dump-config*
-	Output a JSON representation of the configuration resulting from
-	environment and options.
+	Output before expansion a JSON representation of the configuration
+	resulting from environment and options.
+	Then exits.
+
+*-z, --dump-final-config*
+	Output after expansion a JSON representation of the configuration
+	resulting from environment and options.
 	Then exits.
 
 
@@ -496,4 +501,3 @@ José Bollo <jose.bollo@iot.bzh>
 - The source code:        https://github.com/redpesk-core/afb-binder
 - Reporting bugs:         https://github.com/redpesk-core/afb-binder/issues
 - Redpesk documentation:  https://docs.redpesk.bzh
-

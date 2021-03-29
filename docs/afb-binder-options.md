@@ -61,7 +61,8 @@ The launch options for binder **afb-binder** are:
       --ws-server=SOCKSPEC   Provide an afb service through websockets
   -x, --extension=FILENAME   Load the extension of path
   -X, --extpaths=PATHSET     Load extensions from dir1:dir2:...
-  -Z, --dump-config          Dump the config to stdout and exit
+  -z, --dump-final-config    Dump the config after expansion to stdout and exit
+  -Z, --dump-config          Dump the config before expansion to stdout and exit
   -?, --help                 Give this help list
       --usage                Give a short usage message
   -V, --version              Print program version

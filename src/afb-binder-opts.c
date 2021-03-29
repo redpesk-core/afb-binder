@@ -155,6 +155,7 @@
 #define SET_WORK_DIR       'w'
 #define ADD_EXTENSION      'x'
 #define ADD_EXTPATH        'X'
+#define DUMP_CONFIG_FINAL  'z'
 #define DUMP_CONFIG        'Z'
 
 
@@ -239,6 +240,7 @@ static const struct argp_option optdefs[] = {
 
 	{ .name="config",      .key=SET_CONFIG,          .arg="FILENAME", .doc="Load options from the given config file" },
 	{ .name="dump-config", .key=DUMP_CONFIG,         .arg=0, .doc="Dump the config to stdout and exit" },
+	{ .name="dump-final-config", .key=DUMP_CONFIG_FINAL,   .arg=0, .doc="Dump the config after expansion to stdout and exit" },
 
 	{ .name="set",         .key=ADD_SET,             .arg="VALUE", .doc="Set parameters ([API]/[KEY]:JSON or {\"API\":{\"KEY\":JSON}}"  },
 	{ .name="output",      .key=SET_OUTPUT,          .arg="FILENAME", .doc="Redirect stdout and stderr to output file (when --daemon)" },
@@ -1125,7 +1127,8 @@ static error_t parsecb_final(int key, char *value, struct argp_state *state)
 		break;
 
 	case DUMP_CONFIG:
-		data->dodump = 1;
+	case DUMP_CONFIG_FINAL:
+		data->dodump = 1 + (DUMP_CONFIG_FINAL == key);
 		break;
 
 	default:
@@ -1258,7 +1261,7 @@ int afb_binder_opts_parse_final(int argc, char **argv, struct json_object **conf
 	argp_parse(&argp, argc, argv, flags, 0, &data);
 
 	fulfill_config(*config);
-	if (data.dodump) {
+	if (data.dodump == 1) {
 		dump(*config, stdout, NULL, NULL);
 		exit(0);
 	}
@@ -1267,6 +1270,10 @@ int afb_binder_opts_parse_final(int argc, char **argv, struct json_object **conf
 	rc = expand_config(config, 1);
 	if (verbose_wants(Log_Level_Info))
 		dump(*config, stderr, "--", "CONFIG");
+	if (data.dodump == 2) {
+		dump(*config, stdout, NULL, NULL);
+		exit(0);
+	}
 
 	for (iext = 0 ; iext < next ; iext++)
 		free((char**)children[iext].header);
