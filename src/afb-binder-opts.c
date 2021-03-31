@@ -1265,10 +1265,10 @@ int afb_binder_opts_parse_final(int argc, char **argv, struct json_object **conf
 		dump(*config, stdout, NULL, NULL);
 		exit(0);
 	}
-	if (verbose_wants(Log_Level_Debug))
+	if (verbose_wants(Log_Level_Info) && !verbose_wants(Log_Level_Debug))
 		dump(*config, stderr, "--", "CONFIG");
 	rc = expand_config(config, 1);
-	if (verbose_wants(Log_Level_Info))
+	if (verbose_wants(Log_Level_Debug))
 		dump(*config, stderr, "--", "CONFIG");
 	if (data.dodump == 2) {
 		dump(*config, stdout, NULL, NULL);
