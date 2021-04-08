@@ -22,6 +22,6 @@ books:
       name: WebSocket protocol x-afb-ws-json1
     - url: afb-binder-vocabulary.md
       name: Binder's vocabulary
-    - url: afb-binder.scd
+    - url: afb-binder.1.scd
       name: Binder's man page
 

@@ -17,7 +17,7 @@ The program *afb-binder*, often called the *binder*, has 3 main purposes:
 . enable *HTML5* access to connected *API*s
 
 *Bindings* are shared object libraries dynamically loaded by the binder.
-These bindings when loaded are declaring the *API*(s) that they provide.
+These bindings when loaded are declaring *API*(s) that they provide.
 
 API stands fo *A*pplication *P*rogrammer *I*nterface. In the context
 of *afb-binder*, it represents a set of procedures linked to a same service.
@@ -310,7 +310,7 @@ By default, the logging level is set as if the option
 	The level can be set using + or -.
 
 [[ *Examples*
-:[ *Descritpion*
+:[ *Description*
 |  error,warning
 :  selects only the levels error and warning
 |  +debug

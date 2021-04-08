@@ -99,7 +99,9 @@ ADD_DEFINITIONS(
 )
 
 add_subdirectory(src)
+add_subdirectory(docs)
 
 if(PROVIDE_AFB_DAEMON)
 	add_subdirectory(afb-daemon)
 endif()
+
