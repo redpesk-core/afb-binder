@@ -349,6 +349,14 @@ static int add_alias_weak(struct afb_hsrv *hsrv, const char *prefix, const char 
 	return access(alias, R_OK) != 0 || add_alias(hsrv, prefix, alias, priority, relax);
 }
 
+static int add_alias_weak_dir(struct afb_hsrv *hsrv, const char *prefix, const char *alias, int priority, int relax)
+{
+	char * dirname = expand_vars_env_only(alias, 0);
+	int rc = afb_hsrv_add_alias_dirname(hsrv, prefix, dirname ?: alias, priority, relax);
+	free(dirname);
+	return rc;
+}
+
 static int init_alias(void *closure, const char *spec)
 {
 	struct afb_hsrv *hsrv = closure;
@@ -528,6 +536,11 @@ static int http_server_create(struct afb_hsrv **result)
 		goto error;
 	tmp = secure_getenv("AFB_BINDER_WELL_KNOWN_DIR");
 	if (tmp && !add_alias_weak(hsrv, "/.well-known", tmp, -13, 1))
+		goto error;
+	if (!add_alias_weak_dir(hsrv, "/download", "${AFB_WORKDIR}/download", -15, 1))
+		goto error;
+	tmp = secure_getenv("AFB_BINDER_DOWNLOAD_DIR");
+	if (tmp && !add_alias_weak_dir(hsrv, "/download", tmp, -13, 1))
 		goto error;
 
 	/* set the root of http */
