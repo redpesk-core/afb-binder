@@ -885,7 +885,7 @@ static void parse_environment_initial(struct json_object *config)
 	on_environment(config, ADD_WEAK_LDPATH, "AFB_WEAK_LDPATHS", config_add_str);
 #endif
 #if WITH_EXTENSION && WITH_DIRENT
-	on_environment(config, ADD_EXTPATH, "AFB_EXTPATH", config_add_str);
+	on_environment(config, ADD_EXTPATH, "AFB_EXTPATHS", config_add_str);
 #endif
 	on_environment(config, ADD_SET, "AFB_SET", config_mix2_str);
 	on_environment_bool(config, SET_TRAP_FAULTS, "AFB_TRAP_FAULTS");

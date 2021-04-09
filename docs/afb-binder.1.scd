@@ -374,6 +374,101 @@ By default, the logging level is set as if the option
 	Print program version and copyright
 
 
+# ENVIRONMENT
+
+Environment variables can be used to set some options or behaviours.
+Also, the binder defines some variables that can be used by loaded
+bindings or chilren programs.
+
+## Variables for setting options
+
+These environment variables are giving a value to their corresponding
+option. For some of it, giving the option in the command line
+override the value of the environment variable, while for some other,
+giving the option on the command line extend the list of values for
+the option.
+
+[[ *variable*
+:[ *option*
+:[ *behaviour*
+|  *AFB_TRACEREQ*
+:  --tracereq
+:  override
+|  *AFB_TRACEEVT*
+:  --traceevt
+:  override
+|  *AFB_TRACESES*
+:  --traceses
+:  override
+|  *AFB_TRACEAPI*
+:  --traceapi
+:  override
+|  *AFB_TRACEGLOB*
+:  --traceglob
+:  override
+|  *AFB_TRAP_FAULTS*
+:  --trap-faults
+:  override
+|  *AFB_SET_PORT*
+:  --port
+:  override
+|  *AFB_HTTPS*
+:  --https
+:  override
+|  *AFB_HTTPS_CERT*
+:  --https-cert
+:  override
+|  *AFB_HTTPS_KEY*
+:  --https-key
+:  override
+|  *AFB_LDPATHS*
+:  --ldpaths
+:  extend
+|  *AFB_WEAK_LDPATHS*
+:  --weak-ldpaths
+:  extend
+|  *AFB_EXTPATHS*
+:  --extpaths
+:  extend
+|  *AFB_SET*
+:  --set
+:  extend
+|  *AFB_LOG*
+:  --log
+:  mixed
+
+## Variables for extra behaviour
+
+These variables are checked by the binder on start.
+They have no option counter part.
+
+*AFB_BINDER_WELL_KNOWN_DIR*
+	Set an alternate well-known directory. More or less equivalent
+	to the option *--alias=/.well-known:${AFB_BINDER_WELL_KNOWN_DIR}*
+
+*AFB_BINDER_DOWNLOAD_DIR*
+	Set an alternate download directory. More or less equivalent
+	to the option *--alias=/download:${AFB_BINDER_DOWNLOAD_DIR}*
+
+*AFB_HTTPS_PREFIX*
+	Directory where are searched the https key and certificate.
+	Default is /etc/afb/.https
+
+## Variables defined by the binder
+
+These variables are defined by the binder and can be used by
+bindings and children processes.
+
+*AFB_PORT*
+	Export the listening HTTP port of the binder.
+
+*AFB_WORKDIR*
+	The workdir of the binder.
+
+*AFB_ROOTDIR*
+	The root directory where the application is installed.
+
+
 # DISCUSSIONS
 
 ## Configuration
