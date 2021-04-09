@@ -15,18 +15,19 @@ while :; do
 	shift
 done
 
-mkdir -p "$h/$bd" || exit
-cd "$h/$bd" || exit
+cd "$h"
+h=$(pwd)
+mkdir -p "$bd" || exit
+cd "$bd" || exit
 
 $force && { rm -r * 2>/dev/null || rm CMakeCache.txt 2>/dev/null; }
 test -f CMakeCache.txt -a -f Makefile || \
 cmake \
-	-DPROJECT_VERSION=9.0.0 \
 	-DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX:=$PREFIX} \
 	-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE:=Debug} \
 	-DWITH_MONITORING=${WITH_MONITORING:=ON} \
 	-DWITH_EXTENSION=${WITH_EXTENSION:=ON} \
-	..
+	"$h"
 
 make -j "$@"
 
