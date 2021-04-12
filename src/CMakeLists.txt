@@ -24,7 +24,10 @@
 
 # configure
 
-configure_file(afb-binder.h.in afb-binder.h @ONLY)
+configure_file(
+	${CMAKE_CURRENT_SOURCE_DIR}/afb-binder.h.in
+	${CMAKE_CURRENT_BINARY_DIR}/afb-binder.h
+	@ONLY)
 
 # build
 
