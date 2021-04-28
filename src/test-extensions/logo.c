@@ -31,7 +31,7 @@
 #include <libafb/afb-extension.h>
 #include <libafb/afb-http.h>
 
-AFB_EXTENSION(test-logo)
+AFB_EXTENSION("test-logo")
 
 const struct argp_option AfbExtensionOptionsV1[] = {
 	{ .name="logo",     .key='L',   .arg=0, .doc="requires a logo" },

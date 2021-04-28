@@ -30,7 +30,7 @@
 
 #include <libafb/afb-extension.h>
 
-AFB_EXTENSION(test-tone)
+AFB_EXTENSION("test-tone")
 
 const struct argp_option AfbExtensionOptionsV1[] = {
 	{ .name="bip",      .key='B',   .arg=0, .doc="requires to bip" },
