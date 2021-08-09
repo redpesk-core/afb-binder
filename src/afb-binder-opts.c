@@ -121,6 +121,9 @@
 #define SET_HTTPS_KEY       26
 #endif
 
+#define ADD_RPC_CLIENT      27
+#define ADD_RPC_SERVICE     28
+
 #if WITH_DBUS_TRANSPARENCY
 #   define ADD_DBUS_CLIENT  30
 #   define ADD_DBUS_SERVICE 31
@@ -217,6 +220,9 @@ static const struct argp_option optdefs[] = {
 #endif
 	{ .name="ws-client",   .key=ADD_WS_CLIENT,       .arg="SOCKSPEC", .doc="Bind to an afb service through websocket" },
 	{ .name="ws-server",   .key=ADD_WS_SERVICE,      .arg="SOCKSPEC", .doc="Provide an afb service through websockets" },
+
+	{ .name="rpc-client",   .key=ADD_RPC_CLIENT,     .arg="SOCKSPEC", .doc="Bind to an afb service through websocket" },
+	{ .name="rpc-server",   .key=ADD_RPC_SERVICE,    .arg="SOCKSPEC", .doc="Provide an afb service through websockets" },
 
 	{ .name="auto-api",    .key=ADD_AUTO_API,        .arg="DIRECTORY", .doc="Automatic load of api of the given directory" },
 
@@ -1101,6 +1107,8 @@ static error_t parsecb_final(int key, char *value, struct argp_state *state)
 	case ADD_CALL:
 	case ADD_WS_CLIENT:
 	case ADD_WS_SERVICE:
+	case ADD_RPC_CLIENT:
+	case ADD_RPC_SERVICE:
 	case ADD_AUTO_API:
 	case ADD_INTERFACE:
 		config_add_optstr(config, key, value);

@@ -88,7 +88,7 @@ set(CMAKE_C_FLAGS_COVERAGE     "-g -O2 --coverage")
 ###########################################################################
 
 PKG_CHECK_MODULES(json-c REQUIRED json-c)
-PKG_CHECK_MODULES(libafb REQUIRED libafb)
+PKG_CHECK_MODULES(libafb REQUIRED libafb>=4.0.4)
 
 ADD_DEFINITIONS(
 	-DAFB_VERSION="${PROJECT_VERSION}"

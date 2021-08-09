@@ -1178,6 +1178,7 @@ static void start(int signum, void *arg)
 	apiset_start_list("dbus-client", afb_api_dbus_add_client, "the afb-dbus client");
 #endif
 	apiset_start_list("ws-client", afb_api_ws_add_client_weak, "the afb-websocket client");
+	apiset_start_list("rpc-client", afb_api_rpc_add_client_weak, "the afb-websocket client");
 #if WITH_EXTENSION
 	/* declare extensions */
 	rc = afb_extend_declare(afb_binder_main_apiset, afb_binder_main_apiset);
@@ -1211,6 +1212,7 @@ static void start(int signum, void *arg)
 
 	/* export started apis */
 	apiset_start_list("ws-server", afb_api_ws_add_server, "the afb-websocket service");
+	apiset_start_list("rpc-server", afb_api_rpc_add_server, "the afb-websocket service");
 #if WITH_DBUS_TRANSPARENCY
 	apiset_start_list("dbus-server", afb_api_dbus_add_server, "the afb-dbus service");
 #endif
