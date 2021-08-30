@@ -906,7 +906,7 @@ static void parse_environment_initial(struct json_object *config)
 static error_t parsecb_initial(int key, char *value, struct argp_state *state)
 {
 	const char *cval;
-	struct json_object *conf;
+	struct json_object *conf, *val;
 	struct json_object *config = state->input;
 
 	switch (key) {
@@ -973,6 +973,10 @@ static error_t parsecb_initial(int key, char *value, struct argp_state *state)
 		if (!conf) {
 			ERROR("Can't read config file %s", value);
 			exit(1);
+		}
+		if (json_object_object_get_ex(conf, "log", &val)) {
+			if (json_object_get_type(val) == json_type_string)
+				set_log(json_object_get_string(val));
 		}
 		wrap_json_object_merge(config, conf, wrap_json_merge_option_join_or_replace);
 		json_object_put(conf);
