@@ -13,7 +13,7 @@ because it allows two important things:
 
 IoT.bzh provides an SDK for some common linux distributions at the download URL
 
-    https://download.redpesk.bzh/redpesk-devel/releases/33/sdk/
+    https://download.redpesk.bzh/redpesk-lts/{{ site.redpesk-os.latest }}/sdk/
 
 You must first add the repository to your list of repositories.
 
@@ -23,7 +23,7 @@ Then you have to install the packages.
 
 Add the repository to your list of repositories.
 
-    sudo dnf config-manager --add-repo https://download.redpesk.bzh/redpesk-devel/releases/33/sdk/redpesk-sdk_fedora.repo
+    sudo dnf config-manager --add-repo https://download.redpesk.bzh/redpesk-lts/{{ site.redpesk-os.latest }}/sdk/redpesk-sdk_fedora.repo
 
 Install the packages
 
@@ -33,7 +33,7 @@ Install the packages
 
 Add the repository to your list of repositories.
 
-    sudo zypper ar -f -r https://download.redpesk.bzh/redpesk-devel/releases/33/sdk/redpesk-sdk_suse.repo redpesk-sdk
+    sudo zypper ar -f -r https://download.redpesk.bzh/redpesk-lts/{{ site.redpesk-os.latest }}/sdk/redpesk-sdk_suse.repo redpesk-sdk
     sudo zypper --gpg-auto-import-keys ref
     sudo zypper dup --from redpesk-sdk
 
@@ -45,8 +45,8 @@ Install the packages
 
 Add the repository to your list of repositories.
 
-    wget -O - https://download.redpesk.bzh/redpesk-devel/releases/33/sdk/Debian_10/Release.key | apt-key add -
-    sudo apt-add-repository 'deb https://download.redpesk.bzh/redpesk-devel/releases/33/sdk/xUbuntu_20.04/ ./'
+    wget -O - https://download.redpesk.bzh/redpesk-lts/{{ site.redpesk-os.latest }}/sdk/Debian_10/Release.key | apt-key add -
+    sudo apt-add-repository 'deb https://download.redpesk.bzh/redpesk-lts/{{ site.redpesk-os.latest }}/sdk/xUbuntu_20.04/ ./'
 
 Install the packages
 
@@ -57,8 +57,8 @@ Install the packages
 
 Add the repository to your list of repositories.
 
-    wget -O - https://download.redpesk.bzh/redpesk-devel/releases/33/sdk/xUbuntu_20.04/Release.key | apt-key add -
-    sudo apt-add-repository 'deb https://download.redpesk.bzh/redpesk-devel/releases/33/sdk/xUbuntu_20.04/ ./'
+    wget -O - https://download.redpesk.bzh/redpesk-lts/{{ site.redpesk-os.latest }}/sdk/xUbuntu_20.04/Release.key | apt-key add -
+    sudo apt-add-repository 'deb https://download.redpesk.bzh/redpesk-lts/{{ site.redpesk-os.latest }}/sdk/xUbuntu_20.04/ ./'
 
 Install the packages
 
