@@ -45,4 +45,10 @@ cd afb-binder
 ./mkbuild.sh -p $HOME/.local install
 ```
 
-***** TO BE COMPLETED *****
+## Examples
+
+Examples of bindings running on afb-binder can be found
+in the project afb-binding or in the package afb-binding-tutorial.
+
+Examples of binder extensions can be found in the subdirectory
+src/test-extensions

@@ -1,0 +1,5 @@
+Version 4.0.3
+-------------
+
+- add options --rpc-client and --rpc-server
+- processes "log" entries in config files
