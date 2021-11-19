@@ -716,7 +716,7 @@ static void on_sigchld(int signum, siginfo_t *info, void *uctx)
 		case CLD_EXITED:
 		case CLD_KILLED:
 		case CLD_DUMPED:
-			afb_sched_post_job(0, 0, 0, wait_child, (void*)(intptr_t)info->si_pid);
+			afb_sched_post_job(0, 0, 0, wait_child, (void*)(intptr_t)info->si_pid, Afb_Sched_Mode_Normal);
 		default:
 			break;
 		}
