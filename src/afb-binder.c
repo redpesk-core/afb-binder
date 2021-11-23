@@ -69,6 +69,7 @@
 */
 #define SELF_PGROUP 0
 
+struct afb_apiset *afb_binder_public_apiset;
 struct afb_apiset *afb_binder_main_apiset;
 struct json_object *afb_binder_main_config;
 #if WITH_LIBMICROHTTPD
@@ -151,10 +152,19 @@ static const char *run_for_config_array_opt(const char *name,
 	return NULL;
 }
 
+static struct afb_apiset *get_declare_set(const char **spec)
+{
+	if (**spec != '-')
+		return afb_binder_public_apiset;
+	(*spec)++;
+	return afb_binder_main_apiset;
+}
+
 static int run_start(void *closure, const char *value)
 {
 	int (*starter) (const char *value, struct afb_apiset *declare_set, struct afb_apiset *call_set) = closure;
-	return starter(value, afb_binder_main_apiset, afb_binder_main_apiset) >= 0;
+	struct afb_apiset *declset = get_declare_set(&value);
+	return starter(value, declset, afb_binder_main_apiset) >= 0;
 }
 
 static void apiset_start_list(const char *name,
@@ -177,6 +187,7 @@ static void apiset_start_list(const char *name,
  */
 static void load_one_binding_cb(void *closure, struct json_object *value)
 {
+	struct afb_apiset *declset;
 	struct json_object *path;
 	const char *pathstr;
 	int rc;
@@ -198,7 +209,8 @@ static void load_one_binding_cb(void *closure, struct json_object *value)
 	}
 
 	/* add the binding now */
-	rc = afb_api_so_add_binding_config(pathstr, afb_binder_main_apiset, afb_binder_main_apiset, value);
+	declset = get_declare_set(&pathstr);
+	rc = afb_api_so_add_binding_config(pathstr, declset, afb_binder_main_apiset, value);
 	if (rc < 0) {
 		ERROR("can't load binding %s", pathstr);
 		exit(1);
@@ -519,10 +531,10 @@ static int http_server_create(struct afb_hsrv **result)
 
 	/* set the root api handlers */
 	if (!afb_hsrv_add_handler(hsrv, rootapi,
-			afb_hswitch_websocket_switch, afb_binder_main_apiset, 20))
+			afb_hswitch_websocket_switch, afb_binder_public_apiset, 20))
 		goto error;
 	if (!afb_hsrv_add_handler(hsrv, rootapi,
-			afb_hswitch_apis, afb_binder_main_apiset, 10))
+			afb_hswitch_apis, afb_binder_public_apiset, 10))
 		goto error;
 
 	/* set alias of config */
@@ -1084,11 +1096,16 @@ static void start(int signum, void *arg)
 	afb_api_common_set_config(settings);
 	afb_binder_main_apiset = afb_apiset_create("main", api_timeout);
 	if (!afb_binder_main_apiset) {
-		ERROR("can't create main api set");
+		ERROR("can't create main apiset");
+		goto error;
+	}
+	afb_binder_public_apiset = afb_apiset_create_subset_first(afb_binder_main_apiset, "public", api_timeout);
+	if (!afb_binder_public_apiset) {
+		ERROR("can't create public apiset");
 		goto error;
 	}
 	afb_global_api_init(afb_binder_main_apiset);
-	rc = afb_monitor_init(afb_binder_main_apiset, afb_binder_main_apiset);
+	rc = afb_monitor_init(afb_binder_public_apiset, afb_binder_main_apiset);
 	if (rc < 0) {
 		ERROR("failed to setup monitor");
 		goto error;
