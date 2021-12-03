@@ -1163,11 +1163,15 @@ static void start(int signum, void *arg)
 #endif
 
 #if WITH_EXTENSION
-	/* prepare extensions */
-	rc = afb_extend_config(afb_binder_main_config);
-	if (rc < 0) {
-		ERROR("Extension config failed");
-		goto error;
+	{
+		/* prepare extensions */
+		struct json_object *extconfig = NULL;
+		json_object_object_get_ex(afb_binder_main_config, "@extconfig", &extconfig);
+		rc = afb_extend_configure(extconfig);
+		if (rc < 0) {
+			ERROR("Extension config failed");
+			goto error;
+		}
 	}
 #endif
 
@@ -1303,7 +1307,13 @@ int main(int argc, char *argv[])
 
 #if WITH_EXTENSION
 	/* load extensions */
-	if (afb_extend_load(afb_binder_main_config) < 0) {
+	if (json_object_object_get_ex(afb_binder_main_config, "extension", &obj)
+	 && afb_extend_load_set_of_extensions(obj) < 0) {
+		ERROR("loading extension failed");
+		return 1;
+	}
+	if (json_object_object_get_ex(afb_binder_main_config, "extpaths", &obj)
+	 && afb_extend_load_set_of_extpaths(obj) < 0) {
 		ERROR("loading extension failed");
 		return 1;
 	}
