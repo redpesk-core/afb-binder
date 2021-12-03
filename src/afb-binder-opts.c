@@ -49,8 +49,8 @@
 #define _d2s_(x)  #x
 #define d2s(x)    _d2s_(x)
 
-#if !defined(AFB_VERSION)
-#error "you should define AFB_VERSION"
+#if !defined(AFB_BINDER_VERSION)
+#error "you should define AFB_BINDER_VERSION"
 #endif
 
 /**
@@ -316,12 +316,9 @@ static const char *name_of_optid(int optid)
  | printversion
  |   print version and copyright
  +--------------------------------------------------------- */
-#if 0
-static const char version[] = AFB_VERSION;
-#else
 static const char version[] =
 	"\n"
-	AFB_VERSION
+	AFB_BINDER_VERSION
 	" ["
 #if WITH_DBUS_TRANSPARENCY
 	"+DBUS"
@@ -345,7 +342,6 @@ static const char version[] =
 #endif
 	"]\nCopyright (C) 2015-2022 IoT.bzh Company\n"
 ;
-#endif
 
 static const char docstring[] =
 	"\n"
