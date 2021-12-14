@@ -715,7 +715,7 @@ static void wait_child(int signum, void* arg)
 		if (!SELF_PGROUP)
 			killpg(pidchld, SIGKILL);
 		waitpid(pidchld, NULL, 0);
-		afb_sched_exit(0, exit_at_end);
+		afb_sched_exit(0, exit_at_end, 0, 0);
 	} else {
 		waitpid(pid, NULL, 0);
 	}
@@ -1031,7 +1031,7 @@ static void setup_directories()
  | job starting the binder
  +--------------------------------------------------------- */
 
-static void start(int signum, void *arg)
+static int start(int signum, void *arg)
 {
 #if WITH_AFB_HOOK
 	const char *tracereq = NULL, *traceapi = NULL, *traceevt = NULL;
@@ -1282,9 +1282,9 @@ static void start(int signum, void *arg)
 		ERROR("can't start the watchdog");
 #endif
 
-	return;
+	return 0;
 error:
-	exit(1);
+	return -1;
 }
 
 /*---------------------------------------------------------
@@ -1363,6 +1363,5 @@ int main(int argc, char *argv[])
 
 	/* enter job processing */
 	afb_sched_start(nthr, 0, njobs, start, NULL);
-	WARNING("hoops returned from jobs_enter! [report bug]");
 	return 1;
 }
