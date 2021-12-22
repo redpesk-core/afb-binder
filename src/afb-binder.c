@@ -174,7 +174,7 @@ static void apiset_start_list(const char *name,
 	const char *item = run_for_config_array_opt(name, run_start, starter);
 	if (item) {
 		ERROR("can't start %s %s", message, item);
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 }
 
@@ -205,7 +205,7 @@ static void load_one_binding_cb(void *closure, struct json_object *value)
 	else {
 		/* unrecognized binding specification */
 		ERROR("unrecognized binding option %s", json_object_get_string(value));
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 
 	/* add the binding now */
@@ -213,7 +213,7 @@ static void load_one_binding_cb(void *closure, struct json_object *value)
 	rc = afb_api_so_add_binding_config(pathstr, declset, afb_binder_main_apiset, value);
 	if (rc < 0) {
 		ERROR("can't load binding %s", pathstr);
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 }
 
@@ -256,7 +256,7 @@ static void exit_handler()
 static void on_sigterm(int signum, siginfo_t *info, void *uctx)
 {
 	NOTICE("Received SIGTERM");
-	exit(0);
+	exit(EXIT_SUCCESS);
 }
 
 static void on_sighup(int signum, siginfo_t *info, void *uctx)
@@ -309,7 +309,7 @@ static void daemonize()
 		fd = open(output, O_WRONLY | O_APPEND | O_CREAT, 0640);
 		if (fd < 0) {
 			ERROR("Can't open output %s", output);
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 	}
 
@@ -319,10 +319,10 @@ static void daemonize()
 		pid = fork();
 		if (pid == -1) {
 			ERROR("Failed to fork daemon process");
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 		if (pid != 0)
-			_exit(0);
+			_exit(EXIT_SUCCESS);
 
 		nostdin = 1;
 	}
@@ -426,7 +426,7 @@ static int http_server_create(struct afb_hsrv **result)
 			);
 	if (rc < 0) {
 		ERROR("Can't get HTTP server config");
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 
 	/* is http service allowed ? */
@@ -702,7 +702,7 @@ static int http_server_start(struct afb_hsrv *hsrv)
 
 static void exit_at_end()
 {
-	exit(0);
+	exit(EXIT_SUCCESS);
 }
 
 static void wait_child(int signum, void* arg)
@@ -881,7 +881,7 @@ static int execute_command()
 		execv(args[0], args);
 		ERROR("can't launch %s: %m", args[0]);
 	}
-	exit(1);
+	exit(EXIT_FAILURE);
 	return -1;
 }
 
@@ -909,7 +909,7 @@ static void startup_call_reply(struct afb_req_common *comreq, int status, unsign
 		NOTICE("startup call %s returned %d", sreq->callspec, status);
 	} else {
 		ERROR("startup call %s ERROR! %d", sreq->callspec, status);
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 }
 
@@ -963,7 +963,7 @@ static void startup_call_current(struct startup_req *sreq)
 		}
 	}
 	ERROR("Bad call specification %s", sreq->callspec);
-	exit(1);
+	exit(EXIT_FAILURE);
 }
 
 static void run_startup_calls()
@@ -1011,18 +1011,18 @@ static void setup_directories()
 	mkdir(workdir, S_IRWXU | S_IRGRP | S_IXGRP);
 	if (chdir(workdir) < 0) {
 		ERROR("Can't enter working dir %s", workdir);
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 	if (afb_common_rootdir_set(rootdir) < 0) {
 		ERROR("failed to set common root directory %s", rootdir);
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 #if WITH_ENVIRONMENT
 	if (addenv_realpath("AFB_WORKDIR", "."     /* resolved by realpath */) < 0
 	 || addenv_realpath("PWD", "."     /* resolved by realpath */) < 0
 	 || addenv_realpath("AFB_ROOTDIR", rootdir /* relative to current directory */) < 0) {
 		ERROR("can't set DIR environment");
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 #endif
 }
@@ -1031,7 +1031,7 @@ static void setup_directories()
  | job starting the binder
  +--------------------------------------------------------- */
 
-static int start(int signum, void *arg)
+static void start(int signum, void *arg)
 {
 #if WITH_AFB_HOOK
 	const char *tracereq = NULL, *traceapi = NULL, *traceevt = NULL;
@@ -1048,7 +1048,7 @@ static int start(int signum, void *arg)
 
 	if (signum) {
 		ERROR("start aborted: received signal %s", strsignal(signum));
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 
 	setup_directories();
@@ -1066,7 +1066,7 @@ static int start(int signum, void *arg)
 			);
 	if (rc < 0) {
 		ERROR("Unable to get start config");
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 
 #if WITH_AFB_HOOK
@@ -1082,7 +1082,7 @@ static int start(int signum, void *arg)
 			);
 	if (rc < 0) {
 		ERROR("Unable to get hook config");
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 #endif
 
@@ -1282,9 +1282,9 @@ static int start(int signum, void *arg)
 		ERROR("can't start the watchdog");
 #endif
 
-	return 0;
+	return;
 error:
-	return -1;
+	exit(EXIT_FAILURE);
 }
 
 /*---------------------------------------------------------
@@ -1295,7 +1295,7 @@ error:
 int main(int argc, char *argv[])
 {
 	struct json_object *obj;
-	int njobs, nthr;
+	int njobs, nthr, rc;
 
 #if WITH_AFB_DEBUG
 	afb_debug("main-entry");
@@ -1362,6 +1362,6 @@ int main(int argc, char *argv[])
 	}
 
 	/* enter job processing */
-	afb_sched_start(nthr, 0, njobs, start, NULL);
-	return 1;
+	rc = afb_sched_start(nthr, 0, njobs, start, NULL);
+	return rc < 0 ? EXIT_FAILURE : EXIT_SUCCESS;
 }
