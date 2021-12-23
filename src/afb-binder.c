@@ -1105,7 +1105,7 @@ static void start(int signum, void *arg)
 		goto error;
 	}
 	afb_global_api_init(afb_binder_main_apiset);
-	rc = afb_monitor_init(afb_binder_public_apiset, afb_binder_main_apiset);
+	rc = afb_monitor_init(afb_binder_public_apiset, afb_binder_public_apiset);
 	if (rc < 0) {
 		ERROR("failed to setup monitor");
 		goto error;
