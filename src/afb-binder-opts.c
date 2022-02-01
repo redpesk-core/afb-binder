@@ -208,7 +208,8 @@ static const struct argp_option optdefs[] = {
 #endif
 
 #if WITH_EXTENSION
-	{ .name="extension",   .key=ADD_EXTENSION,       .arg="FILENAME", .doc="Load the extension of path"},
+	{ .name="extension",   .key=ADD_EXTENSION,       .arg="SPEC", .doc="Load the extension of SPEC where SPEC is EXTENSION[:[UID:]CONFIG], "
+	                                                                   "the path of the EXTENSION, the path of the CONFIG, the UID" },
 #if WITH_DIRENT
 	{ .name="extpaths",    .key=ADD_EXTPATH,         .arg="PATHSET", .doc="Load extensions from dir1:dir2:..."},
 #endif
@@ -650,15 +651,15 @@ static void config_add_path_conf_uid(struct json_object *config, int optid, char
 	pathlen = value - pathstr;
 	if (*value) {
 		for (uidstr = ++value; *value && *value != separator ; value++);
-		if (!*value) {
-			confstr = uidstr;
-			conflen = value - confstr;
-			uidstr = NULL;
-		}
-		else {
+		if (*value) {
 			uidlen = value - uidstr;
 			confstr = ++value;
 			conflen = strlen(confstr);
+		}
+		else {
+			confstr = uidstr;
+			conflen = value - confstr;
+			uidstr = NULL;
 		}
 	}
 
@@ -940,9 +941,9 @@ static error_t parsecb_initial(int key, char *value, struct argp_state *state)
 		break;
 #if WITH_DIRENT
 	case ADD_EXTPATH:
-#endif
 		config_add_optstr(config, key, value);
 		break;
+#endif
 #endif
 
 	case SET_TRAP_FAULTS:
