@@ -1197,7 +1197,7 @@ int afb_binder_opts_parse_initial(int argc, char **argv, struct json_object **co
 	argp_program_version = version;
 	flags = ARGP_IN_ORDER | ARGP_SILENT;
 	argp_parse(&argp, argc, argv, flags, 0, *config);
-	return 0;
+	return expand_config(config, 1);
 }
 
 int afb_binder_opts_parse_final(int argc, char **argv, struct json_object **config)
