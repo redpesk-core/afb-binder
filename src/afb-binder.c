@@ -246,6 +246,9 @@ static void exit_handler()
 	sigaction(SIGTERM, &siga, NULL);
 	sigaction(SIGCHLD, &siga, NULL);
 
+	if (afb_binder_main_apiset)
+		afb_extend_exit(afb_binder_main_apiset);
+
 	childpid = 0;
 	if (SELF_PGROUP)
 		killpg(0, SIGTERM);

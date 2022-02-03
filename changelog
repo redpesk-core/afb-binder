@@ -5,6 +5,7 @@ Version 4.1.0
 - Cleaner use of afb-extend, need libafb>=4.1
 - Monitoring of public API only
 - Fixed configuration of extensions
+- Fix: now calling exit handler of extensions on exit
 
 Version 4.0.3
 -------------
