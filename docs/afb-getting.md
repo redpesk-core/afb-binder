@@ -19,11 +19,16 @@ You must first add the repository to your list of repositories.
 
 Then you have to install the packages.
 
+### Add the sdk repository
+
+Add the repository to your list of repositories using this script:
+
+```bash
+# Retrieve the setup script and execute it
+wget -O - https://raw.githubusercontent.com/redpesk-devtools/redpesk-sdk-tools/master/install-redpesk-sdk.sh | bash
+```
+
 ### Installing for Fedora:
-
-Add the repository to your list of repositories.
-
-    sudo dnf config-manager --add-repo https://download.redpesk.bzh/redpesk-lts/{{ site.redpesk-os.latest }}/sdk/redpesk-sdk_fedora.repo
 
 Install the packages
 
@@ -31,22 +36,11 @@ Install the packages
 
 ### Installing for open SUSE:
 
-Add the repository to your list of repositories.
-
-    sudo zypper ar -f -r https://download.redpesk.bzh/redpesk-lts/{{ site.redpesk-os.latest }}/sdk/redpesk-sdk_suse.repo redpesk-sdk
-    sudo zypper --gpg-auto-import-keys ref
-    sudo zypper dup --from redpesk-sdk
-
 Install the packages
 
     sudo zypper in afb-binder afb-client afb-binding-devel
 
 ### Installing on Debian 10
-
-Add the repository to your list of repositories.
-
-    wget -O - https://download.redpesk.bzh/redpesk-lts/{{ site.redpesk-os.latest }}/sdk/Debian_10/Release.key | apt-key add -
-    sudo apt-add-repository 'deb https://download.redpesk.bzh/redpesk-lts/{{ site.redpesk-os.latest }}/sdk/xUbuntu_20.04/ ./'
 
 Install the packages
 
@@ -54,11 +48,6 @@ Install the packages
     sudo apt install afb-binder afb-client afb-binding-dev
 
 ### Installing on Ubuntu 20
-
-Add the repository to your list of repositories.
-
-    wget -O - https://download.redpesk.bzh/redpesk-lts/{{ site.redpesk-os.latest }}/sdk/xUbuntu_20.04/Release.key | apt-key add -
-    sudo apt-add-repository 'deb https://download.redpesk.bzh/redpesk-lts/{{ site.redpesk-os.latest }}/sdk/xUbuntu_20.04/ ./'
 
 Install the packages
 
