@@ -35,13 +35,15 @@
 
 #include <json-c/json.h>
 
-#include <libafb/utils/expand-vars.h>
-#include <libafb/utils/expand-json.h>
-#include <libafb/utils/json-locator.h>
-#include <libafb/utils/wrap-json.h>
+#include <rp-utils/rp-verbose.h>
+#include <rp-utils/rp-jsonc.h>
+#include <rp-utils/rp-expand-vars.h>
+#include <rp-utils/rp-jsonc-expand.h>
+#include <rp-utils/rp-jsonc-locator.h>
+#include <rp-utils/rp-jsonc-path.h>
+
 #include <libafb/utils/path-search.h>
 
-#include <libafb/sys/verbose.h>
 
 /**
  * callback data for expanding references
@@ -64,10 +66,10 @@ struct expref
 	int expand_error_code;
 
 	/** merge option */
-	enum wrap_json_merge_option merge_option;
+	enum rp_jsonc_merge_option merge_option;
 
 	/** path of the reference object */
-	expand_json_path_t expand_path;
+	rp_jsonc_expand_path_t expand_path;
 
 	/** for searching entries */
 	struct path_search *pathsearch;
@@ -96,7 +98,7 @@ struct expref
  * @param format the message as in printf
  * @param ...    argument of the printf like message
  */
-static void error_at_object(struct json_object *object, expand_json_path_t expand_path, const char *format, ...)
+static void error_at_object(struct json_object *object, rp_jsonc_expand_path_t expand_path, const char *format, ...)
 {
 	char *jpath;
 	const char *file;
@@ -110,11 +112,11 @@ static void error_at_object(struct json_object *object, expand_json_path_t expan
 	va_end(ap);
 
 	/* locating object */
-	file = json_locator_locate(object, &line);
-	jpath = expand_path ? json_locator_search_path(expand_json_path_get(expand_path, 0), object) : NULL;
+	file = rp_jsonc_locator_locate(object, &line);
+	jpath = expand_path ? rp_jsonc_path(rp_jsonc_expand_path_get(expand_path, 0), object) : NULL;
 
 	/* emit the error */
-	ERROR("%s (file %s line %u json-path %s", msg, file, line, jpath);
+	RP_ERROR("%s (file %s line %u json-path %s", msg, file, line, jpath);
 	free(jpath);
 	free(msg);
 }
@@ -208,7 +210,7 @@ static void merge_one_file(struct expref *expref, const char *filename, const ch
 	int rc;
 	struct json_object *obj;
 	
-	NOTICE("Loading config file %s", path);
+	RP_NOTICE("Loading config file %s", path);
 
 	/* read the object in obj */
 #if 0
@@ -216,10 +218,10 @@ static void merge_one_file(struct expref *expref, const char *filename, const ch
 	rc = obj ? 0 : -errno;
 #else
 	/* use the locator to keep track of the lines and of the file */
-	rc = json_locator_from_file(&obj, filename);
+	rc = rp_jsonc_locator_from_file(&obj, filename);
 #endif
 	if (rc < 0) {
-		ERROR("Can't process json file %s: %s", path, strerror(-rc));
+		RP_ERROR("Can't process json file %s: %s", path, strerror(-rc));
 		expref->expand_error_code = rc;
 	}
 	else {
@@ -227,7 +229,7 @@ static void merge_one_file(struct expref *expref, const char *filename, const ch
 		if (expref->target == NULL)
 			expref->target = obj;
 		else {
-			wrap_json_object_merge(expref->target, obj, expref->merge_option);
+			rp_jsonc_object_merge(expref->target, obj, expref->merge_option);
 			json_object_put(obj);
 		}
 	}
@@ -264,7 +266,7 @@ static void expand_a_directory(struct expref *expref)
 	/* use fts exporation */
 	fts = fts_open(dirs, FTS_LOGICAL, cmpent);
 	if (fts == NULL) {
-		ERROR("Can't process directory %s: %s", expref->filename, strerror(errno));
+		RP_ERROR("Can't process directory %s: %s", expref->filename, strerror(errno));
 		expref->expand_error_code = -errno;
 	}
 	else {
@@ -297,7 +299,7 @@ static void expand_ref(void *closure, struct json_object *object)
 	else {
 		rc = search_path(expref, json_object_get_string(object));
 		if (rc < 0) {
-			ERROR("File not found %s", json_object_get_string(object));
+			RP_ERROR("File not found %s", json_object_get_string(object));
 			expref->error_code = rc;
 		}
 		else if (rc == 0) {
@@ -328,7 +330,7 @@ static void expand_ref(void *closure, struct json_object *object)
  *
  * @return either the given object or its expansion
  */
-static struct json_object *expand_object(void *closure, struct json_object* object, expand_json_path_t expand_path)
+static struct json_object *expand_object(void *closure, struct json_object* object, rp_jsonc_expand_path_t expand_path)
 {
 	struct expref *expref = closure;
 	struct json_object *ref;
@@ -340,8 +342,8 @@ static struct json_object *expand_object(void *closure, struct json_object* obje
 		expref->accept_dirs = 0;
 		expref->count = 0;
 		expref->expand_error_code = 0;
-		expref->merge_option = wrap_json_merge_option_replace;
-		wrap_json_optarray_for_all(ref, expand_ref, expref);
+		expref->merge_option = rp_jsonc_merge_option_replace;
+		rp_jsonc_optarray_for_all(ref, expand_ref, expref);
 		if (expref->count == 0 && expref->expand_error_code == 0) {
 			error_at_object(object, expand_path, "No refererence found in %s", json_object_get_string(object));
 			expref->expand_error_code = -EINVAL;
@@ -363,17 +365,18 @@ static struct json_object *expand_object(void *closure, struct json_object* obje
  * @param closure 
  * @param name of the variable to be resolved
  * @param len lan of the name
+ * @param vres the data
  *
- * @return the value to be substituted to the variable or NULL
+ * @return a boolean indicating if found (true) or not (false)
  */
-static const char *get_var(void *closure, const char *name, size_t len)
+static int get_var(void *closure, const char *name, size_t len, rp_expand_vars_result_t *vres)
 {
 	struct expref *expref = closure;
 	struct json_object *obj, *itm;
 	const char *result;
 	int idx;
 	char *key;
-	expand_json_path_t expand_path;
+	rp_jsonc_expand_path_t expand_path;
 
 	/* init */
 	result = NULL;
@@ -382,10 +385,10 @@ static const char *get_var(void *closure, const char *name, size_t len)
 	if (len > 1 && name[0] == '@') {
 		key = strndupa(&name[1], len - 1);
 		expand_path = expref->expand_path;
-		idx = expand_json_path_length(expand_path);
+		idx = rp_jsonc_expand_path_length(expand_path);
 		while (result == NULL && idx > 0) {
-			if (expand_json_path_is_object(expand_path, --idx)) {
-				obj = expand_json_path_get(expand_path, idx);
+			if (rp_jsonc_expand_path_is_object(expand_path, --idx)) {
+				obj = rp_jsonc_expand_path_get(expand_path, idx);
 				if (json_object_object_get_ex(obj, key, &itm))
 					result = json_object_get_string(itm);
 			}
@@ -394,8 +397,10 @@ static const char *get_var(void *closure, const char *name, size_t len)
 
 	/* else search environment */
 	if (result == NULL)
-		result = expand_vars_search_env(name, len);
-	return result;
+		result = rp_expand_vars_search_env(name, len);
+
+	vres->value = result;
+	return result != NULL;
 }
 
 /**
@@ -408,20 +413,20 @@ static const char *get_var(void *closure, const char *name, size_t len)
  * @return the object resulting of expanding the string or the given object
  * if no expansion has been done
  */
-static struct json_object *expand_string(void *closure, struct json_object* object, expand_json_path_t expand_path)
+static struct json_object *expand_string(void *closure, struct json_object* object, rp_jsonc_expand_path_t expand_path)
 {
 	struct expref *expref = closure;
 	struct json_object* obj;
 	char *subst;
 	
 	expref->expand_path = expand_path;
-	subst = expand_vars_function(json_object_get_string(object), 0, get_var, expref);
+	subst = rp_expand_vars_function(json_object_get_string(object), 0, get_var, expref);
 	if (subst) {
 		obj = json_object_new_string(subst);
 		if (obj == NULL)
 			expref->error_code = -ENOMEM;
 		else {
-			json_locator_copy(object, obj);
+			rp_jsonc_locator_copy(object, obj);
 			object = obj;
 		}
 	}
@@ -435,7 +440,7 @@ int expand_config(struct json_object **config, int readrefs)
 
 	expref.pathsearch = NULL;
 	expref.error_code = 0;
-	obj = expand_json(*config, &expref, readrefs ? expand_object : NULL, expand_string);
+	obj = rp_jsonc_expand(*config, &expref, readrefs ? expand_object : NULL, expand_string);
 	if (obj != *config) {
 		json_object_put(*config);
 		*config = obj;

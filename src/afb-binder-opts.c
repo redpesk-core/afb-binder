@@ -36,8 +36,9 @@
 #define JSON_C_TO_STRING_NOSLASHESCAPE 0
 #endif
 
-#include <libafb/sys/verbose.h>
-#include <libafb/utils/wrap-json.h>
+#include <rp-utils/rp-verbose.h>
+#include <rp-utils/rp-jsonc.h>
+
 #if WITH_AFB_HOOK
 #include <libafb/core/afb-hook-flags.h>
 #endif
@@ -299,7 +300,7 @@ static const struct {
 static void *oomchk(void *ptr)
 {
 	if (!ptr) {
-		ERROR("Out of memory");
+		RP_ERROR("Out of memory");
 		exit(1);
 	}
 	return ptr;
@@ -499,7 +500,7 @@ static void config_add(struct json_object *config, int optid, struct json_object
 		json_object_object_add(config, name_of_optid(optid), a);
 	}
 	else if (!json_object_is_type(a, json_type_array)) {
-		ERROR("The configuration item %s MUST be an array", name_of_optid(optid));
+		RP_ERROR("The configuration item %s MUST be an array", name_of_optid(optid));
 		exit(1);
 	}
 	json_object_array_add(a, val);
@@ -522,7 +523,7 @@ static void config_mix2_cb(void *closure, struct json_object *obj, const char *n
 		json_object_object_add(base, name, dest);
 	}
 	if (json_object_is_type(obj, json_type_object))
-		wrap_json_object_merge(dest, obj, wrap_json_merge_option_join_or_replace);
+		rp_jsonc_object_merge(dest, obj, rp_jsonc_merge_option_join_or_replace);
 	else
 		json_object_object_add(dest, "", json_object_get(obj));
 }
@@ -535,7 +536,7 @@ static void config_mix2(struct json_object *config, int optid, struct json_objec
 		obj = joomchk(json_object_new_object());
 		json_object_object_add(config, name_of_optid(optid), obj);
 	}
-	wrap_json_for_all(val, config_mix2_cb, obj);
+	rp_jsonc_for_all(val, config_mix2_cb, obj);
 }
 
 static void config_mix2_str(struct json_object *config, int optid, const char *val)
@@ -576,7 +577,7 @@ static int get_arg_bool(int optid, char *svalue)
 {
 	int value = string_to_bool(svalue);
 	if (value < 0) {
-		ERROR("option --%s needs a boolean value: yes/no, true/false, on/off, 1/0",
+		RP_ERROR("option --%s needs a boolean value: yes/no, true/false, on/off, 1/0",
 				name_of_optid(optid));
 		exit(1);
 	}
@@ -596,12 +597,12 @@ static void config_set_optint_base(struct json_object *config, int optid, char *
 	beg = value;
 	val = strtol(beg, (char**)&end, base);
 	if (*end || end == beg) {
-		ERROR("option --%s requires a valid integer (found %s)",
+		RP_ERROR("option --%s requires a valid integer (found %s)",
 			name_of_optid(optid), beg);
 		exit(1);
 	}
 	if (val < (long int)mini || val > (long int)maxi) {
-		ERROR("option --%s value %ld out of bounds (not in [%d , %d])",
+		RP_ERROR("option --%s value %ld out of bounds (not in [%d , %d])",
 			name_of_optid(optid), val, mini, maxi);
 		exit(1);
 	}
@@ -619,7 +620,7 @@ static void config_set_optflags(struct json_object *config, int optid,
 {
 
 	if (func(value, 0) < 0) {
-		ERROR("option --%s bad value (found %s)",
+		RP_ERROR("option --%s bad value (found %s)",
 			name_of_optid(optid), value);
 		exit(1);
 	}
@@ -716,26 +717,26 @@ static void set_log(const char *args)
 		while (isalpha(*p)) p++;
 		s = *p;
 		*p = 0;
-		lvl = verbose_level_of_name(i);
+		lvl = rp_verbose_level_of_name(i);
 		if (lvl < 0) {
 			i = strdupa(i);
 			*p = s;
-			ERROR("Bad log name '%s' in %s", i, args);
+			RP_ERROR("Bad log name '%s' in %s", i, args);
 			exit(1);
 		}
 		*p = s;
 		i = p;
 		if (o == '-')
-			verbose_sub(lvl);
+			rp_verbose_sub(lvl);
 		else {
 			if (!o) {
-				verbose_clear();
+				rp_verbose_clear();
 				o = '+';
 			}
-			verbose_add(lvl);
+			rp_verbose_add(lvl);
 			if (o == '@')
 				while(lvl)
-					verbose_add(--lvl);
+					rp_verbose_add(--lvl);
 		}
 		break;
 	}
@@ -749,11 +750,11 @@ static char *get_log()
 	const char *name;
 
 	i = 0;
-	for (level = Log_Level_Error ; level <= Log_Level_Debug ; level++) {
-		if (verbose_wants(level)) {
+	for (level = rp_Log_Level_Error ; level <= rp_Log_Level_Debug ; level++) {
+		if (rp_verbose_wants(level)) {
 			if (i > 0 && i < sizeof buffer - 1)
 				buffer[i++] = '+';
-			name = verbose_name_of_level(level);
+			name = rp_verbose_name_of_level(level);
 			while (*name && i < sizeof buffer - 1)
 				buffer[i++] = *name++;
 		}
@@ -781,7 +782,7 @@ static const char *normal_color_value(const char *value)
 
 static void set_color_value(const char *value)
 {
-	verbose_colorize(*value == 'y' ? 1 : *value == 'n' ? 0 : -1);
+	rp_verbose_colorize(*value == 'y' ? 1 : *value == 'n' ? 0 : -1);
 }
 
 /*---------------------------------------------------------
@@ -842,7 +843,7 @@ static void on_environment_flags(struct json_object *config, int optid,
 
 	if (value) {
 		if (func(value, 0) < 0)
-			WARNING("Unknown value %s for environment variable %s, ignored", value, name);
+			RP_WARNING("Unknown value %s for environment variable %s, ignored", value, name);
 		else
 			config_set_str(config, optid, value);
 	}
@@ -856,7 +857,7 @@ static void on_environment_bool(struct json_object *config, int optid, const cha
 	if (value) {
 		asbool = string_to_bool(value);
 		if (asbool < 0)
-			WARNING("Unknown value %s for environment variable %s, ignored", value, name);
+			RP_WARNING("Unknown value %s for environment variable %s, ignored", value, name);
 		else
 			config_set_bool(config, optid, asbool);
 	}
@@ -914,13 +915,13 @@ static error_t parsecb_initial(int key, char *value, struct argp_state *state)
 
 	switch (key) {
 	case SET_VERBOSE:
-		verbose_inc();
+		rp_verbose_inc();
 		break;
 
 	case SET_COLOR:
 		cval = normal_color_value(value);
 		if (!cval) {
-			ERROR("Unknown color value %s", value);
+			RP_ERROR("Unknown color value %s", value);
 			exit(1);
 		}
 		config_set_optstr(config, SET_COLOR, cval);
@@ -928,7 +929,7 @@ static error_t parsecb_initial(int key, char *value, struct argp_state *state)
 		break;
 
 	case SET_QUIET:
-		verbose_dec();
+		rp_verbose_dec();
 		break;
 
 	case SET_LOG:
@@ -974,14 +975,14 @@ static error_t parsecb_initial(int key, char *value, struct argp_state *state)
 	case SET_CONFIG:
 		conf = json_object_from_file(value);
 		if (!conf) {
-			ERROR("Can't read config file %s", value);
+			RP_ERROR("Can't read config file %s", value);
 			exit(1);
 		}
 		if (json_object_object_get_ex(conf, "log", &val)) {
 			if (json_object_get_type(val) == json_type_string)
 				set_log(json_object_get_string(val));
 		}
-		wrap_json_object_merge(config, conf, wrap_json_merge_option_join_or_replace);
+		rp_jsonc_object_merge(config, conf, rp_jsonc_merge_option_join_or_replace);
 		json_object_put(conf);
 		break;
 
@@ -1216,7 +1217,7 @@ int afb_binder_opts_parse_final(int argc, char **argv, struct json_object **conf
 
 	next = afb_extend_get_options(&options, &names);
 	if (next < 0) {
-		ERROR("Can't get options of extensions");
+		RP_ERROR("Can't get options of extensions");
 		exit(1);
 	}
 	if (next == 0) {
@@ -1248,7 +1249,7 @@ int afb_binder_opts_parse_final(int argc, char **argv, struct json_object **conf
 			}
 		}
 		if (rc < 0) {
-			ERROR("Unable to process options of extensions");
+			RP_ERROR("Unable to process options of extensions");
 			exit(1);
 		}
 	}
@@ -1274,10 +1275,10 @@ int afb_binder_opts_parse_final(int argc, char **argv, struct json_object **conf
 		dump(*config, stdout, NULL, NULL);
 		exit(0);
 	}
-	if (verbose_wants(Log_Level_Info) && !verbose_wants(Log_Level_Debug))
+	if (rp_verbose_wants(rp_Log_Level_Info) && !rp_verbose_wants(rp_Log_Level_Debug))
 		dump(*config, stderr, "--", "CONFIG");
 	rc = expand_config(config, 1);
-	if (verbose_wants(Log_Level_Debug))
+	if (rp_verbose_wants(rp_Log_Level_Debug))
 		dump(*config, stderr, "--", "CONFIG");
 	if (data.dodump == 2) {
 		dump(*config, stdout, NULL, NULL);

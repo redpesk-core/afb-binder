@@ -37,6 +37,7 @@
 #include <sys/wait.h>
 
 #include <json-c/json.h>
+
 #include "afb-binder-opts.h"
 
 #if WITH_CALL_PERSONALITY
@@ -46,6 +47,10 @@
 #if WITH_SYSTEMD
 #   include <systemd/sd-daemon.h>
 #endif
+
+#include <rp-utils/rp-verbose.h>
+#include <rp-utils/rp-jsonc.h>
+#include <rp-utils/rp-expand-vars.h>
 
 #include <libafb/afb-core.h>
 #include <libafb/afb-apis.h>
@@ -173,7 +178,7 @@ static void apiset_start_list(const char *name,
 {
 	const char *item = run_for_config_array_opt(name, run_start, starter);
 	if (item) {
-		ERROR("can't start %s %s", message, item);
+		RP_ERROR("can't start %s %s", message, item);
 		exit(EXIT_FAILURE);
 	}
 }
@@ -204,7 +209,7 @@ static void load_one_binding_cb(void *closure, struct json_object *value)
 	}
 	else {
 		/* unrecognized binding specification */
-		ERROR("unrecognized binding option %s", json_object_get_string(value));
+		RP_ERROR("unrecognized binding option %s", json_object_get_string(value));
 		exit(EXIT_FAILURE);
 	}
 
@@ -212,7 +217,7 @@ static void load_one_binding_cb(void *closure, struct json_object *value)
 	declset = get_declare_set(&pathstr);
 	rc = afb_api_so_add_binding_config(pathstr, declset, afb_binder_main_apiset, value);
 	if (rc < 0) {
-		ERROR("can't load binding %s", pathstr);
+		RP_ERROR("can't load binding %s", pathstr);
 		exit(EXIT_FAILURE);
 	}
 }
@@ -228,7 +233,7 @@ static void load_bindings(const char *name)
 
 	/* check if the name exists */
 	if (json_object_object_get_ex(afb_binder_main_config, name, &array))
-		wrap_json_optarray_for_all(array, load_one_binding_cb, NULL);
+		rp_jsonc_optarray_for_all(array, load_one_binding_cb, NULL);
 }
 #endif
 
@@ -258,13 +263,13 @@ static void exit_handler()
 
 static void on_sigterm(int signum, siginfo_t *info, void *uctx)
 {
-	NOTICE("Received SIGTERM");
+	RP_NOTICE("Received SIGTERM");
 	exit(EXIT_SUCCESS);
 }
 
 static void on_sighup(int signum, siginfo_t *info, void *uctx)
 {
-	NOTICE("Received SIGHUP");
+	RP_NOTICE("Received SIGHUP");
 	/* TODO */
 }
 
@@ -305,23 +310,23 @@ static void daemonize()
 
 	daemon = 0;
 	output = NULL;
-	wrap_json_unpack(afb_binder_main_config, "{s?b s?s}", "daemon", &daemon, "output", &output);
+	rp_jsonc_unpack(afb_binder_main_config, "{s?b s?s}", "daemon", &daemon, "output", &output);
 	nostdin = 0;
 
 	if (output) {
 		fd = open(output, O_WRONLY | O_APPEND | O_CREAT, 0640);
 		if (fd < 0) {
-			ERROR("Can't open output %s", output);
+			RP_ERROR("Can't open output %s", output);
 			exit(EXIT_FAILURE);
 		}
 	}
 
 	if (daemon) {
-		INFO("entering background mode");
+		RP_INFO("entering background mode");
 
 		pid = fork();
 		if (pid == -1) {
-			ERROR("Failed to fork daemon process");
+			RP_ERROR("Failed to fork daemon process");
 			exit(EXIT_FAILURE);
 		}
 		if (pid != 0)
@@ -332,7 +337,7 @@ static void daemonize()
 
 	/* closes the input */
 	if (output) {
-		NOTICE("Redirecting output to %s", output);
+		RP_NOTICE("Redirecting output to %s", output);
 		close(2);
 		dup(fd);
 		close(1);
@@ -366,7 +371,7 @@ static int add_alias_weak(struct afb_hsrv *hsrv, const char *prefix, const char 
 
 static int add_alias_weak_dir(struct afb_hsrv *hsrv, const char *prefix, const char *alias, int priority, int relax)
 {
-	char * dirname = expand_vars_env_only(alias, 0);
+	char * dirname = rp_expand_vars_env_only(alias, 0);
 	int rc = afb_hsrv_add_alias_dirname(hsrv, prefix, dirname ?: alias, priority, relax);
 	free(dirname);
 	return rc;
@@ -378,11 +383,11 @@ static int init_alias(void *closure, const char *spec)
 	char *path = strchr(spec, ':');
 
 	if (path == NULL) {
-		ERROR("Missing ':' in alias %s. Alias ignored", spec);
+		RP_ERROR("Missing ':' in alias %s. Alias ignored", spec);
 		return 1;
 	}
 	*path++ = 0;
-	INFO("Alias for url=%s to path=%s", spec, path);
+	RP_INFO("Alias for url=%s to path=%s", spec, path);
 	return add_alias(hsrv, spec, path, 0, 1);
 }
 
@@ -412,7 +417,7 @@ static int http_server_create(struct afb_hsrv **result)
 
 	/* read parameters */
 	http_port = -1;
-	rc = wrap_json_unpack(afb_binder_main_config, "{ss ss si s?i ss s?b s?b si ss s?s s?o}",
+	rc = rp_jsonc_unpack(afb_binder_main_config, "{ss ss si s?i ss s?b s?b si ss s?s s?o}",
 				"uploaddir", &uploaddir,
 				"rootdir", &rootdir,
 				"cache-eol", &cache_timeout,
@@ -428,7 +433,7 @@ static int http_server_create(struct afb_hsrv **result)
 				"interface", &itfs
 			);
 	if (rc < 0) {
-		ERROR("Can't get HTTP server config");
+		RP_ERROR("Can't get HTTP server config");
 		exit(EXIT_FAILURE);
 	}
 
@@ -444,7 +449,7 @@ static int http_server_create(struct afb_hsrv **result)
 		if (json_object_get_type(obj) == json_type_array)
 			obj = json_object_array_length(obj) ? json_object_array_get_idx(obj, 0) : NULL;
 		if (obj == NULL) {
-			ERROR("No port and no interface ");
+			RP_ERROR("No port and no interface ");
 			rc= X_EINVAL;
 			goto end;
 		}
@@ -455,7 +460,7 @@ static int http_server_create(struct afb_hsrv **result)
 		http_port = atoi(&itfspec[rc]);
 
 	} else if (http_port == 0) {
-		ERROR("random port is not implemented");
+		RP_ERROR("random port is not implemented");
 		rc= X_EINVAL;
 		goto end;
 	} else {
@@ -488,21 +493,21 @@ static int http_server_create(struct afb_hsrv **result)
 		}
 
 		json_object_array_add(itfs, obj);
-		NOTICE("Browser URL= http%s://localhost:%d", "s"+!is_https, http_port);
+		RP_NOTICE("Browser URL= http%s://localhost:%d", "s"+!is_https, http_port);
 	}
 #if WITH_ENVIRONMENT
 	if (http_port && addenv_int("AFB_PORT", http_port) < 0) {
-		ERROR("can't set HTTP environment");
+		RP_ERROR("can't set HTTP environment");
 		goto error;
 	}
 #endif
 
 	/* setting up */
-	NOTICE("Serving rootdir=%s uploaddir=%s", rootdir, uploaddir);
+	RP_NOTICE("Serving rootdir=%s uploaddir=%s", rootdir, uploaddir);
 
 	/* setup of cookies */
 	if (!afb_hreq_init_cookie(http_port, 0, session_timeout)) {
-		ERROR("initialisation of HTTP cookies failed");
+		RP_ERROR("initialisation of HTTP cookies failed");
 		rc = X_ENOMEM;
 		goto end;
 	}
@@ -511,10 +516,10 @@ static int http_server_create(struct afb_hsrv **result)
 	rc = afb_hreq_init_download_path(uploaddir);
 	if (rc < 0) {
 		static const char fallback_uploaddir[] = "/tmp";
-		WARNING("unable to set the upload directory %s", uploaddir);
+		RP_WARNING("unable to set the upload directory %s", uploaddir);
 		rc = afb_hreq_init_download_path(fallback_uploaddir);
 		if (rc < 0) {
-			ERROR("unable to fallback to upload directory %s", fallback_uploaddir);
+			RP_ERROR("unable to fallback to upload directory %s", fallback_uploaddir);
 			goto end;
 		}
 		uploaddir = fallback_uploaddir;
@@ -523,7 +528,7 @@ static int http_server_create(struct afb_hsrv **result)
 	/* setup of download directory */
 	hsrv = afb_hsrv_create();
 	if (hsrv == NULL) {
-		ERROR("memory allocation failure");
+		RP_ERROR("memory allocation failure");
 		rc = X_ENOMEM;
 		goto end;
 	}
@@ -571,7 +576,7 @@ static int http_server_create(struct afb_hsrv **result)
 	return 0;
 
 error:
-	ERROR("initialisation of httpd failed");
+	RP_ERROR("initialisation of httpd failed");
 	rc = X_ECANCELED;
 	afb_hsrv_put(hsrv);
 end:
@@ -630,7 +635,7 @@ static int get_https_value(const char *key, const char *filename, char **value)
 	}
 	rc = readfile(filename, value, NULL);
 	if (rc < 0) {
-		ERROR("can't read file %s: %s", filename, strerror(-rc));
+		RP_ERROR("can't read file %s: %s", filename, strerror(-rc));
 		return rc;
 	}
 	return 0;
@@ -644,7 +649,7 @@ static int get_https_config(char **key, char **cert)
 	/* read HTTPS parameters if any */
 	is_https = 0;
 	ocert = okey = *key = *cert = NULL;
-	rc = wrap_json_unpack(afb_binder_main_config, "{s?b s?s s?s}",
+	rc = rp_jsonc_unpack(afb_binder_main_config, "{s?b s?s s?s}",
 				"https", &is_https,
 				"https-key", &okey,
 				"https-cert", &ocert
@@ -653,7 +658,7 @@ static int get_https_config(char **key, char **cert)
 		rc = X_ECANCELED;
 	else if (!is_https) {
 		if (okey || ocert)
-			WARNING("HTTPS disabled but option set for HTTPS certificate and/or key");
+			RP_WARNING("HTTPS disabled but option set for HTTPS certificate and/or key");
 		rc = 0; /* no https */
 	}
 	else {
@@ -676,22 +681,22 @@ static int http_server_start(struct afb_hsrv *hsrv)
 	/* get HTTPS config if any */
 	rc = get_https_config(&key, &cert);
 	if (rc < 0) {
-		ERROR("wrong HTTPS configuration");
+		RP_ERROR("wrong HTTPS configuration");
 		return rc;
 	}
 
 	/* start the daemon */
-	INFO("HTTP%s server starting", "S"+!rc);
+	RP_INFO("HTTP%s server starting", "S"+!rc);
 	rc = afb_hsrv_start_tls(hsrv, 15, cert, key);
 	if (!rc) {
-		ERROR("starting of httpd failed");
+		RP_ERROR("starting of httpd failed");
 		return X_ECANCELED;
 	}
 
 	/* add interfaces */
 	errs = run_for_config_array_opt("interface", add_interface, hsrv);
 	if (errs) {
-		ERROR("setting interface %s failed", errs);
+		RP_ERROR("setting interface %s failed", errs);
 		return X_ECANCELED;
 	}
 
@@ -775,7 +780,7 @@ static char *instanciate_string(char *arg, const char *port)
 	/* allocates the result */
 	resu = malloc((it - arg) + dif + 1);
 	if (!resu) {
-		ERROR("out of memory");
+		RP_ERROR("out of memory");
 		return NULL;
 	}
 
@@ -827,7 +832,7 @@ static char **instanciate_command_args(struct json_object *exec, const char *por
 	n = (int)json_object_array_length(exec);
 	result = malloc((n + 1) * sizeof * result);
 	if (!result) {
-		ERROR("out of memory");
+		RP_ERROR("out of memory");
 		return NULL;
 	}
 
@@ -882,7 +887,7 @@ static int execute_command()
 		if (!SELF_PGROUP)
 			setpgid(0, 0);
 		execv(args[0], args);
-		ERROR("can't launch %s: %m", args[0]);
+		RP_ERROR("can't launch %s: %m", args[0]);
 	}
 	exit(EXIT_FAILURE);
 	return -1;
@@ -909,9 +914,9 @@ static void startup_call_reply(struct afb_req_common *comreq, int status, unsign
 	struct startup_req *sreq = containerof(struct startup_req, comreq, comreq);
 
 	if (status >= 0) {
-		NOTICE("startup call %s returned %d", sreq->callspec, status);
+		RP_NOTICE("startup call %s returned %d", sreq->callspec, status);
 	} else {
-		ERROR("startup call %s ERROR! %d", sreq->callspec, status);
+		RP_ERROR("startup call %s ERROR! %d", sreq->callspec, status);
 		exit(EXIT_FAILURE);
 	}
 }
@@ -965,7 +970,7 @@ static void startup_call_current(struct startup_req *sreq)
 			}
 		}
 	}
-	ERROR("Bad call specification %s", sreq->callspec);
+	RP_ERROR("Bad call specification %s", sreq->callspec);
 	exit(EXIT_FAILURE);
 }
 
@@ -1013,18 +1018,18 @@ static void setup_directories()
 	/* set the directories */
 	mkdir(workdir, S_IRWXU | S_IRGRP | S_IXGRP);
 	if (chdir(workdir) < 0) {
-		ERROR("Can't enter working dir %s", workdir);
+		RP_ERROR("Can't enter working dir %s", workdir);
 		exit(EXIT_FAILURE);
 	}
 	if (afb_common_rootdir_set(rootdir) < 0) {
-		ERROR("failed to set common root directory %s", rootdir);
+		RP_ERROR("failed to set common root directory %s", rootdir);
 		exit(EXIT_FAILURE);
 	}
 #if WITH_ENVIRONMENT
 	if (addenv_realpath("AFB_WORKDIR", "."     /* resolved by realpath */) < 0
 	 || addenv_realpath("PWD", "."     /* resolved by realpath */) < 0
 	 || addenv_realpath("AFB_ROOTDIR", rootdir /* relative to current directory */) < 0) {
-		ERROR("can't set DIR environment");
+		RP_ERROR("can't set DIR environment");
 		exit(EXIT_FAILURE);
 	}
 #endif
@@ -1050,13 +1055,13 @@ static void start(int signum, void *arg)
 #endif
 
 	if (signum) {
-		ERROR("start aborted: received signal %s", strsignal(signum));
+		RP_ERROR("start aborted: received signal %s", strsignal(signum));
 		exit(EXIT_FAILURE);
 	}
 
 	setup_directories();
 
-	rc = wrap_json_unpack(afb_binder_main_config, "{"
+	rc = rp_jsonc_unpack(afb_binder_main_config, "{"
 			"si si si"
 			"s?o"
 			"}",
@@ -1068,12 +1073,12 @@ static void start(int signum, void *arg)
 			"set", &settings
 			);
 	if (rc < 0) {
-		ERROR("Unable to get start config");
+		RP_ERROR("Unable to get start config");
 		exit(EXIT_FAILURE);
 	}
 
 #if WITH_AFB_HOOK
-	rc = wrap_json_unpack(afb_binder_main_config, "{"
+	rc = rp_jsonc_unpack(afb_binder_main_config, "{"
 			"s?s s?s s?s s?s s?s"
 			"}",
 
@@ -1084,14 +1089,14 @@ static void start(int signum, void *arg)
 			"traceglob", &traceglob
 			);
 	if (rc < 0) {
-		ERROR("Unable to get hook config");
+		RP_ERROR("Unable to get hook config");
 		exit(EXIT_FAILURE);
 	}
 #endif
 
 	/* initialize session handling */
 	if (afb_session_init(max_session_count, session_timeout)) {
-		ERROR("initialisation of session manager failed");
+		RP_ERROR("initialisation of session manager failed");
 		goto error;
 	}
 
@@ -1099,24 +1104,24 @@ static void start(int signum, void *arg)
 	afb_api_common_set_config(settings);
 	afb_binder_main_apiset = afb_apiset_create("main", api_timeout);
 	if (!afb_binder_main_apiset) {
-		ERROR("can't create main apiset");
+		RP_ERROR("can't create main apiset");
 		goto error;
 	}
 	afb_binder_public_apiset = afb_apiset_create_subset_first(afb_binder_main_apiset, "public", api_timeout);
 	if (!afb_binder_public_apiset) {
-		ERROR("can't create public apiset");
+		RP_ERROR("can't create public apiset");
 		goto error;
 	}
 	afb_global_api_init(afb_binder_main_apiset);
 	rc = afb_monitor_init(afb_binder_public_apiset, afb_binder_public_apiset);
 	if (rc < 0) {
-		ERROR("failed to setup monitor");
+		RP_ERROR("failed to setup monitor");
 		goto error;
 	}
 #if WITH_SUPERVISION
 	rc = afb_supervision_init(afb_binder_main_apiset, afb_binder_main_config);
 	if (rc < 0) {
-		ERROR("failed to setup supervision");
+		RP_ERROR("failed to setup supervision");
 		goto error;
 	}
 #endif
@@ -1126,7 +1131,7 @@ static void start(int signum, void *arg)
 	if (tracereq) {
 		rc = afb_hook_flags_req_from_text(tracereq, &flags);
 		if (rc < 0) {
-			ERROR("invalid tracereq spec '%s'", tracereq);
+			RP_ERROR("invalid tracereq spec '%s'", tracereq);
 			goto error;
 		}
 		afb_hook_create_req(NULL, NULL, NULL, flags, NULL, NULL);
@@ -1134,7 +1139,7 @@ static void start(int signum, void *arg)
 	if (traceapi) {
 		rc = afb_hook_flags_api_from_text(traceapi, &flags);
 		if (rc < 0) {
-			ERROR("invalid traceapi spec '%s'", traceapi);
+			RP_ERROR("invalid traceapi spec '%s'", traceapi);
 			goto error;
 		}
 		afb_hook_create_api(NULL, flags, NULL, NULL);
@@ -1142,7 +1147,7 @@ static void start(int signum, void *arg)
 	if (traceevt) {
 		rc = afb_hook_flags_evt_from_text(traceevt, &flags);
 		if (rc < 0) {
-			ERROR("invalid traceevt spec '%s'", traceevt);
+			RP_ERROR("invalid traceevt spec '%s'", traceevt);
 			goto error;
 		}
 		afb_hook_create_evt(NULL, flags, NULL, NULL);
@@ -1150,7 +1155,7 @@ static void start(int signum, void *arg)
 	if (traceses) {
 		rc = afb_hook_flags_session_from_text(traceses, &flags);
 		if (rc < 0) {
-			ERROR("invalid traceses spec '%s'", traceses);
+			RP_ERROR("invalid traceses spec '%s'", traceses);
 			goto error;
 		}
 		afb_hook_create_session(NULL, flags, NULL, NULL);
@@ -1158,7 +1163,7 @@ static void start(int signum, void *arg)
 	if (traceglob) {
 		rc = afb_hook_flags_global_from_text(traceglob, &flags);
 		if (rc < 0) {
-			ERROR("invalid traceglob spec '%s'", traceglob);
+			RP_ERROR("invalid traceglob spec '%s'", traceglob);
 			goto error;
 		}
 		afb_hook_create_global(flags, NULL, NULL);
@@ -1172,7 +1177,7 @@ static void start(int signum, void *arg)
 		json_object_object_get_ex(afb_binder_main_config, "@extconfig", &extconfig);
 		rc = afb_extend_configure(extconfig);
 		if (rc < 0) {
-			ERROR("Extension config failed");
+			RP_ERROR("Extension config failed");
 			goto error;
 		}
 	}
@@ -1181,7 +1186,7 @@ static void start(int signum, void *arg)
 #if WITH_LIBMICROHTTPD
 	rc = http_server_create(&afb_binder_http_server);
 	if (rc < 0) {
-		ERROR("can't create HTTP server");
+		RP_ERROR("can't create HTTP server");
 		goto error;
 	}
 #endif
@@ -1207,19 +1212,19 @@ static void start(int signum, void *arg)
 	/* declare extensions */
 	rc = afb_extend_declare(afb_binder_main_apiset, afb_binder_main_apiset);
 	if (rc < 0) {
-		ERROR("Extension declare failed");
+		RP_ERROR("Extension declare failed");
 		goto error;
 	}
 #if WITH_LIBMICROHTTPD
 	rc = afb_extend_http(afb_binder_http_server);
 	if (rc < 0) {
-		ERROR("Extension http failed");
+		RP_ERROR("Extension http failed");
 		goto error;
 	}
 #endif
 #endif
 
-	DEBUG("Init config done");
+	RP_DEBUG("Init config done");
 
 	/* start the services */
 #if WITH_AFB_DEBUG
@@ -1230,7 +1235,7 @@ static void start(int signum, void *arg)
 #endif
 	rc = afb_apiset_start_all_services(afb_binder_main_apiset);
 	if (rc < 0) {
-		ERROR("Services start failed");
+		RP_ERROR("Services start failed");
 		goto error;
 	}
 
@@ -1244,7 +1249,7 @@ static void start(int signum, void *arg)
 	/* start extensions */
 	rc = afb_extend_serve(afb_binder_main_apiset);
 	if (rc < 0) {
-		ERROR("Extension serve failed");
+		RP_ERROR("Extension serve failed");
 		goto error;
 	}
 #endif
@@ -1282,7 +1287,7 @@ static void start(int signum, void *arg)
 	/* activate the watchdog */
 #if HAS_WATCHDOG
 	if (afb_watchdog_activate() < 0)
-		ERROR("can't start the watchdog");
+		RP_ERROR("can't start the watchdog");
 #endif
 
 	return;
@@ -1312,12 +1317,12 @@ int main(int argc, char *argv[])
 	/* load extensions */
 	if (json_object_object_get_ex(afb_binder_main_config, "extension", &obj)
 	 && afb_extend_load_set_of_extensions(obj) < 0) {
-		ERROR("loading extension failed");
+		RP_ERROR("loading extension failed");
 		return 1;
 	}
 	if (json_object_object_get_ex(afb_binder_main_config, "extpaths", &obj)
 	 && afb_extend_load_set_of_extpaths(obj) < 0) {
-		ERROR("loading extension failed");
+		RP_ERROR("loading extension failed");
 		return 1;
 	}
 #endif
@@ -1327,12 +1332,11 @@ int main(int argc, char *argv[])
 	if (afb_sig_monitor_init(
 		!json_object_object_get_ex(afb_binder_main_config, "trap-faults", &obj)
 			|| json_object_get_boolean(obj)) < 0) {
-		ERROR("failed to initialise signal handlers");
+		RP_ERROR("failed to initialise signal handlers");
 		return 1;
 	}
 
 	if (json_object_object_get_ex(afb_binder_main_config, "name", &obj)) {
-		verbose_set_name(json_object_get_string(obj), 0);
 		process_name_set_name(json_object_get_string(obj));
 		process_name_replace_cmdline(argv, json_object_get_string(obj));
 	}
@@ -1342,7 +1346,7 @@ int main(int argc, char *argv[])
 
 	// --------- run -----------
 	daemonize();
-	INFO("running with pid %d", getpid());
+	RP_INFO("running with pid %d", getpid());
 
 	/* set the daemon environment */
 	setup_handlers();

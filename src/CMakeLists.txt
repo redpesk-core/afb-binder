@@ -35,6 +35,7 @@ include_directories(
 	${CMAKE_CURRENT_BINARY_DIR}
 	${json-c_INCLUDE_DIRS}
 	${libafb_INCLUDE_DIRS}
+	${librp-utils_INCLUDE_DIRS}
 )
 
 add_executable(afb-binder
@@ -46,6 +47,7 @@ add_executable(afb-binder
 target_link_libraries(afb-binder
 	${json-c_LDFLAGS}
 	${libafb_LDFLAGS}
+	${librp-utils_LDFLAGS}
 )
 
 # install
