@@ -879,7 +879,7 @@ static int execute_command()
 	if (json_object_object_get_ex(afb_binder_main_config, "port", &oport))
 		port = json_object_get_string(oport);
 	else
-		port = getenv("AFB_PORT");
+		port = secure_getenv("AFB_PORT");
 	/* instantiate arguments and environment */
 	args = instanciate_command_args(exec, port);
 	if (args && instanciate_environ(port) >= 0) {
