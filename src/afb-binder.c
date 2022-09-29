@@ -1036,6 +1036,16 @@ static void setup_directories()
 }
 
 /*---------------------------------------------------------
+ | notify readyness
+ +--------------------------------------------------------- */
+static void notify_readyness()
+{
+#if WITH_SYSTEMD
+	sd_notify(1, "READY=1");
+#endif
+}
+
+/*---------------------------------------------------------
  | job starting the binder
  +--------------------------------------------------------- */
 
@@ -1280,9 +1290,7 @@ static void start(int signum, void *arg)
 		goto error;
 
 	/* ready */
-#if WITH_SYSTEMD
-	sd_notify(1, "READY=1");
-#endif
+	notify_readyness();
 
 	/* activate the watchdog */
 #if HAS_WATCHDOG
