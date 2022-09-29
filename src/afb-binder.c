@@ -1041,7 +1041,17 @@ static void setup_directories()
 static void notify_readyness()
 {
 #if WITH_SYSTEMD
+#if NOMAINPID
 	sd_notify(1, "READY=1");
+#else
+	const char *mainid = secure_getenv("MAINPID");
+	char *end, buffer[60];
+	long mpid;
+	if (mainid == NULL || (mpid = strtol(mainid, &end, 10)) <= 0 || *end != 0)
+		mpid = getpid();
+	snprintf(buffer, sizeof buffer, "READY=1\nMAINPID=%ld", mpid);
+	sd_notify(1, buffer);
+#endif
 #endif
 }
 
