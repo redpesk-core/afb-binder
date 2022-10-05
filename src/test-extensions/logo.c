@@ -1,6 +1,5 @@
 /*
  * Copyright (C) 2015-2022 IoT.bzh Company
- * Author "Fulup Ar Foll"
  * Author: José Bollo <jose.bollo@iot.bzh>
  *
  * $RP_BEGIN_LICENSE$
@@ -26,10 +25,10 @@
 #include <stdio.h>
 #include <argp.h>
 #include <json-c/json.h>
-#include <libafb/sys/verbose.h>
 
 #include <libafb/afb-extension.h>
 #include <libafb/afb-http.h>
+#include <libafb/misc/afb-verbose.h>
 
 AFB_EXTENSION("test-logo")
 
@@ -42,13 +41,13 @@ const struct argp_option AfbExtensionOptionsV1[] = {
 int AfbExtensionConfigV1(void **data, struct json_object *config, const char *uid)
 {
 	*data = &AfbExtensionManifest;
-	NOTICE("Extension %s got config %s", AfbExtensionManifest.name, json_object_get_string(config));
+	LIBAFB_NOTICE("Extension %s got config %s", AfbExtensionManifest.name, json_object_get_string(config));
 	return 0;
 }
 
 int AfbExtensionDeclareV1(void *data, struct afb_apiset *declare_set, struct afb_apiset *call_set)
 {
-	NOTICE("Extension %s got to declare %s", AfbExtensionManifest.name, data == &AfbExtensionManifest ? "ok" : "error");
+	LIBAFB_NOTICE("Extension %s got to declare %s", AfbExtensionManifest.name, data == &AfbExtensionManifest ? "ok" : "error");
 	return 0;
 }
 
@@ -64,7 +63,7 @@ static int reply_hello_logo(struct afb_hreq *hreq, void *data)
 
 int AfbExtensionHTTPV1(void *data, struct afb_hsrv *hsrv)
 {
-	NOTICE("Extension %s got HTTP %s", AfbExtensionManifest.name, data == &AfbExtensionManifest ? "ok" : "error");
+	LIBAFB_NOTICE("Extension %s got HTTP %s", AfbExtensionManifest.name, data == &AfbExtensionManifest ? "ok" : "error");
 	/* add a handler for queries of path /logo/... */
 	afb_hsrv_add_handler(hsrv,"/logo",reply_hello_logo,0,30);
 	return 0;
@@ -72,12 +71,12 @@ int AfbExtensionHTTPV1(void *data, struct afb_hsrv *hsrv)
 
 int AfbExtensionServeV1(void *data, struct afb_apiset *call_set)
 {
-	NOTICE("Extension %s got to serve %s", AfbExtensionManifest.name, data == &AfbExtensionManifest ? "ok" : "error");
+	LIBAFB_NOTICE("Extension %s got to serve %s", AfbExtensionManifest.name, data == &AfbExtensionManifest ? "ok" : "error");
 	return 0;
 }
 
 int AfbExtensionExitV1(void *data, struct afb_apiset *declare_set)
 {
-	NOTICE("Extension %s got to exit %s", AfbExtensionManifest.name, data == &AfbExtensionManifest ? "ok" : "error");
+	LIBAFB_NOTICE("Extension %s got to exit %s", AfbExtensionManifest.name, data == &AfbExtensionManifest ? "ok" : "error");
 	return 0;
 }

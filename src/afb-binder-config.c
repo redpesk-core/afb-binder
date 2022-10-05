@@ -35,7 +35,6 @@
 
 #include <json-c/json.h>
 
-#include <rp-utils/rp-verbose.h>
 #include <rp-utils/rp-jsonc.h>
 #include <rp-utils/rp-expand-vars.h>
 #include <rp-utils/rp-jsonc-expand.h>
@@ -43,6 +42,7 @@
 #include <rp-utils/rp-jsonc-path.h>
 
 #include <libafb/utils/path-search.h>
+#include <libafb/misc/afb-verbose.h>
 
 
 /**
@@ -116,7 +116,7 @@ static void error_at_object(struct json_object *object, rp_jsonc_expand_path_t e
 	jpath = expand_path ? rp_jsonc_path(rp_jsonc_expand_path_get(expand_path, 0), object) : NULL;
 
 	/* emit the error */
-	RP_ERROR("%s (file %s line %u json-path %s", msg, file, line, jpath);
+	LIBAFB_ERROR("%s (file %s line %u json-path %s", msg, file, line, jpath);
 	free(jpath);
 	free(msg);
 }
@@ -210,7 +210,7 @@ static void merge_one_file(struct expref *expref, const char *filename, const ch
 	int rc;
 	struct json_object *obj;
 	
-	RP_NOTICE("Loading config file %s", path);
+	LIBAFB_NOTICE("Loading config file %s", path);
 
 	/* read the object in obj */
 #if 0
@@ -221,7 +221,7 @@ static void merge_one_file(struct expref *expref, const char *filename, const ch
 	rc = rp_jsonc_locator_from_file(&obj, filename);
 #endif
 	if (rc < 0) {
-		RP_ERROR("Can't process json file %s: %s", path, strerror(-rc));
+		LIBAFB_ERROR("Can't process json file %s: %s", path, strerror(-rc));
 		expref->expand_error_code = rc;
 	}
 	else {
@@ -266,7 +266,7 @@ static void expand_a_directory(struct expref *expref)
 	/* use fts exporation */
 	fts = fts_open(dirs, FTS_LOGICAL, cmpent);
 	if (fts == NULL) {
-		RP_ERROR("Can't process directory %s: %s", expref->filename, strerror(errno));
+		LIBAFB_ERROR("Can't process directory %s: %s", expref->filename, strerror(errno));
 		expref->expand_error_code = -errno;
 	}
 	else {
@@ -299,7 +299,7 @@ static void expand_ref(void *closure, struct json_object *object)
 	else {
 		rc = search_path(expref, json_object_get_string(object));
 		if (rc < 0) {
-			RP_ERROR("File not found %s", json_object_get_string(object));
+			LIBAFB_ERROR("File not found %s", json_object_get_string(object));
 			expref->error_code = rc;
 		}
 		else if (rc == 0) {
