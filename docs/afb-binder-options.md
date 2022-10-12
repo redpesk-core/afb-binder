@@ -1,6 +1,9 @@
 # Launching options of afb-binder
 
-The launch options for binder **afb-binder** are:
+The launch options for binder **afb-binder** are listed below.
+This list is created using the command `afb-binder --help`.
+Given that the default values may change, use this command to get
+effective values.
 
 ```
       --alias=ALIAS          Multiple url map outside of rootdir [eg:
@@ -8,12 +11,16 @@ The launch options for binder **afb-binder** are:
       --apitimeout=TIMEOUT   Binding API timeout in seconds [default 20]
   -A, --auto-api=DIRECTORY   Automatic load of api of the given directory
       --background           Get all in background mode
-  -b, --binding=FILENAME     Load the binding of path
-  -c, --color                Colorize the ouput
+  -b, --binding=SPEC         Load the binding of SPEC where SPEC is
+                             BINDING[:[UID:]CONFIG], the path of the BINDING,
+                             the path of the CONFIG, the UID
       --cache-eol=TIMEOUT    Client cache end of live [default 100000]
       --call=CALLSPEC        Call at start, format of val: API/VERB:json-args
       --cntxtimeout=TIMEOUT  Client Session Context Timeout [default 32000000]
+  -c, --color[=VALUE]        Colorize the ouput
   -C, --config=FILENAME      Load options from the given config file
+      --dbus-client=APINAME  Bind to an afb service through dbus
+      --dbus-server=APINAME  Provide an afb service through dbus
   -D, --daemon               Get all in background mode
   -e, --exec                 Execute the remaining arguments
       --foreground           Get all in foreground mode
@@ -24,11 +31,11 @@ The launch options for binder **afb-binder** are:
                              tcp:localhost:8080)
   -j, --jobs-max=VALUE       Maximum count of jobs that can be queued  [default
                              200]
-  -l, --log=LOGSPEC          Tune log level
       --ldpaths=PATHSET      Load bindings from dir1:dir2:...
+  -l, --log=LOGSPEC          Tune log level
   -M, --monitoring           Enable HTTP monitoring at <ROOT>/monitoring/
-  -n, --name=NAME            Set the visible name
       --no-httpd             Forbid HTTP service
+  -n, --name=NAME            Set the visible name
   -o, --output=FILENAME      Redirect stdout and stderr to output file (when
                              --daemon)
   -p, --port=PORT            HTTP listening TCP port  [default 1234]
@@ -39,6 +46,8 @@ The launch options for binder **afb-binder** are:
                              workdir] relative to workdir
       --roothttp=DIRECTORY   HTTP Root Directory [default no root http (files
                              not served but apis still available)]
+      --rpc-client=SOCKSPEC  Bind to an afb service through websocket
+      --rpc-server=SOCKSPEC  Provide an afb service through websockets
       --session-max=COUNT    Max count of session simultaneously [default 200]
   -s, --set=VALUE            Set parameters ([API]/[KEY]:JSON or
                              {"API":{"KEY":JSON}}
@@ -49,20 +58,23 @@ The launch options for binder **afb-binder** are:
       --traceses=VALUE       Log the sessions: none, all
       --trap-faults=VALUE    Trap faults: on, off, yes, no, true, false, 1, 0
                              (default: true)
-  -t, --threads-max=VALUE    Maximum count of parallel threads held [default 1]
+  -t, --threads-max=VALUE    Maximum count of parallel threads held [default 5]
                             
   -u, --uploaddir=DIRECTORY  Directory for uploading files [default: workdir]
                              relative to workdir
   -v, --verbose              Verbose Mode, repeat to increase verbosity
-  -w, --workdir=DIRECTORY    Set the working directory [default: $PWD or
-                             current working directory]
       --weak-ldpaths=PATHSET Same as --ldpaths but errors are not fatal
       --ws-client=SOCKSPEC   Bind to an afb service through websocket
       --ws-server=SOCKSPEC   Provide an afb service through websockets
-  -x, --extension=FILENAME   Load the extension of path
+  -w, --workdir=DIRECTORY    Set the working directory [default: $PWD or
+                             current working directory]
+  -x, --extension=SPEC       Load the extension of SPEC where SPEC is
+                             EXTENSION[:[UID:]CONFIG], the path of the
+                             EXTENSION, the path of the CONFIG, the UID
   -X, --extpaths=PATHSET     Load extensions from dir1:dir2:...
   -z, --dump-final-config    Dump the config after expansion to stdout and exit
-  -Z, --dump-config          Dump the config before expansion to stdout and exit
+
+  -Z, --dump-config          Dump the config to stdout and exit
   -?, --help                 Give this help list
       --usage                Give a short usage message
   -V, --version              Print program version
@@ -70,7 +82,7 @@ The launch options for binder **afb-binder** are:
 
 ## help
 
-Prints help with available options
+Prints help with available options and the real defaults values
 
 ## usage
 
