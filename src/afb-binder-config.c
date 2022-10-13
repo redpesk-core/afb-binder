@@ -40,8 +40,8 @@
 #include <rp-utils/rp-jsonc-expand.h>
 #include <rp-utils/rp-jsonc-locator.h>
 #include <rp-utils/rp-jsonc-path.h>
+#include <rp-utils/rp-path-search.h>
 
-#include <libafb/utils/path-search.h>
 #include <libafb/misc/afb-verbose.h>
 
 
@@ -72,7 +72,7 @@ struct expref
 	rp_jsonc_expand_path_t expand_path;
 
 	/** for searching entries */
-	struct path_search *pathsearch;
+	rp_path_search_t *pathsearch;
 
 	/** the searched item */
 	const char *searched_item;
@@ -121,7 +121,7 @@ static void error_at_object(struct json_object *object, rp_jsonc_expand_path_t e
 	free(msg);
 }
 
-static int locate_subpath(void *closure, struct path_search_item *item)
+static int locate_subpath(void *closure, const rp_path_search_entry_t *item)
 {
 	struct expref *expref = closure;
 	char path[PATH_MAX + 1];
@@ -144,10 +144,10 @@ static int locate_subpath(void *closure, struct path_search_item *item)
 	return 0;
 }
 
-static int locate_entry(void *closure, struct path_search_item *item)
+static int locate_entry(void *closure, const rp_path_search_entry_t *item)
 {
 	struct expref *expref = closure;
-	if (strcmp(expref->searched_item, item->name))  {
+	if (item->name != NULL && strcmp(expref->searched_item, item->name))  {
 		strcpy(expref->filename, item->path);
 		if (item->isDir)
 			expref->found_directory++;
@@ -167,7 +167,7 @@ static int search_path(struct expref *expref, const char *filename)
 	int rc;
 	struct stat st;
 	int psflags;
-	int (*callback)(void*,struct path_search_item*);
+	int (*callback)(void*,const rp_path_search_entry_t*);
 
 	/* no path search if absolute path or unavailable */
 	if (filename[0] == '/' || expref->pathsearch == NULL) {
@@ -179,18 +179,18 @@ static int search_path(struct expref *expref, const char *filename)
 
 	/* TODO: add PATH search HERE */
 	if (strchr(filename, '/')) {
-		psflags = PATH_SEARCH_RECURSIVE|PATH_SEARCH_DIRECTORY;
+		psflags = RP_PATH_SEARCH_RECURSIVE|RP_PATH_SEARCH_DIRECTORY;
 		callback = locate_subpath;
 	}
 	else {
-		psflags = PATH_SEARCH_RECURSIVE|PATH_SEARCH_DIRECTORY|PATH_SEARCH_FILE;
+		psflags = RP_PATH_SEARCH_RECURSIVE|RP_PATH_SEARCH_DIRECTORY|RP_PATH_SEARCH_FILE;
 		callback = locate_entry;
 	}
 	expref->searched_item = filename;
 	expref->searched_item_length = strlen(filename);
 	expref->found_file = 0;
 	expref->found_directory = 0;
-	path_search(expref->pathsearch, psflags, callback, expref);
+	rp_path_search(expref->pathsearch, psflags, callback, expref);
 	if (expref->found_file + expref->found_directory == 0)
 		return -ENOENT;
 	if (expref->found_file + expref->found_directory > 1)
