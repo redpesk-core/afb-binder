@@ -29,6 +29,11 @@ configure_file(
 	${CMAKE_CURRENT_BINARY_DIR}/binder-settings.h
 	@ONLY)
 
+CONFIGURE_FILE(
+	${CMAKE_CURRENT_SOURCE_DIR}/libafb-binder.pc.in
+	${CMAKE_CURRENT_BINARY_DIR}/libafb-binder.pc
+	@ONLY)
+
 # build
 
 include_directories(
@@ -36,6 +41,22 @@ include_directories(
 	${json-c_INCLUDE_DIRS}
 	${libafb_INCLUDE_DIRS}
 	${librp-utils_INCLUDE_DIRS}
+)
+
+add_library(libafb-binder SHARED
+	afb-binder.c
+)
+
+set_target_properties(libafb-binder PROPERTIES
+	OUTPUT_NAME afb-binder
+	VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}"
+        SOVERSION "${PROJECT_VERSION_MAJOR}"
+)
+
+target_link_libraries(libafb-binder
+	${json-c_LDFLAGS}
+	${libafb_LDFLAGS}
+	${librp-utils_LDFLAGS}
 )
 
 add_executable(afb-binder
@@ -54,6 +75,16 @@ target_link_libraries(afb-binder
 
 install(TARGETS afb-binder
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+install(TARGETS libafb-binder
+        RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
+install(FILES afb-binder.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
+INSTALL(FILES
+	${CMAKE_CURRENT_BINARY_DIR}/libafb-binder.pc
+    DESTINATION
+	${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 
 if(WITH_MONITORING)
 	file(GLOB monit_files ${CMAKE_CURRENT_SOURCE_DIR}/monitoring/*)

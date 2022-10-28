@@ -1,0 +1,8 @@
+Name: libafb-binder
+Description: libafb-binder for interfacing afb-libafb at high level
+Version: @PROJECT_VERSION@
+URL: @PROJECT_URL@
+
+Requires: libafb librp-utils
+Cflags: -I@CMAKE_INSTALL_FULL_INCLUDEDIR@
+Libs: -L@CMAKE_INSTALL_FULL_LIBDIR@ -lafb-binder -lafb -lrp-utils
