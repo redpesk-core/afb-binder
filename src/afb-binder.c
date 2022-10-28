@@ -22,7 +22,7 @@
  * $RP_END_LICENSE$
  */
 
-#include "afb-binder.h"
+#include "binder-settings.h"
 
 #include <stdlib.h>
 #include <stdio.h>
