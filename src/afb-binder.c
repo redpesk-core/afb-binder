@@ -1267,9 +1267,12 @@ static char* AfbBinderHttpd(AfbBinderHandleT *binder) {
     }
 
     // loop to register all aliases
-    if (rp_jsonc_optarray_until (binder->config.httpd.aliasJ, BinderAddOneAlias, binder) < 0) {
-        errorMsg= "Registering aliases";
-        goto OnErrorExit;
+
+    if (binder->config.httpd.aliasJ) {
+        if (rp_jsonc_optarray_until (binder->config.httpd.aliasJ, BinderAddOneAlias, binder) < 0) {
+            errorMsg= "Registering aliases";
+            goto OnErrorExit;
+        }
     }
 
     // set server rootdir path
