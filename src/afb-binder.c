@@ -154,6 +154,9 @@ typedef struct {
     /** maximum allowed count of pending jobs */
     int maxJobs;
 
+    /** whether the binder should trap signal/faults */
+    int trapfaults;
+
     /** flags for tracing */
     struct {
         /** specification of requests tracing */
@@ -237,6 +240,7 @@ static AfbBinderConfigT binderConfigDflt = {
     .httpd.rootapi="/api",
     .httpd.updir="/tmp",
     .httpd.onepage="/opa",
+    .trapfaults=1,
 };
 
 /**
@@ -1461,7 +1465,7 @@ static int BinderParseConfig (json_object *configJ, AfbBinderConfigT *config) {
     // allocate config and set defaults
     memcpy (config, &binderConfigDflt, sizeof(AfbBinderConfigT));
 
-    err= rp_jsonc_unpack (configJ, "{ss s?s s?i s?i s?b s?i s?s s?s s?s s?s s?s s?o s?o s?o s?o s?o s?i s?i s?o !}"
+    err= rp_jsonc_unpack (configJ, "{ss s?s s?i s?i s?b s?i s?s s?s s?s s?s s?s s?o s?o s?o s?o s?o s?i s?i s?b s?o !}"
         , "uid"    , &config->uid
         , "info"   , &config->info
         , "verbose", &config->verbose
@@ -1480,6 +1484,7 @@ static int BinderParseConfig (json_object *configJ, AfbBinderConfigT *config) {
         , "acls", &aclsJ
         , "thread-pool", &config->poolThreadSize
         , "thread-max" , &config->poolThreadMax
+        , "trapfaults", &config->trapfaults
         , "onerror", &ignoredJ
         );
     if (err) goto OnErrorExit;
@@ -1634,6 +1639,13 @@ const char* AfbBinderConfig (json_object *configJ, AfbBinderHandleT **handle, vo
     if (afb_common_rootdir_set(binder->config.rootdir) < 0) {
             errorMsg= "Rootdir set fail";
             goto OnErrorExit;
+    }
+
+    /* setup signal handling */
+
+    if (afb_sig_monitor_init(binder->config.trapfaults) < 0) {
+        errorMsg="Failed to setup binder signal handling";
+        goto OnErrorExit;
     }
 
     /* start HTTP service */
