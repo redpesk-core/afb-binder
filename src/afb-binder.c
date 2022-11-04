@@ -1189,17 +1189,6 @@ const char* AfbApiImport (AfbBinderHandleT *binder, json_object *configJ) {
         if (config.uri[index] == '@' || config.uri[index] == '/') break;
     }
 
-    // If needed create an alias (TODO CHECK IF MEANINGFUL)
-    if (index) {
-        if (strcasecmp (&config.uri[index + 1], config.uid)) {
-            err = afb_apiset_add_alias (binder->privateApis, &config.uri[index + 1], config.uid);
-            if (err) {
-                errorMsg= "AfbApiImport: api not found";
-                goto OnErrorExit;
-            }
-        }
-    }
-
     return NULL;
 
   OnErrorExit:
