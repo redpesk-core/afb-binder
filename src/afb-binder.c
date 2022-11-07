@@ -1066,7 +1066,7 @@ const char* AfbApiCreate (AfbBinderHandleT *binder, json_object *configJ, afb_ap
 
     /* check argument */
     if (binder == NULL) {
-        errorMsg= "invalid binder instance";
+        errorMsg= "nonexistent binder instance";
         goto OnErrorExit;
     }
 
@@ -1153,7 +1153,7 @@ const char* AfbApiImport (AfbBinderHandleT *binder, json_object *configJ) {
 
     /* check argument */
     if (binder == NULL) {
-        errorMsg= "invalid binder instance";
+        errorMsg= "nonexistent binder instance";
         goto OnErrorExit;
     }
 
@@ -1347,7 +1347,7 @@ const char* AfbBindingLoad (AfbBinderHandleT *binder, json_object *bindingJ) {
 
     /* check argument */
     if (binder == NULL) {
-        errorMsg= "invalid binder instance";
+        errorMsg= "nonexistent binder instance";
         goto OnErrorExit;
     }
 
@@ -1514,14 +1514,14 @@ const char* AfbBinderConfig (json_object *configJ, AfbBinderHandleT **handle, vo
     // create binder handle and select default config
     binder= calloc (1, sizeof(AfbBinderHandleT));
     if (binder == NULL) {
-        errorMsg= "can't allocate binder";
+        errorMsg= "can't allocate binder data structures";
         goto OnErrorExit;
     }
 
     /* parse the config */
     status= BinderParseConfig (configJ, &binder->config);
     if (status < 0) {
-        errorMsg= "fail to parse binder config";
+        errorMsg= "failed to parse binder configuration";
         goto OnErrorExit;
     }
 
