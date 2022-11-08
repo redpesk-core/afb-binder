@@ -1467,26 +1467,26 @@ static int BinderParseConfig (json_object *configJ, AfbBinderConfigT *config) {
     memcpy (config, &binderConfigDflt, sizeof(AfbBinderConfigT));
 
     err= rp_jsonc_unpack (configJ, "{ss s?s s?i s?i s?b s?i s?s s?s s?s s?s s?s s?o s?o s?o s?o s?o s?i s?i s?b s?o !}"
-        , "uid"    , &config->uid
-        , "info"   , &config->info
-        , "verbose", &config->verbose
-        , "timeout", &config->timeout
-        , "noconcurrency", config->noconcurency
-        , "port", &config->httpd.port
-        , "roothttp", &config->httpd.basedir
-        , "rootapi", &config->httpd.rootapi
-        , "rootdir", &config->rootdir
-        , "https-cert", &config->httpd.cert
-        , "https-key" , &config->httpd.key
-        , "alias", &config->httpd.aliasJ
-        , "intf", &config->httpd.intfJ
-        , "extentions", &config->extendJ
-        , "ldpath", &config->ldpathJ
-        , "acls", &aclsJ
-        , "thread-pool", &config->poolThreadSize
-        , "thread-max" , &config->poolThreadMax
-        , "trapfaults", &config->trapfaults
-        , "onerror", &ignoredJ
+        , "uid",         &config->uid            /* string */
+        , "info",        &config->info           /* string */
+        , "verbose",     &config->verbose        /* integer */
+        , "timeout",     &config->timeout        /* integer */
+        , "noconcurrency", &config->noconcurency /* boolean */
+        , "port",        &config->httpd.port     /* integer */
+        , "roothttp",    &config->httpd.basedir  /* string */
+        , "rootapi",     &config->httpd.rootapi  /* string */
+        , "rootdir",     &config->rootdir        /* string */
+        , "https-cert",  &config->httpd.cert     /* string */
+        , "https-key",   &config->httpd.key      /* string */
+        , "alias",       &config->httpd.aliasJ   /* object: string or array of string */
+        , "intf",        &config->httpd.intfJ    /* object: string or array of string */
+        , "extentions",  &config->extendJ        /* object: dictionnary */
+        , "ldpath",      &config->ldpathJ        /* object: string or array of string */
+        , "acls",        &aclsJ                  /* object: dictionnary */
+        , "thread-pool", &config->poolThreadSize /* integer */
+        , "thread-max" , &config->poolThreadMax  /* integer */
+        , "trapfaults",  &config->trapfaults     /* boolean */
+        , "onerror",     &ignoredJ               /* object: legacy, ignored */
         );
     if (err) goto OnErrorExit;
 
@@ -1701,7 +1701,7 @@ static int BinderAddIntf(void* context, json_object *intfJ) {
         intf = buffer;
     }
 
-    /* create the interfavce */
+    /* create the interface */
     status= afb_hsrv_add_interface(binder->hsrv, intf);
     if (status >= 0)
         return 0;
