@@ -593,6 +593,7 @@ static void AclFreeAuthContent(afbAclsHandleT *acls, struct afb_auth *auth)
         AclFreeAuth(acls, (struct afb_auth*)auth->first);
         /*@fallthrough@*/
     default:
+	break;
     }
 }
 
