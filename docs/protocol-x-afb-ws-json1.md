@@ -99,7 +99,7 @@ Here is that code:
 
 ```javascript
 /*
- * Copyright (C) 2015-2022 IoT.bzh Company
+ * Copyright (C) 2015-2023 IoT.bzh Company
  * Author: José Bollo <jose.bollo@iot.bzh>
  *
  * SPDX-License-Identifier: MIT
