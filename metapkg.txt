@@ -1,0 +1,3 @@
+add	pkg	libafb-binder
+req	pkg	json-c libafb>=4.1 librp-utils
+
