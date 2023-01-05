@@ -194,16 +194,9 @@ extern const char* AfbAddEvents(afb_api_x4_t apiv4, json_object *configJ, afb_ev
 extern const char* AfbDelOneEvent(afb_api_x4_t apiv4, const char*pattern, void **context);
 
 /**
- * @brief get the current log mask
- *
- * @param binder unused
- *
- * @return the log mask
- */
-extern int AfbBinderGetLogMask(AfbBinderHandleT *binder);
-
-/**
  * @brief get the current global API
+ *
+ * This function is here for compatibility. Use 'afb_verbose_get'.
  *
  * @param binder the binder handler
  *
@@ -268,5 +261,20 @@ extern int AfbBinderEnter(AfbBinderHandleT *binder, void *config, AfbStartupCb c
  */ 
 extern void AfbPollRunJobs(void);
 
+/*************************************************************************************/
+/*************************************************************************************/
+/***** D E P R E C A T E D                                                       *****/
+/*************************************************************************************/
+/*************************************************************************************/
 
+/**
+ * @brief get the current log mask
+ *
+ * This function is here for compatibility. Use 'afb_verbose_get'.
+ *
+ * @param binder unused
+ *
+ * @return the log mask
+ */
+extern int AfbBinderGetLogMask(AfbBinderHandleT *binder);
 
