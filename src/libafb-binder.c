@@ -36,7 +36,7 @@
 #include <libafb/afb-extend.h>
 #include <libafb/afb-http.h>
 
-#include "afb-binder.h"
+#include "libafb-binder.h"
 
 /* default settings */
 #define AFB_HSRV_OK                 1

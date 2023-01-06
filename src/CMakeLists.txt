@@ -44,7 +44,7 @@ include_directories(
 )
 
 add_library(libafb-binder SHARED
-	afb-binder.c
+	libafb-binder.c
 )
 
 set_target_properties(libafb-binder PROPERTIES
@@ -60,7 +60,7 @@ target_link_libraries(libafb-binder
 )
 
 add_executable(afb-binder
-	afb-binder-main.c
+	main-afb-binder.c
 	afb-binder-opts.c
 	afb-binder-config.c
 )
@@ -79,7 +79,7 @@ install(TARGETS afb-binder
 install(TARGETS libafb-binder
         RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-install(FILES afb-binder.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(FILES libafb-binder.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 INSTALL(FILES
 	${CMAKE_CURRENT_BINARY_DIR}/libafb-binder.pc
