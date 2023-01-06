@@ -163,7 +163,7 @@ extern const char* AfbAddVerbs(AfbBinderHandleT *binder, afb_api_x4_t apiv4, jso
  *
  * @param apiv4 the api
  * @param uid  unused
- * @param pattern the global pattern of the events to handle
+ * @param pattern the global pattern of the events to handle, if NULL, replaced with "*"
  * @param callback the callback function that handle the events of pattern
  * @param context the closure callback data
  *

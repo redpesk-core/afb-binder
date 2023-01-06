@@ -839,7 +839,7 @@ const char* AfbAddVerbs (AfbBinderHandleT *binder, afb_api_x4_t apiv4, json_obje
 
 /* add one event handler */
 const char* AfbAddOneEvent (afb_api_x4_t apiv4, const char*uid, const char*pattern, afb_event_handler_x4_t callback, void *context) {
-    int err = afb_api_v4_event_handler_add_hookable (apiv4, pattern, callback, context);
+    int err = afb_api_v4_event_handler_add_hookable (apiv4, pattern ? pattern : "*", callback, context);
     return err < 0 ? "AfbAddOneEvent failed" : NULL;
 }
 
