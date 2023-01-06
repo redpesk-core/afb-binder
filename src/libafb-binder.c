@@ -927,19 +927,19 @@ static const char *AfbApiConfig (json_object *configJ, AfbApiConfigT *config) {
     memcpy (config, &apiConfigDflt, sizeof(AfbApiConfigT));
 
     err= rp_jsonc_unpack (configJ, "{ss s?s s?s s?i s?s s?b s?o s?s s?s s?b s?o s?o s?s}"
-        , "uid"    , &config->uid
-        , "api"    , &config->api
-        , "info"   , &config->info
-        , "verbose", &config->verbose
-        , "export" , &export
-        , "noconcurrency", &config->noconcurency
-        , "verbs"  , &config->verbsJ
-        , "require", &config->require
-        , "uri"    , &config->uri
-        , "lazy"   , &config->lazy
-        , "alias"  , &config->aliasJ
-        , "events" , &config->eventsJ
-        , "provide", &config->provide
+        , "uid"    , &config->uid /* string */
+        , "api"    , &config->api /* string */
+        , "info"   , &config->info /* string */
+        , "verbose", &config->verbose /* integer */
+        , "export" , &export /* string */
+        , "noconcurrency", &config->noconcurency /* boolean */
+        , "verbs"  , &config->verbsJ /* object */
+        , "require", &config->require /* string */
+        , "uri"    , &config->uri /* string */
+        , "lazy"   , &config->lazy /* boolean */
+        , "alias"  , &config->aliasJ /* object */
+        , "events" , &config->eventsJ /* object */
+        , "provide", &config->provide /* string */
         );
     if (err) return "invalid api configuration";
 
@@ -1358,12 +1358,12 @@ const char* AfbBindingLoad (AfbBinderHandleT *binder, json_object *bindingJ) {
 
     /* extract api specification */
     err= rp_jsonc_unpack (bindingJ, "{ss ss s?s s?s s?o s?o}"
-        ,"uid"    , &uid
-        ,"path"   , &libpath
-        ,"export" , &export
-        ,"uri"    , &uri
-        ,"ldpath" , &ldpathJ
-        ,"alias"  , &aliasJ
+        , "uid"    , &uid     /* string */
+        , "path"   , &libpath /* string */
+        , "export" , &export  /* string */
+        , "uri"    , &uri     /* string */
+        , "ldpath" , &ldpathJ /* object */
+        , "alias"  , &aliasJ  /* object */
     );
     if (err) {
         errorMsg= "fail parsing json binding config";
