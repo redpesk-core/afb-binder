@@ -24,4 +24,6 @@ books:
       name: Binder's vocabulary
     - url: afb-binder.1.scd
       name: Binder's man page
+    - url: libafb-binder.md
+      name: Binder's library above libafb
 
