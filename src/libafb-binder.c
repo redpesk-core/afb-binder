@@ -657,6 +657,8 @@ static afbAclsHandleT* AfbAclBuildFromJsonC (json_object *configJ) {
     it = json_object_iter_begin(configJ);
     idx = 0;
     while (!json_object_iter_equal(&it, &end)) {
+        if (acls[idx].uid != json_object_iter_peek_name(&it))
+            for (idx = 0 ; idx < count && acls[idx].uid != json_object_iter_peek_name(&it); idx++);
         permJ = json_object_iter_peek_value(&it);
         errorMsg = AclBuildItem(acls, &acls[idx].perm, permJ);
         if (errorMsg) goto OnErrorExit;
