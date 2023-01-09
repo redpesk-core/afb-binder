@@ -729,12 +729,12 @@ const char* AfbAddOneVerb (AfbBinderHandleT *binder, afb_api_x4_t apiv4, json_ob
 
     /* scan the verb specification */
     err= rp_jsonc_unpack (configJ, "{s?s s?s s?s s?s s?i s?b}"
-        , "uid"     , &uid
-        , "verb"    , &verb
-        , "info"    , &info
-        , "auth"    , &auth
-        , "session" , &session
-        , "regex"   , &regex
+        , "uid"     , &uid  /* string */
+        , "verb"    , &verb  /* string */
+        , "info"    , &info  /* string */
+        , "auth"    , &auth  /* string */
+        , "session" , &session  /* integer */
+        , "regex"   , &regex  /* boolean */
         );
     if (err || (!verb && !uid)) {
         errorMsg = "config parsing error or missing both verb and uid fields";

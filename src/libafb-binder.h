@@ -43,16 +43,16 @@ typedef enum {
     AfbMagicTagE;
 
 /**
- * @brief ?
+ * @brief general purpose structure
  */
 typedef struct {
-    void* magic;
-    json_object *configJ;
-    const char *uid;
-    void *callback;
-    void *thread;
-    void *userdata;
-    void *state;
+    void* magic;           /**< some magic value */
+    json_object *configJ;  /**< attached configuration or NULL */
+    const char *uid;       /**< uid or NULL */
+    void *callback;        /**< a callback or NULL */
+    void *thread;          /**< a thread or NULL */
+    void *userdata;        /**< any userdata */
+    void *state;           /**< a state */
 } AfbVcbDataT;
 
 /**
@@ -121,6 +121,9 @@ extern const char* AfbApiImport(AfbBinderHandleT *binder, json_object *configJ);
  * @param userdata user data for callbacks
  *
  * @return NULL on success or an error string
+ *
+ * When configuration object includes declaration of verbs, the
+ * request callback receives a closure as described in function AfbAddVerbs.
  */
 extern const char* AfbApiCreate(
                     AfbBinderHandleT *binder,
@@ -155,6 +158,13 @@ extern const char* AfbAddOneVerb(AfbBinderHandleT *binder, afb_api_x4_t apiv4,
  * @param callback callback for handling created verbs
  *
  * @return NULL on success or an error string
+ *
+ * The callbacks will receive as closure parameter a pointer to an instance
+ * structure AfbVcbDataT with the fields below:
+ *
+ *  - magic:   points to AfbAddVerbs itself
+ *  - configJ: the configuration object of the event
+ *  - uid:     the uid of configJ (equals json_object_get_string(json_object_object_get(configJ, "uid")))
  */
 extern const char* AfbAddVerbs(AfbBinderHandleT *binder, afb_api_x4_t apiv4, json_object *configJ, afb_req_callback_t callback);
 
@@ -179,6 +189,13 @@ extern const char* AfbAddOneEvent(afb_api_x4_t apiv4, const char*uid, const char
  * @param callback the callback function that handle the events of pattern
  *
  * @return NULL on success or an error string
+ *
+ * The callbacks will receive as closure parameter a pointer to an instance
+ * structure AfbVcbDataT with the fields below:
+ *
+ *  - magic:   points to AfbAddEvents itself
+ *  - configJ: the configuration object of the event
+ *  - uid:     the uid of configJ (equals json_object_get_string(json_object_object_get(configJ, "uid")))
  */
 extern const char* AfbAddEvents(afb_api_x4_t apiv4, json_object *configJ, afb_event_handler_t callback);
 
