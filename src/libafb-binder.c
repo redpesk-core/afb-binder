@@ -1054,7 +1054,10 @@ static int AfbApiPreInit (afb_api_v4 *apiv4, void *context) {
     if (init->config.seal) afb_api_v4_seal_hookable (apiv4);
 
     // call preinit now
-    status= afb_api_v4_safe_ctlproc (apiv4, init->usrApiCb, afb_ctlid_Pre_Init, (afb_ctlarg_t)NULL);
+    if (init->usrApiCb)
+        status= afb_api_v4_safe_ctlproc (apiv4, init->usrApiCb, afb_ctlid_Pre_Init, (afb_ctlarg_t)NULL);
+    else
+        status = 0;
     return status;
 
 OnErrorExit:
