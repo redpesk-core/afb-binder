@@ -438,7 +438,7 @@ static const char* AclBuildSeq(afbAclsHandleT *acls, struct afb_auth *auth, json
     /* inspect the count of items */
     count = json_object_array_length(permJ);
     if (count == 0)
-        /* report the enpty array as being an error */
+        /* report the empty array as being an error */
         return "Empty permission array";
 
     /* creates the chain of or/and */
@@ -474,6 +474,8 @@ static const char* AclBuildItem (afbAclsHandleT *acls, struct afb_auth *auth, js
     json_object *val;
     struct afb_auth *first_auth;
     const struct afb_auth *other_auth;
+    struct json_object_iterator it, end;
+    enum afb_auth_type op;
 
     /* inspect the specification */
     switch (json_object_get_type(permJ)) {
@@ -503,49 +505,80 @@ static const char* AclBuildItem (afbAclsHandleT *acls, struct afb_auth *auth, js
         return AclBuildSeq(acls, auth, permJ, afb_auth_And);
 
     case json_type_object:
-        /* valid specs have only one key */
-        if (json_object_object_length(permJ) != 1)
-            break;
+        /* implicit and on keys */
+        end = json_object_iter_end(permJ);
+        it = json_object_iter_begin(permJ);
+        auth->type = afb_auth_No;
+        while (!json_object_iter_equal(&it, &end)) {
+            val = json_object_iter_peek_value(&it);
+            text = json_object_iter_peek_name(&it);
 
-        /* check for keys "and" or "allOf" */
-        if (json_object_object_get_ex(permJ, "and", &val)
-         || json_object_object_get_ex(permJ, "AllOf", &val))
-            return AclBuildSeq(acls, auth, val, afb_auth_And);
+            /* check key and value */
+            if (strcmp(text, "AllOf") == 0 || strcmp(text, "and") == 0)
+                op = afb_auth_And;
+            else if (strcmp(text, "AnyOf") == 0 || strcmp(text, "or") == 0)
+                op = afb_auth_Or;
+            else if (strcmp(text, "Unless") == 0 || strcmp(text, "not") == 0)
+                op = afb_auth_Not;
+            else if (strcmp(text, "LOA") == 0) {
+                if (!json_object_is_type(val, json_type_int)
+                 || json_object_get_int(val) < 0
+                 || json_object_get_int(val) > 3)
+                    return "invalid LOA value";
+                op = afb_auth_LOA;
+            }
+            else if (strcmp(text, "token") == 0) {
+                if (!json_object_is_type(val, json_type_boolean)
+                 || !json_object_get_boolean(val))
+                    return "invalid token value (must be true)";
+                op = afb_auth_Token;
+            }
+            else
+                return "invalid access object  key";
 
-        /* check for keys "or" or "anyOf" */
-        if (json_object_object_get_ex(permJ, "or", &val)
-         || json_object_object_get_ex(permJ, "AnyOf", &val))
-            return AclBuildSeq(acls, auth, val, afb_auth_Or);
+            /* insert an and node if needed */
+            if (auth->type == afb_auth_No)
+                first_auth = auth;
+            else {
+                first_auth = malloc(sizeof *first_auth);
+                if (first_auth == NULL)
+                    return "out of memory";
+                memcpy(first_auth, auth, sizeof *auth);
+                auth->type = afb_auth_And;
+                auth->next = first_auth;
+                auth->first = first_auth = calloc(1, sizeof *first_auth);
+                if (first_auth == NULL)
+                    return "out of memory";
+            }
 
-        /* check for key "not" */
-        if (json_object_object_get_ex(permJ, "not", &val)) {
-            auth->type = afb_auth_Not;
-            auth->first = first_auth = calloc(1, sizeof *auth->first);
-            if (first_auth == NULL)
-                return "out of memory";
-            return AclBuildItem(acls, first_auth, val);
-        }
-
-        /* check for key "LOA" */
-        if (json_object_object_get_ex(permJ, "LOA", &val)) {
-            if (json_object_is_type(val, json_type_int)
-                && json_object_get_int(val) >= 0
-                && json_object_get_int(val) <= 7) {
-                auth->type = afb_auth_LOA;
+            /* init the node */
+            switch (op) {
+            case afb_auth_And:
+            case afb_auth_Or:
+                text = AclBuildSeq(acls, first_auth, val, op);
+                if (text != NULL)
+                        return text;
+                break;
+            case afb_auth_Not:
+                first_auth->type = op;
+                first_auth = (struct afb_auth *)(first_auth->first = calloc(1, sizeof *first_auth));
+                if (first_auth == NULL)
+                        return "out of memory";
+                text = AclBuildItem(acls, first_auth, val);
+                if (text != NULL)
+                        return text;
+                break;
+            case afb_auth_LOA:
                 auth->loa = (unsigned)json_object_get_int(val);
-                return NULL;
+                /*@fallthrough@*/
+            case afb_auth_Token:
+                first_auth->type = op;
+                /*@fallthrough@*/
+            default:
+                break;
             }
-            return "invalid LOA value";
-        }
-
-        /* check for key "token" */
-        if (json_object_object_get_ex(permJ, "token", &val)) {
-            if (json_object_is_type(val, json_type_boolean)
-                && json_object_get_boolean(val)) {
-                auth->type = afb_auth_Token;
-                return NULL;
-            }
-            return "invalid token value (must be true)";
+            /* next */
+            json_object_iter_next(&it);
         }
         break;
 
@@ -593,7 +626,7 @@ static void AclFreeAuthContent(afbAclsHandleT *acls, struct afb_auth *auth)
         AclFreeAuth(acls, (struct afb_auth*)auth->first);
         /*@fallthrough@*/
     default:
-	break;
+        break;
     }
 }
 
