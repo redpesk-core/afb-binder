@@ -1,3 +1,11 @@
+Version 5.0.0
+-------------
+
+- use of librp-utils
+- use of libafb 5.0.0
+- add environment variable MAINPID for signaling readyness
+- provide libafb-binder (from legacy libafb-glue)
+
 Version 4.1.0
 -------------
 
