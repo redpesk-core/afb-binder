@@ -1357,6 +1357,9 @@ int main(int argc, char *argv[])
 	if (json_object_object_get_ex(afb_binder_main_config, "name", &obj)) {
 		process_name_set_name(json_object_get_string(obj));
 		process_name_replace_cmdline(argv, json_object_get_string(obj));
+#if WITH_ENVIRONMENT
+		addenv("AFB_NAME", json_object_get_string(obj));
+#endif
 	}
 #if WITH_AFB_DEBUG
 	afb_debug("main-args");

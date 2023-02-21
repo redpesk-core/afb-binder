@@ -83,7 +83,8 @@ to client sessions indexed using a unique session identifier.
 	Value must be a positive integer.
 
 *-n, --name* _NAME_
-	Set the visible name of the process for command _ps_
+	Set the visible name of the process for command _ps_.
+	Also set the environment variable *AFB_NAME*.
 
 *--session-max* _COUNT_
 	Max count of simultaneous sessions.
@@ -467,6 +468,9 @@ bindings and children processes.
 
 *AFB_ROOTDIR*
 	The root directory where the application is installed.
+
+*AFB_NAME*
+	The name of the binder if set using option *--name*.
 
 
 # DISCUSSIONS
