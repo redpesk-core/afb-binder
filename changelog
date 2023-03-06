@@ -1,3 +1,11 @@
+Version 5.0.1
+-------------
+
+- Provide variable AFB_NAME
+- new option --threads-init
+- new option --uuid
+- the option --daemon wits readiness of daemon and prints out its PID
+
 Version 5.0.0
 -------------
 
