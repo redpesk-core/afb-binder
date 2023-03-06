@@ -56,6 +56,7 @@ set(DEFAULT_JOBS_MAX     200 CACHE STRING "Default maximum count of jobs queueab
 # bench shew that 5 is minimal if synchronous calls are used, otherwise 1 is enought for asynchromous calls
 set(DEFAULT_THREADS_MIN    1 CACHE STRING "Default minimum count of managed threads")
 set(DEFAULT_THREADS_MAX    5 CACHE STRING "Default maximum count of managed threads")
+set(DEFAULT_THREADS_INIT   1 CACHE STRING "Initial count of managed threads")
 
 ###########################################################################
 string(REGEX MATCH "^/" WELL_KNOWN_DIR_IS_ABSOLUTE ${WELL_KNOWN_DIR})
@@ -100,6 +101,7 @@ ADD_DEFINITIONS(
 	-DDEFAULT_JOBS_MAX=${DEFAULT_JOBS_MAX}
 	-DDEFAULT_THREADS_MIN=${DEFAULT_THREADS_MIN}
 	-DDEFAULT_THREADS_MAX=${DEFAULT_THREADS_MAX}
+	-DDEFAULT_THREADS_INIT=${DEFAULT_THREADS_INIT}
 )
 
 add_subdirectory(src)

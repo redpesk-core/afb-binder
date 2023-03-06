@@ -151,6 +151,7 @@
 #define SET_QUIET          'q'
 #define ADD_SET            's'
 #define SET_THR_MAX        't'
+#define SET_THR_INIT       'T'
 #if WITH_LIBMICROHTTPD
 #define SET_UPLOAD_DIR     'u'
 #endif
@@ -257,6 +258,7 @@ static const struct argp_option optdefs[] = {
 
 	{ .name="jobs-max",    .key=SET_JOB_MAX,         .arg="VALUE", .doc="Maximum count of jobs that can be queued  [default " d2s(DEFAULT_JOBS_MAX) "]" },
 	{ .name="threads-max", .key=SET_THR_MAX,         .arg="VALUE", .doc="Maximum count of parallel threads held [default " d2s(DEFAULT_THREADS_MAX) "]" },
+	{ .name="threads-init", .key=SET_THR_INIT,       .arg="VALUE", .doc="Initial count of threads [default " d2s(DEFAULT_THREADS_INIT) "]" },
 
 	{ .name=0,             .key=0,                   .arg=0, .doc=0 }
 /* *INDENT-ON* */
@@ -277,7 +279,8 @@ static const struct {
 	{ SET_SESSION_TIMEOUT,	DEFAULT_SESSION_TIMEOUT },
 	{ SET_SESSIONMAX,	DEFAULT_MAX_SESSION_COUNT },
 	{ SET_JOB_MAX,          DEFAULT_JOBS_MAX },
-	{ SET_THR_MAX,          DEFAULT_THREADS_MAX }
+	{ SET_THR_MAX,          DEFAULT_THREADS_MAX },
+	{ SET_THR_INIT,         DEFAULT_THREADS_INIT }
 };
 
 static const struct {
@@ -1079,6 +1082,7 @@ static error_t parsecb_final(int key, char *value, struct argp_state *state)
 
 	case SET_JOB_MAX:
 	case SET_THR_MAX:
+	case SET_THR_INIT:
 	case SET_SESSIONMAX:
 		config_set_optint(config, key, value, 1, INT_MAX);
 		break;

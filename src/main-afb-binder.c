@@ -1321,7 +1321,7 @@ error:
 int main(int argc, char *argv[])
 {
 	struct json_object *obj;
-	int njobs, nthr, rc;
+	int njobs, nthr, nthrini, rc;
 
 #if WITH_AFB_DEBUG
 	afb_debug("main-entry");
@@ -1382,14 +1382,22 @@ int main(int argc, char *argv[])
 		if (njobs < DEFAULT_JOBS_MIN)
 			njobs = DEFAULT_JOBS_MIN;
 	}
+	nthrini = DEFAULT_THREADS_INIT;
+	if (json_object_object_get_ex(afb_binder_main_config, "threads-init", &obj)) {
+		nthrini = json_object_get_int(obj);
+	}
 	nthr = DEFAULT_THREADS_MAX;
 	if (json_object_object_get_ex(afb_binder_main_config, "threads-max", &obj)) {
 		nthr = json_object_get_int(obj);
 		if (nthr < DEFAULT_THREADS_MIN)
 			nthr = DEFAULT_THREADS_MIN;
 	}
+	if (nthrini > nthr)
+		nthrini = nthr;
+	if (nthrini < 1)
+		nthrini = 1;
 
 	/* enter job processing */
-	rc = afb_sched_start(nthr, 0, njobs, start, NULL);
+	rc = afb_sched_start(nthr, nthrini, njobs, start, NULL);
 	return rc < 0 ? EXIT_FAILURE : EXIT_SUCCESS;
 }
