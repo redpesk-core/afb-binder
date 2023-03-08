@@ -242,7 +242,7 @@ static void load_bindings(const char *name)
  | exit_handler
  |   Handles on exit specific actions
  +--------------------------------------------------------- */
-static void exit_handler()
+static void exit_handler(int code, void *arg)
 {
 	struct sigaction siga;
 	pid_t pidchld = childpid;
@@ -252,8 +252,10 @@ static void exit_handler()
 	sigaction(SIGTERM, &siga, NULL);
 	sigaction(SIGCHLD, &siga, NULL);
 
-	if (afb_binder_main_apiset)
+	if (afb_binder_main_apiset) {
 		afb_extend_exit(afb_binder_main_apiset);
+		afb_apiset_exit_all_services(afb_binder_main_apiset, code);
+	}
 
 	childpid = 0;
 	if (SELF_PGROUP)
@@ -296,7 +298,7 @@ static void setup_handlers()
 	sigaction(SIGHUP, &siga, NULL);
 
 	/* handle groups */
-	atexit(exit_handler);
+	on_exit(exit_handler, NULL);
 }
 
 /*----------------------------------------------------------
