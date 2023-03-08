@@ -933,7 +933,6 @@ static void startup_call_unref(struct afb_req_common *comreq)
 	if (++sreq->index < sreq->count)
 		startup_call_current(sreq);
 	else {
-		afb_session_close(sreq->session);
 		afb_session_unref(sreq->session);
 		free(sreq);
 	}
@@ -984,7 +983,7 @@ static void run_startup_calls()
 	 && json_object_is_type(calls, json_type_array)
 	 && (count = (int)json_object_array_length(calls))) {
 		sreq = calloc(1, sizeof *sreq);
-		afb_session_create(&sreq->session, 3600);
+		sreq->session = afb_session_addref(afb_api_common_get_common_session());
 		sreq->calls = calls;
 		sreq->index = 0;
 		sreq->count = count;
@@ -1066,6 +1065,7 @@ static void start(int signum, void *arg)
 	const char *traceses = NULL, *traceglob = NULL;
 	unsigned flags;
 #endif
+	const char *uuid = NULL;
 	struct json_object *settings = NULL;
 	int max_session_count, session_timeout, api_timeout;
 	int rc;
@@ -1082,13 +1082,14 @@ static void start(int signum, void *arg)
 	setup_directories();
 
 	rc = rp_jsonc_unpack(afb_binder_main_config, "{"
-			"si si si"
+			"si si si s?s"
 			"s?o"
 			"}",
 
 			"apitimeout", &api_timeout,
 			"cntxtimeout", &session_timeout,
 			"session-max", &max_session_count,
+			"uuid", &uuid,
 
 			"set", &settings
 			);
@@ -1122,6 +1123,8 @@ static void start(int signum, void *arg)
 
 	/* configure the daemon */
 	afb_api_common_set_config(settings);
+	if (uuid)
+		afb_api_common_set_common_session_uuid(uuid);
 	afb_binder_main_apiset = afb_apiset_create("main", api_timeout);
 	if (!afb_binder_main_apiset) {
 		LIBAFB_ERROR("can't create main apiset");

@@ -155,6 +155,7 @@
 #if WITH_LIBMICROHTTPD
 #define SET_UPLOAD_DIR     'u'
 #endif
+#define SET_UUID           'U'
 #define GET_VERSION        'V'
 #define SET_VERBOSE        'v'
 #define SET_WORK_DIR       'w'
@@ -259,6 +260,8 @@ static const struct argp_option optdefs[] = {
 	{ .name="jobs-max",    .key=SET_JOB_MAX,         .arg="VALUE", .doc="Maximum count of jobs that can be queued  [default " d2s(DEFAULT_JOBS_MAX) "]" },
 	{ .name="threads-max", .key=SET_THR_MAX,         .arg="VALUE", .doc="Maximum count of parallel threads held [default " d2s(DEFAULT_THREADS_MAX) "]" },
 	{ .name="threads-init", .key=SET_THR_INIT,       .arg="VALUE", .doc="Initial count of threads [default " d2s(DEFAULT_THREADS_INIT) "]" },
+
+	{ .name="uuid",        .key=SET_UUID,            .arg="VALUE", .doc="Set the session UUID of the binder, random by default" },
 
 	{ .name=0,             .key=0,                   .arg=0, .doc=0 }
 /* *INDENT-ON* */
@@ -1062,6 +1065,7 @@ static error_t parsecb_final(int key, char *value, struct argp_state *state)
 	case SET_HTTPS_CERT:
 	case SET_HTTPS_KEY:
 	case SET_OUTPUT:
+	case SET_UUID:
 		config_set_optstr(config, key, value);
 		break;
 
