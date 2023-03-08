@@ -82,6 +82,7 @@ struct afb_hsrv *afb_binder_http_server;
 #endif
 
 static pid_t childpid;
+static int syncfd;
 
 #if WITH_ENVIRONMENT
 /*----------------------------------------------------------
@@ -304,10 +305,11 @@ static void setup_handlers()
  +--------------------------------------------------------- */
 static void daemonize()
 {
-	int fd = 0, daemon, nostdin;
+	int fd = 0, daemon, nostdin, pfd[2];
 	const char *output;
 	pid_t pid;
 
+	syncfd = pfd[0] = pfd[1] = -1;;
 	daemon = 0;
 	output = NULL;
 	rp_jsonc_unpack(afb_binder_main_config, "{s?b s?s}", "daemon", &daemon, "output", &output);
@@ -324,14 +326,22 @@ static void daemonize()
 	if (daemon) {
 		LIBAFB_INFO("entering background mode");
 
+		if (pipe(pfd) < 0)
+			pfd[0] = pfd[1] = -1;;
 		pid = fork();
 		if (pid == -1) {
 			LIBAFB_ERROR("Failed to fork daemon process");
 			exit(EXIT_FAILURE);
 		}
-		if (pid != 0)
+		if (pid != 0) {
+			char tag;
+			if (read(pfd[0], &tag, 1) != 1)
+				_exit(EXIT_FAILURE);
+			printf("%ld\n", (long)pid);
 			_exit(EXIT_SUCCESS);
-
+		}
+		close(pfd[0]);
+		syncfd = pfd[1];
 		nostdin = 1;
 	}
 
@@ -1052,6 +1062,10 @@ static void notify_readyness()
 	sd_notify(1, buffer);
 #endif
 #endif
+	if (syncfd >= 0) {
+		char tag = 0;
+		write(syncfd, &tag, 1);
+	}
 }
 
 /*---------------------------------------------------------
