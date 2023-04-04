@@ -30,7 +30,7 @@ set(PROJECT_PRETTY_NAME "Application Framework Binder")
 set(PROJECT_DESCRIPTION "Secured binder of API for clients of the Application framework")
 set(PROJECT_VERSION_MAJOR 5)
 set(PROJECT_VERSION_MINOR 0)
-set(PROJECT_VERSION_REVISION 1)
+set(PROJECT_VERSION_REVISION 2)
 set(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_REVISION}")
 set(PROJECT_URL "https://github.com/redpesk-core/afb-binder")
 
