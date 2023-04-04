@@ -580,6 +580,7 @@ static const char* AclBuildItem (afbAclsHandleT *acls, struct afb_auth *auth, js
             /* next */
             json_object_iter_next(&it);
         }
+	return NULL;
         break;
 
     default:
