@@ -1574,7 +1574,7 @@ const char* AfbBinderConfig (json_object *configJ, AfbBinderHandleT **handle, vo
     afb_verbose_set(verbosity_to_mask(binder->config.verbose));
 
     // create the apisets: private, protected and public
-    binder->privateApis = afb_apiset_create("restricted", binder->config.timeout);
+    binder->privateApis = afb_apiset_create("main", binder->config.timeout);
     if (!binder->privateApis) {
         errorMsg= "can't create main apiset";
         goto OnErrorExit;
