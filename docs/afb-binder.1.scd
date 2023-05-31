@@ -204,8 +204,32 @@ to client sessions indexed using a unique session identifier.
 	Automatic activation of APIs found in the given _DIRECTORY_ when
 	an API api is missing.
 
-*-b, --binding* _FILENAME_
-	Load the binding of path _FILENAME_
+	Since afb-binder 5.0.3, _DIRECTORY_ can be prefixed with an
+	exportation specification. See discussion on EXPORT.
+
+*-b, --binding* _BINDINGSPEC_
+	Load the binding as described by _BINDINGSPEC_.
+
+	_BINDINGSPEC_ can be as simple as a path to the library
+	implementing the binding.
+
+	In its full version, _BINDINGSPEC_ is made of the following
+	parts:
+
+```
+		[EXPORT]PATH[:[UID:]CONFIG]
+```
+
+	Where:
+
+	- *PATH* is the path path to the library implementing the binding
+	- *EXPORT* (since 5.0.3, optional) tells how to export APIs of the
+	  binder, see discussion on EXPORT
+	- *CONFIG* (optional) is the path to JSON file holding configuration
+          data for the binding
+	- *UID* (optional) if given, its value can be read by the binding for its
+          setting up (example: use one config for N specialization
+	  selected by UID value)
 
 *--ldpaths* _PATHSET_
 	Load bindings found from paths given in _PATHSET_,
@@ -224,19 +248,41 @@ to client sessions indexed using a unique session identifier.
 	If any found binding fails to load, *afb-binder* will report
 	the error and stop.
 
+	Since afb-binder 5.0.3, _PATHSET_ can be prefixed with an
+	exportation specification. See discussion on EXPORT.
+
 *--weak-ldpaths* _PATHSET_
 	Same as *--ldpaths* but if a binding fails to load, an error
 	is reported but *afb-binder* will continue instead of stopping.
 
+	Since afb-binder 5.0.3, _PATHSET_ can be prefixed with an
+	exportation specification. See discussion on EXPORT.
+
 *--ws-client* _SOCKSPEC_
 	Bind an external API through WSAPI connection.
 
-	See discussion on WSAPI.
+	See discussion on WS/RPC-API.
+
+	Since afb-binder 5.0.3, _SOCKSPEC_ can be prefixed with an
+	exportation specification. See discussion on EXPORT.
 
 *--ws-server* _SOCKSPEC_
 	Provide (Export) an API through WSAPI connection.
 
-	See discussion on WSAPI.
+	See discussion on WS/RPC-API.
+
+*--rpc-client* _SOCKSPEC_
+	Bind an external API through RPCAPI connection.
+
+	See discussion on WS/RPC-API.
+
+	Since afb-binder 5.0.3, _SOCKSPEC_ can be prefixed with an
+	exportation specification. See discussion on EXPORT.
+
+*--rpc-server* _SOCKSPEC_
+	Provide (Export) an API through RPCAPI connection.
+
+	See discussion on WS/RPC-API.
 
 
 ## Extensions
@@ -263,7 +309,7 @@ to client sessions indexed using a unique session identifier.
 	Then if later options are set, it overrides the options loaded from the
 	file.
 
-	This option can be repeated. The differnts configuration files loaded
+	This option can be repeated. The differents configuration files loaded
 	complete one an other if not overlapping. Otherwise, the effect
 	depends on the value of the parameter. Arrays and dictionaries are
 	merged but integral values are replaced.
@@ -557,17 +603,19 @@ The following examples are all setting the same values:
 ```
 
 
-## Connection of API using WSAPI
+## WS/RPC-API, Connection of API
 
-API can be imported (option *--ws-client*) or exported (option *--ws-server*),
+API can be exported using option *--ws-server* and imported using option *--ws-client*,
 allowing a service running on a binder instance (client) to consume the API provided by
 an other binder (server).
 
-When connecting binders together, the unit of connection is the API.
-The connection is done using a websocket like socket connection that must
-be explicitely specified by the options *--ws-client* or *--ws-server*.
+Starting with binder version 5.0.0 and above, API can also be exported with option *--ws-server*
+and imported using the corresponding option *--rpc-client*. That new option use a protocol
+compatible with API v4 format and able to transmit binary data and types of data.
 
-The format of the specification is:
+When connecting binders together, the unit of connection is the API.
+
+The format of the specification _SOCKSPEC_ is:
 
 - for TCP: *tcp:host:port/api*
 - for unix: *unix:path/api*
@@ -584,6 +632,45 @@ unix socket:
 
 - on server: *--ws-server=unix:@foo*
 - on client: *--ws-client=unix:@foo?as-api=bar*
+
+Since afb-binder 5.0.3, _SOCKSPEC_ of client options can be prefixed with an
+exportation specification. See discussion on EXPORT.
+
+## EXPORT, Exportation of API
+
+When HTTP serving is enabled, it is possible to tell if the APIs are exported
+to HTTP interface or not. This setting is done using one of the prefix below.
+
+[[ *prefix*
+:[ *exportation*
+|  *-*
+:  not exported to HTTP
+|  *private:*
+:  not exported to HTTP
+|  *public:*
+:  exported to HTTP
+
+Not setting the exportation set the export to the default value of the option
+as given below:
+
+[[ *option*
+:[ *default export*
+|  *--binding*
+:  public
+|  *--ldpaths*
+:  public
+|  *--weak-ldpaths*
+:  public
+|  *--ws-client*
+:  private
+|  *--rpc-client*
+:  private
+|  *--auto-api*
+:  private
+
+Note well that before version 5.0.3, the default exportation of all options
+was public. The change introduced by the binder 5.0.3 assume to potentially break
+existing setup.
 
 
 # SEE ALSO

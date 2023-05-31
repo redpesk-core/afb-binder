@@ -39,6 +39,7 @@
 #include <json-c/json.h>
 
 #include "afb-binder-opts.h"
+#include "afb-binder-utils.h"
 
 #if WITH_CALL_PERSONALITY
 #include <sys/personality.h>
@@ -158,19 +159,41 @@ static const char *run_for_config_array_opt(const char *name,
 	return NULL;
 }
 
-static struct afb_apiset *get_declare_set(const char **spec)
+static struct afb_apiset *get_declare_set(const char **spec, export_prefix_type_t type)
 {
-	if (**spec != '-')
-		return afb_binder_public_apiset;
-	(*spec)++;
-	return afb_binder_main_apiset;
+	(*spec) += scan_export_prefix(*spec, &type);
+	return type >= Export_Restricted ? afb_binder_main_apiset : afb_binder_public_apiset;
+}
+
+struct run_export {
+	export_prefix_type_t default_export;
+	int (*starter) (const char *value, struct afb_apiset *declare_set, struct afb_apiset *call_set);
+};
+
+static int run_start_export(void *closure, const char *value)
+{
+	struct run_export *re = closure;
+	struct afb_apiset *declset = get_declare_set(&value, re->default_export);
+	return re->starter(value, declset, afb_binder_main_apiset) >= 0;
+}
+
+static void apiset_start_export_list(const char *name,
+			export_prefix_type_t default_export,
+			int (*starter) (const char *value, struct afb_apiset *declare_set, struct afb_apiset *call_set),
+			const char *message)
+{
+	struct run_export re = { default_export, starter };
+	const char *item = run_for_config_array_opt(name, run_start_export, &re);
+	if (item) {
+		LIBAFB_ERROR("can't start %s %s", message, item);
+		exit(EXIT_FAILURE);
+	}
 }
 
 static int run_start(void *closure, const char *value)
 {
 	int (*starter) (const char *value, struct afb_apiset *declare_set, struct afb_apiset *call_set) = closure;
-	struct afb_apiset *declset = get_declare_set(&value);
-	return starter(value, declset, afb_binder_main_apiset) >= 0;
+	return starter(value, afb_binder_main_apiset, afb_binder_main_apiset) >= 0;
 }
 
 static void apiset_start_list(const char *name,
@@ -215,7 +238,7 @@ static void load_one_binding_cb(void *closure, struct json_object *value)
 	}
 
 	/* add the binding now */
-	declset = get_declare_set(&pathstr);
+	declset = get_declare_set(&pathstr, Export_Public);
 	rc = afb_api_so_add_binding_config(pathstr, declset, afb_binder_main_apiset, value);
 	if (rc < 0) {
 		LIBAFB_ERROR("can't load binding %s", pathstr);
@@ -1237,16 +1260,16 @@ static void start(int signum, void *arg)
 #if WITH_DYNAMIC_BINDING
 	load_bindings("binding");
 #if WITH_DIRENT
-	apiset_start_list("ldpaths", afb_api_so_add_pathset_fails, "the binding path set");
-	apiset_start_list("weak-ldpaths", afb_api_so_add_pathset_nofails, "the weak binding path set");
+	apiset_start_export_list("ldpaths", Export_Public, afb_api_so_add_pathset_fails, "the binding path set");
+	apiset_start_export_list("weak-ldpaths", Export_Public, afb_api_so_add_pathset_nofails, "the weak binding path set");
 #endif
 #endif
-	apiset_start_list("auto-api", afb_autoset_add_any, "the automatic api path set");
+	apiset_start_export_list("auto-api", Export_Private, afb_autoset_add_any, "the automatic api path set");
 #if WITH_DBUS_TRANSPARENCY
-	apiset_start_list("dbus-client", afb_api_dbus_add_client, "the afb-dbus client");
+	apiset_start_export_list("dbus-client", Export_Private, afb_api_dbus_add_client, "the afb-dbus client");
 #endif
-	apiset_start_list("ws-client", afb_api_ws_add_client_weak, "the afb-websocket client");
-	apiset_start_list("rpc-client", afb_api_rpc_add_client_weak, "the afb-websocket client");
+	apiset_start_export_list("ws-client", Export_Private, afb_api_ws_add_client_weak, "the afb-websocket client");
+	apiset_start_export_list("rpc-client", Export_Private, afb_api_rpc_add_client_weak, "the rpc-socket client");
 #if WITH_EXTENSION
 	/* declare extensions */
 	rc = afb_extend_declare(afb_binder_main_apiset, afb_binder_main_apiset);
@@ -1280,7 +1303,7 @@ static void start(int signum, void *arg)
 
 	/* export started apis */
 	apiset_start_list("ws-server", afb_api_ws_add_server, "the afb-websocket service");
-	apiset_start_list("rpc-server", afb_api_rpc_add_server, "the afb-websocket service");
+	apiset_start_list("rpc-server", afb_api_rpc_add_server, "the rpc-websocket service");
 #if WITH_DBUS_TRANSPARENCY
 	apiset_start_list("dbus-server", afb_api_dbus_add_server, "the afb-dbus service");
 #endif

@@ -44,6 +44,7 @@
 
 #include "afb-binder-opts.h"
 #include "afb-binder-config.h"
+#include "afb-binder-utils.h"
 #include <libafb/extend/afb-extend.h>
 #include <libafb/misc/afb-verbose.h>
 
@@ -645,7 +646,7 @@ static void config_add_optstr(struct json_object *config, int optid, char *value
  *  { "path": "PATH", "uid": "UID", "config": { "$ref": "CONFIG" } }
  * where fields "uid" and "config" are optionnals
  */
-static void config_add_path_conf_uid(struct json_object *config, int optid, char *value)
+static void config_add_path_conf_uid(struct json_object *config, int optid, char *value, int prefixed)
 {
 	const char separator = ':';
 	struct json_object *obj, *str, *ref = NULL;
@@ -654,7 +655,10 @@ static void config_add_path_conf_uid(struct json_object *config, int optid, char
 	char *pathstr, *uidstr = NULL, *confstr = NULL;
 
 	/* get sizes and strings */
-	for (pathstr = value; *value && *value != separator ; value++);
+	pathstr = value;
+	if (prefixed) /* skip prefix part */
+		value += scan_export_prefix(value, NULL);
+	while(*value && *value != separator) value++;
 	pathlen = value - pathstr;
 	if (*value) {
 		for (uidstr = ++value; *value && *value != separator ; value++);
@@ -944,7 +948,7 @@ static error_t parsecb_initial(int key, char *value, struct argp_state *state)
 
 #if WITH_EXTENSION
 	case ADD_EXTENSION:
-		config_add_path_conf_uid(config, key, value);
+		config_add_path_conf_uid(config, key, value, 0);
 		break;
 #if WITH_DIRENT
 	case ADD_EXTPATH:
@@ -1099,7 +1103,7 @@ static error_t parsecb_final(int key, char *value, struct argp_state *state)
 
 #if WITH_DYNAMIC_BINDING
 	case ADD_BINDING:
-		config_add_path_conf_uid(config, key, value);
+		config_add_path_conf_uid(config, key, value, 1);
 		break;
 #if WITH_DIRENT
 	case ADD_LDPATH:
