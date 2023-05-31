@@ -1155,7 +1155,7 @@ const char* AfbApiCreate (AfbBinderHandleT *binder, json_object *configJ, afb_ap
                                     NULL, Afb_String_Const  // no binding.so path
     );
     if (status) {
-        errorMsg= apiInit.errorMsg;
+        errorMsg= apiInit.errorMsg ?: "Unknown error from afb_api_v4_create";
         goto OnErrorExit;
     }
 
