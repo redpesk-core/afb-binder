@@ -226,9 +226,9 @@ to client sessions indexed using a unique session identifier.
 	- *EXPORT* (since 5.0.3, optional) tells how to export APIs of the
 	  binder, see discussion on EXPORT
 	- *CONFIG* (optional) is the path to JSON file holding configuration
-          data for the binding
+	  data for the binding
 	- *UID* (optional) if given, its value can be read by the binding for its
-          setting up (example: use one config for N specialization
+	  setting up (example: use one config for N specialization
 	  selected by UID value)
 
 *--ldpaths* _PATHSET_
@@ -675,7 +675,7 @@ existing setup.
 
 # SEE ALSO
 
-*afb-binding*(7)
+*afb-client*(1), *afb-binding*(7)
 
 
 # AUTHOR
