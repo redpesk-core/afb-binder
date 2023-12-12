@@ -341,19 +341,6 @@ static const nsKeyEnumT afbBinderInfoKeys[]={
     {NULL, -1} // terminator/on-error
 };
 
-static const nsKeyEnumT glueMagics[]= {
-    {"BINDER_MAGIC_TAG",AFB_BINDER_MAGIC_TAG},
-    {"API_MAGIC_TAG",AFB_API_MAGIC_TAG},
-    {"RQT_MAGIC_TAG",AFB_RQT_MAGIC_TAG},
-    {"EVT_MAGIC_TAG",AFB_EVT_MAGIC_TAG},
-    {"TIMER_MAGIC_TAG",AFB_TIMER_MAGIC_TAG},
-    {"JOB_MAGIC_TAG",AFB_JOB_MAGIC_TAG},
-    {"POST_MAGIC_TAG",AFB_POST_MAGIC_TAG},
-    {"CALL_MAGIC_TAG",AFB_CALL_MAGIC_TAG},
-
-    {NULL, -1} // terminator/on-error
-};
-
 // search for key label within key/value array
 static int utilLabel2Value (const nsKeyEnumT *keyvals, const char *label) {
     int idx;
@@ -368,29 +355,10 @@ OnDefaultExit:
     return keyvals[0].value;
 }
 
-// search for key label within key/value array
-static const char* utilValue2Label (const nsKeyEnumT *keyvals, const int value) {
-    const char *label=NULL;
-
-    for (int idx=0; keyvals[idx].label; idx++) {
-        if (keyvals[ idx].value == value) {
-            label= keyvals[idx].label;
-            break;
-        }
-    }
-    return label;
-}
-
-
 /* compute the verbosity mask of the given verbosity level */
 static int verbosity_to_mask(int verbosity)
 {
     return (2 << (verbosity + afb_Log_Level_Error)) - 1;
-}
-
-/* Returns a string for the given magic tag value */
-const char * AfbMagicToString (AfbMagicTagE magic) {
-    return utilValue2Label(glueMagics, magic);
 }
 
 /**

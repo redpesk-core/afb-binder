@@ -27,22 +27,6 @@
 #include <libafb/afb-v4.h>
 
 /**
- * @brief Magic tags for distinguishing object's instances
- */
-typedef enum {
-    AFB_UNKNOWN_MAGIC_TAG=0, /**< Default unset object identity */
-    AFB_BINDER_MAGIC_TAG,    /**< Identify BINDER objects */
-    AFB_API_MAGIC_TAG,       /**< Identify API objects */
-    AFB_RQT_MAGIC_TAG,       /**< Identify REQUEST objects */
-    AFB_EVT_MAGIC_TAG,       /**< Identify EVENT objects */
-    AFB_TIMER_MAGIC_TAG,     /**< Identify TIMER objects */
-    AFB_JOB_MAGIC_TAG,       /**< Identify JOB objects */
-    AFB_POST_MAGIC_TAG,      /**< Identify POSTED JOB objects */
-    AFB_CALL_MAGIC_TAG,      /**< Identify ASYNCHRONOUS CALL objects */
-}
-    AfbMagicTagE;
-
-/**
  * @brief general purpose structure
  */
 typedef struct {
@@ -66,16 +50,6 @@ typedef struct AfbBinderHandleS AfbBinderHandleT;
  * @see AfbBinderEnter
  */
 typedef int (*AfbStartupCb) (void *config, void *context);
-
-/**
- * @brief Returns a string for the given magic tag value
- *
- * @param magic the tag value
- *
- * @return the text representing the magic tag or NULL
- * when the tag is not valid
- */
-extern const char * AfbMagicToString (AfbMagicTagE magic);
 
 /**
  * @brief Create a binder context for the given config
