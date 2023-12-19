@@ -1416,7 +1416,7 @@ const char* AfbBindingLoad (AfbBinderHandleT *binder, json_object *bindingJ) {
     if (libpath[0] != '/') {
         err = ldpathJ == NULL ? 0 : rp_jsonc_optarray_until (ldpathJ, ScanPathCb, &scanner);
         if (err == 0 && binder->config.ldpathJ != NULL)
-            err = rp_jsonc_optarray_until (binder->config.ldpathJ, ScanPathCb, (void*)libpath);
+            err = rp_jsonc_optarray_until (binder->config.ldpathJ, ScanPathCb, &scanner);
         if (err != 0) scanner.filename = scanner.path;
     }
 
