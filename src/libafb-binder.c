@@ -1251,8 +1251,13 @@ static char* AfbBinderHttpd(AfbBinderHandleT *binder) {
     }
 
     // set the root api handlers for http websock
+#if LIBAFB_BEFORE_VERSION(5,0,11)
     if (!afb_hsrv_add_handler(binder->hsrv, binder->config.httpd.rootapi, afb_hswitch_websocket_switch, binder->publicApis, 20)) {
         errorMsg= "Allocating afb_hswitch_websocket_switch";
+#else
+    if (!afb_hsrv_add_handler(binder->hsrv, binder->config.httpd.rootapi, afb_hswitch_upgrade, binder->publicApis, 20)) {
+        errorMsg= "Allocating afb_hswitch_upgrade";
+#endif
         goto OnErrorExit;
     }
 

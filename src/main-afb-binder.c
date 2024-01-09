@@ -575,7 +575,11 @@ static int http_server_create(struct afb_hsrv **result)
 
 	/* set the root api handlers */
 	if (!afb_hsrv_add_handler(hsrv, rootapi,
+#if LIBAFB_BEFORE_VERSION(5,0,11)
 			afb_hswitch_websocket_switch, afb_binder_public_apiset, 20))
+#else
+			afb_hswitch_upgrade, afb_binder_public_apiset, 20))
+#endif
 		goto error;
 	if (!afb_hsrv_add_handler(hsrv, rootapi,
 			afb_hswitch_apis, afb_binder_public_apiset, 10))
