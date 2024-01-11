@@ -27,6 +27,7 @@
 #include <linux/limits.h>
 
 #include <rp-utils/rp-jsonc.h>
+#include <rp-utils/rp-file.h>
 
 #include <libafb/afb-core.h>
 #include <libafb/afb-apis.h>
@@ -1762,7 +1763,26 @@ void BinderStartCb (int signum, void *context) {
 
     /* start HTTP server and its interfaces */
     if (binder->config.httpd.port) {
-        status= !afb_hsrv_start_tls(binder->hsrv, 15, binder->config.httpd.cert, binder->config.httpd.key);
+        char *key = NULL, *cert = NULL;
+        if (binder->config.httpd.cert || binder->config.httpd.key) {
+            if (!binder->config.httpd.cert || !binder->config.httpd.key) {
+                errorMsg= "failed to start all services";
+                goto OnErrorExit;
+            }
+            status = rp_file_get(binder->config.httpd.cert, &cert, NULL);
+            if (status < 0) {
+                errorMsg= "can't load HTTPS certificate";
+                goto OnErrorExit;
+            }
+            status = rp_file_get(binder->config.httpd.key, &key, NULL);
+            if (status < 0) {
+                free(cert);
+                errorMsg= "can't load HTTPS key";
+                goto OnErrorExit;
+            }
+        }
+
+        status= !afb_hsrv_start_tls(binder->hsrv, 15, cert, key);
         if (status) {
             errorMsg= "failed to start binder httpd service";
             goto OnErrorExit;
