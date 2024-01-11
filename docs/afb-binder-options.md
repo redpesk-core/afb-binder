@@ -116,7 +116,7 @@ Tune the log level mask. The levels are:
 
 The level can be set using + or -.
 
-| Examples | descritpion
+| Examples        | description
 |-----------------|-------------------
 | error,warning   | selects only the levels error and warning
 | +debug          | adds level debug to the current verbosity
