@@ -51,6 +51,7 @@
 
 #include <rp-utils/rp-jsonc.h>
 #include <rp-utils/rp-expand-vars.h>
+#include <rp-utils/rp-file.h>
 
 #include <libafb/afb-core.h>
 #include <libafb/afb-apis.h>
@@ -619,44 +620,6 @@ end:
 	return rc;
 }
 
-static int readfile(const char *filename, char **buffer, size_t *size)
-{
-	int rc, fd;
-	off_t of;
-	size_t sz;
-	char *buf;
-
-	fd = open(filename, O_RDONLY);
-	if (fd < 0)
-		rc = -errno;
-	else {
-		of = lseek(fd, 0, SEEK_END);
-		if (of < 0 || lseek(fd, 0, SEEK_SET) < 0)
-			rc = -errno;
-		else if (of >= SIZE_MAX)
-			rc = X_E2BIG;
-		else {
-			sz = (size_t)of;
-			buf = malloc(sz + 1);
-			if (buf == NULL)
-				rc = X_ENOMEM;
-			else if (read(fd, buf, sz) != (ssize_t)sz) {
-				rc = -errno;
-				free(buf);
-			}
-			else {
-				buf[sz] = 0;
-				*buffer = buf;
-				if (size)
-					*size = sz;
-				rc = 0;
-			}
-		}
-		close(fd);
-	}
-	return rc;
-}
-
 static int get_https_value(const char *key, const char *filename, char **value)
 {
 	char buffer[PATH_MAX];
@@ -668,7 +631,7 @@ static int get_https_value(const char *key, const char *filename, char **value)
 			return X_EINVAL;
 		filename = buffer;
 	}
-	rc = readfile(filename, value, NULL);
+	rc = rp_file_get(filename, value, NULL);
 	if (rc < 0) {
 		LIBAFB_ERROR("can't read file %s: %s", filename, strerror(-rc));
 		return rc;
