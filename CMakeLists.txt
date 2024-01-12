@@ -22,10 +22,10 @@
 # $RP_END_LICENSE$
 ###########################################################################
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.10)
 
 project(afb-binder
-	VERSION 5.1.0
+	VERSION 5.1.1
 	DESCRIPTION "Secured binder of API for clients of the Application framework"
 	HOMEPAGE_URL "https://github.com/redpesk-core/afb-binder"
 	LANGUAGES C)

@@ -1,3 +1,10 @@
+Version 5.1.1
+-------------
+
+- Use of rp_file_get from librp-utils
+- Fix reading of certificate and key in libafb-binder
+- Able to use upgrading of libafb >= 5.0.11
+
 Version 5.1.0
 -------------
 
