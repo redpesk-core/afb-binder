@@ -126,11 +126,6 @@
 #define ADD_RPC_CLIENT      27
 #define ADD_RPC_SERVICE     28
 
-#if WITH_DBUS_TRANSPARENCY
-#   define ADD_DBUS_CLIENT  30
-#   define ADD_DBUS_SERVICE 31
-#endif
-
 #define ADD_AUTO_API       'A'
 #if WITH_DYNAMIC_BINDING
 #define ADD_BINDING        'b'
@@ -219,10 +214,6 @@ static const struct argp_option optdefs[] = {
 #endif
 #endif
 
-#if WITH_DBUS_TRANSPARENCY
-	{ .name="dbus-client", .key=ADD_DBUS_CLIENT,     .arg="APINAME", .doc="Bind to an afb service through dbus" },
-	{ .name="dbus-server", .key=ADD_DBUS_SERVICE,    .arg="APINAME", .doc="Provide an afb service through dbus" },
-#endif
 	{ .name="ws-client",   .key=ADD_WS_CLIENT,       .arg="SOCKSPEC", .doc="Bind to an afb service through websocket" },
 	{ .name="ws-server",   .key=ADD_WS_SERVICE,      .arg="SOCKSPEC", .doc="Provide an afb service through websockets" },
 
@@ -329,9 +320,6 @@ static const char version[] =
 	"\n"
 	AFB_BINDER_VERSION
 	" ["
-#if WITH_DBUS_TRANSPARENCY
-	"+DBUS"
-#endif
 #if WITH_MONITORING
 	"+MONITOR"
 #endif
@@ -1109,10 +1097,6 @@ static error_t parsecb_final(int key, char *value, struct argp_state *state)
 	case ADD_LDPATH:
 	case ADD_WEAK_LDPATH:
 #endif
-#endif
-#if WITH_DBUS_TRANSPARENCY
-	case ADD_DBUS_CLIENT:
-	case ADD_DBUS_SERVICE:
 #endif
 	case ADD_CALL:
 	case ADD_WS_CLIENT:

@@ -19,8 +19,6 @@ effective values.
       --cntxtimeout=TIMEOUT  Client Session Context Timeout [default 32000000]
   -c, --color[=VALUE]        Colorize the ouput
   -C, --config=FILENAME      Load options from the given config file
-      --dbus-client=APINAME  Bind to an afb service through dbus
-      --dbus-server=APINAME  Provide an afb service through dbus
   -D, --daemon               Get all in background mode
   -e, --exec                 Execute the remaining arguments
       --foreground           Get all in foreground mode
