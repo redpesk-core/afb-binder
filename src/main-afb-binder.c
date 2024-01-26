@@ -471,7 +471,7 @@ static int http_server_create(struct afb_hsrv **result)
 	}
 
 	/* is http service allowed ? */
-	if (no_httpd) {
+	if (no_httpd && http_port < 0 && itfs == NULL) {
 		return 0;
 	}
 
