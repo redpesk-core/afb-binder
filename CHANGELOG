@@ -1,7 +1,9 @@
 Version 5.1.3
 -------------
 
+- Ignore --no-httpd if --port or --interface is set
 - Use common defaults in afb-binder and libafb-binder
+- Read config files as JSON or YAML (JSON is a valid YAML)
 
 Version 5.1.2
 -------------
