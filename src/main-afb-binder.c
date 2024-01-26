@@ -38,6 +38,7 @@
 
 #include <json-c/json.h>
 
+#include "afb-binder-defaults.h"
 #include "afb-binder-opts.h"
 #include "afb-binder-utils.h"
 
@@ -65,10 +66,6 @@
 #include <libafb/afb-sys.h>
 #include <libafb/afb-utils.h>
 #include <libafb/misc/afb-verbose.h>
-
-#if !defined(DEFAULT_BINDER_INTERFACE)
-#  define DEFAULT_BINDER_INTERFACE "*"
-#endif
 
 /*
    if SELF_PGROUP == 0 the launched command is the group leader

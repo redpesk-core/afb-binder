@@ -37,20 +37,11 @@
 #include <libafb/afb-extend.h>
 #include <libafb/afb-http.h>
 
+#include "afb-binder-defaults.h"
 #include "libafb-binder.h"
 
 /* default settings */
 #define AFB_HSRV_OK                 1
-#define DEFAULT_API_TIMEOUT         180
-#define DEFAULT_SESSION_TIMEOUT     32000000
-#define DEFAULT_CACHE_TIMEOUT       100000
-#define DEFAULT_MAX_SESSION_COUNT   200
-#define DEFAULT_HTTP_PORT           1234
-#define DEFAULT_BINDER_INTERFACE    "*"
-#define DEFAULT_JOBS_MAX            200
-#define DEFAULT_JOBS_MIN            10
-#define DEFAULT_THREADS_POOL        2
-#define DEFAULT_THREADS_MAX         5
 
 // make our live simpler
 typedef struct afb_hsrv afb_hsrv;

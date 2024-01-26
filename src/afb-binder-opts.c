@@ -42,6 +42,7 @@
 #include <libafb/core/afb-hook-flags.h>
 #endif
 
+#include "afb-binder-defaults.h"
 #include "afb-binder-opts.h"
 #include "afb-binder-config.h"
 #include "afb-binder-utils.h"
@@ -53,35 +54,6 @@
 
 #if !defined(AFB_BINDER_VERSION)
 #error "you should define AFB_BINDER_VERSION"
-#endif
-
-/**
- * The default timeout of sessions in seconds
- */
-#define DEFAULT_SESSION_TIMEOUT		32000000
-
-/**
- * The default timeout of api calls in seconds
- */
-#define DEFAULT_API_TIMEOUT		20
-
-/**
- * The default timeout of cache in seconds
- */
-#if WITH_LIBMICROHTTPD
-#define DEFAULT_CACHE_TIMEOUT		100000
-#endif
-
-/**
- * The default maximum count of sessions
- */
-#define DEFAULT_MAX_SESSION_COUNT       200
-
-/**
- * The default HTTP port to serve
- */
-#if WITH_LIBMICROHTTPD
-#define DEFAULT_HTTP_PORT		1234
 #endif
 
 // Define command line option
