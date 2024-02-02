@@ -26,3 +26,4 @@ struct json_object;
 
 extern int expand_config(struct json_object **config, int readrefs);
 
+extern int read_config_file(struct json_object **obj, const char *filename);

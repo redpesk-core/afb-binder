@@ -225,7 +225,7 @@ to client sessions indexed using a unique session identifier.
 	- *PATH* is the path path to the library implementing the binding
 	- *EXPORT* (since 5.0.3, optional) tells how to export APIs of the
 	  binder, see discussion on EXPORT
-	- *CONFIG* (optional) is the path to JSON file holding configuration
+	- *CONFIG* (optional) is the path to a file holding configuration
 	  data for the binding
 	- *UID* (optional) if given, its value can be read by the binding for its
 	  setting up (example: use one config for N specialization
@@ -525,6 +525,15 @@ bindings and children processes.
 
 The option *--config* can be used instead of arguments on the command line.
 
+That option accepts a filename that is read. The read options are not taking
+precedence over options given in the command line.
+
+The files terminated by the extensions `.json` or `.jso` are supposed to be
+*JSON* formatted files with allowed C/C++ comments. Other files (with other
+extensions) are supposed to be *YAML* formatted files. (Note that before
+version 5.1.3, only JSON files were supported).
+
+
 Example:
 
 ```
@@ -566,6 +575,7 @@ when the file **/home/15646/config1** is:
 	  ]
 	}
 ```
+
 The otpion *--set* can be used to set values for specific APIs.
 The set value can have different formats.
 

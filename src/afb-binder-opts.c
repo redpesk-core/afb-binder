@@ -37,7 +37,6 @@
 #endif
 
 #include <rp-utils/rp-jsonc.h>
-#include <rp-utils/rp-yaml.h>
 
 #if WITH_AFB_HOOK
 #include <libafb/core/afb-hook-flags.h>
@@ -944,7 +943,7 @@ static error_t parsecb_initial(int key, char *value, struct argp_state *state)
 		break;
 #endif
 	case SET_CONFIG:
-		if (rp_yaml_path_to_json_c(&conf, value, NULL) < 0) {
+		if (read_config_file(&conf, value) < 0) {
 			LIBAFB_ERROR("Can't read config file %s", value);
 			exit(1);
 		}

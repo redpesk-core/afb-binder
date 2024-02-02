@@ -41,9 +41,11 @@
 #include <rp-utils/rp-jsonc-locator.h>
 #include <rp-utils/rp-jsonc-path.h>
 #include <rp-utils/rp-path-search.h>
+#include <rp-utils/rp-yaml.h>
 
 #include <libafb/misc/afb-verbose.h>
 
+#include "afb-binder-config.h"
 
 /**
  * callback data for expanding references
@@ -213,13 +215,7 @@ static void merge_one_file(struct expref *expref, const char *filename, const ch
 	LIBAFB_NOTICE("Loading config file %s", path);
 
 	/* read the object in obj */
-#if 0
-	obj = json_object_from_file(filename);
-	rc = obj ? 0 : -errno;
-#else
-	/* use the locator to keep track of the lines and of the file */
-	rc = rp_jsonc_locator_from_file(&obj, filename);
-#endif
+	rc = read_config_file(&obj, filename);
 	if (rc < 0) {
 		LIBAFB_ERROR("Can't process json file %s: %s", path, strerror(-rc));
 		expref->expand_error_code = rc;
@@ -451,4 +447,56 @@ int expand_config(struct json_object **config, int readrefs)
 #endif
 	}
 	return expref.error_code;
+}
+
+static int is_json_filename(const char *filename)
+{
+	/* check extension */
+	static char json[] = ".json";
+	int st = 0, idx = 0;
+	while (filename[idx]) {
+		st = filename[idx] == json[st]
+			? st + 1
+			: filename[idx] == json[0];
+		idx++;
+	}
+	return st >= 4;
+}
+
+static int read_json_file(struct json_object **obj, const char *filename)
+{
+#if 0
+	*obj = json_object_from_file(filename);
+	return *obj ? 0 : -1;
+#else
+	/* use the locator to keep track of the lines and of the file */
+	return rp_jsonc_locator_from_file(obj, filename);
+#endif
+}
+
+static int read_yaml_file(struct json_object **obj, const char *filename)
+{
+	return rp_yaml_path_to_json_c(obj, filename, NULL);
+}
+
+
+/* read a config file */
+int read_config_file(struct json_object **obj, const char *filename)
+{
+	int rc;
+	if (access(filename, R_OK) < 0) {
+		LIBAFB_ERROR("Can't read file %s: %s", filename, strerror(errno));
+		rc = -1;
+	}
+	else if (is_json_filename(filename)) {
+		rc = read_json_file(obj, filename);
+		if (rc < 0)
+			LIBAFB_ERROR("Bad JSON file %s", filename);
+	}
+	else {
+		rc = read_yaml_file(obj, filename);
+		if (rc < 0)
+			LIBAFB_ERROR("Bad YAML file %s", filename);
+	}
+	return rc;
 }
