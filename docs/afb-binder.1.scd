@@ -538,7 +538,6 @@ Example:
 
 ```
 	afb-binder \
-		--no-ldpaths \
 		--binding /home/15646/bindings/binding45.so \
 		--binding /home/15646/bindings/binding3.so \
 		--tracereq common \
@@ -557,7 +556,6 @@ when the file **/home/15646/config1** is:
 
 ```
 	{
-	  "no-ldpaths": true,
 	  "binding": [
 	    "\/home\/15646\/bindings\/binding45.so",
 	    "\/home\/15646\/bindings\/binding3.so"

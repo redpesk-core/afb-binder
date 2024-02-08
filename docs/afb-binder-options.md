@@ -310,7 +310,6 @@ This can be used instead of arguments on the command line.
 Example:
 
 	afb-binder \
-		--no-ldpaths \
 		--binding /home/15646/bindings/binding45.so \
 		--binding /home/15646/bindings/binding3.so \
 		--tracereq common \
@@ -325,7 +324,6 @@ is equivalent to:
 when the file **/home/15646/config1** is:
 
 	{
-	  "no-ldpaths": true,
 	  "binding": [
 	    "\/home\/15646\/bindings\/binding45.so",
 	    "\/home\/15646\/bindings\/binding3.so"
