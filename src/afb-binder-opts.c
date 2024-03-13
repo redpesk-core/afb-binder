@@ -955,6 +955,11 @@ static error_t parsecb_initial(int key, char *value, struct argp_state *state)
 		json_object_put(conf);
 		break;
 
+	case SET_ROOT_DIR:
+	case SET_WORK_DIR:
+		config_set_optstr(config, key, value);
+		break;
+
 	case SET_EXEC:
 		state->quoted = 1;
 		break;
@@ -1009,6 +1014,8 @@ static error_t parsecb_final(int key, char *value, struct argp_state *state)
 #endif
 	case SET_TRAP_FAULTS:
 	case SET_CONFIG:
+	case SET_ROOT_DIR:
+	case SET_WORK_DIR:
 		break;
 
 	/* other keys */
@@ -1054,8 +1061,6 @@ static error_t parsecb_final(int key, char *value, struct argp_state *state)
 		config_set_optint(config, key, value, 1, INT_MAX);
 		break;
 
-	case SET_ROOT_DIR:
-	case SET_WORK_DIR:
 	case SET_NAME:
 		config_set_optstr(config, key, value);
 		break;

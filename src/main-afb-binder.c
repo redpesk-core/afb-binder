@@ -1082,8 +1082,6 @@ static void start(int signum, void *arg)
 		exit(EXIT_FAILURE);
 	}
 
-	setup_directories();
-
 	rc = rp_jsonc_unpack(afb_binder_main_config, "{"
 			"si si si s?s"
 			"s?o"
@@ -1330,6 +1328,8 @@ int main(int argc, char *argv[])
 	// ------------- Build session handler & init config -------
 	afb_binder_main_config = json_object_new_object();
 	afb_binder_opts_parse_initial(argc, argv, &afb_binder_main_config);
+
+	setup_directories();
 
 #if WITH_EXTENSION
 	/* load extensions */
