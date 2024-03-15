@@ -2,6 +2,7 @@ Version 5.1.4
 -------------
 
 - Change to workdir before loading extensions
+- new option --fail (or -F), synonym of --trap-faults=no
 
 Version 5.1.3
 -------------

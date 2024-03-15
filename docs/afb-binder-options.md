@@ -56,6 +56,7 @@ effective values.
       --traceses=VALUE       Log the sessions: none, all
       --trap-faults=VALUE    Trap faults: on, off, yes, no, true, false, 1, 0
                              (default: true)
+  -F, --fail                 Shortcut for --trap-faults=no
   -t, --threads-max=VALUE    Maximum count of parallel threads held [default 5]
                             
   -u, --uploaddir=DIRECTORY  Directory for uploading files [default: workdir]

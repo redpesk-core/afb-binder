@@ -408,6 +408,9 @@ By default, the logging level is set as if the option
 	to try to recover.
 	But it could be difficult to debug and recover is sometimes hazardous.
 
+*-F, --fail*
+	Shortcut for *--trap-faults=no*
+
 
 ## Usage and help
 

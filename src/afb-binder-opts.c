@@ -106,6 +106,7 @@
 #define SET_COLOR          'c'
 #define SET_DAEMON         'D'
 #define SET_EXEC           'e'
+#define SET_NO_TRAP_FAULTS 'F'
 #define GET_HELP           'h'
 #define ADD_INTERFACE      'i'
 #define SET_JOB_MAX        'j'
@@ -220,6 +221,7 @@ static const struct argp_option optdefs[] = {
 	{ .name="output",      .key=SET_OUTPUT,          .arg="FILENAME", .doc="Redirect stdout and stderr to output file (when --daemon)" },
 
 	{ .name="trap-faults", .key=SET_TRAP_FAULTS,     .arg="VALUE", .doc="Trap faults: on, off, yes, no, true, false, 1, 0 (default: true)" },
+	{ .name="fail",        .key=SET_NO_TRAP_FAULTS,  .arg=0,       .doc="Shortcut for --trap-faults=no" },
 
 	{ .name="jobs-max",    .key=SET_JOB_MAX,         .arg="VALUE", .doc="Maximum count of jobs that can be queued  [default " d2s(DEFAULT_JOBS_MAX) "]" },
 	{ .name="threads-max", .key=SET_THR_MAX,         .arg="VALUE", .doc="Maximum count of parallel threads held [default " d2s(DEFAULT_THREADS_MAX) "]" },
@@ -920,6 +922,9 @@ static error_t parsecb_initial(int key, char *value, struct argp_state *state)
 	case SET_TRAP_FAULTS:
 		config_set_bool(config, key, get_arg_bool(key, value));
 		break;
+	case SET_NO_TRAP_FAULTS:
+		config_set_bool(config, SET_TRAP_FAULTS, 0);
+		break;
 
 #if WITH_AFB_HOOK
 	case SET_TRACEREQ:
@@ -1013,6 +1018,7 @@ static error_t parsecb_final(int key, char *value, struct argp_state *state)
 	case SET_TRACEGLOB:
 #endif
 	case SET_TRAP_FAULTS:
+	case SET_NO_TRAP_FAULTS:
 	case SET_CONFIG:
 	case SET_ROOT_DIR:
 	case SET_WORK_DIR:
