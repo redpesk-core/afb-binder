@@ -620,7 +620,7 @@ API can be exported using option *--ws-server* and imported using option *--ws-c
 allowing a service running on a binder instance (client) to consume the API provided by
 an other binder (server).
 
-Starting with binder version 5.0.0 and above, API can also be exported with option *--ws-server*
+Starting with binder version 5.0.0 and above, API can also be exported with option *--rpc-server*
 and imported using the corresponding option *--rpc-client*. That new option use a protocol
 compatible with API v4 format and able to transmit binary data and types of data.
 
