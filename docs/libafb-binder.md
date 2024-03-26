@@ -132,7 +132,12 @@ This is a JSON example of main configuration object.
     },
     "thread-pool": 1,
     "thread-max": 1,
-    "trapfaults": true
+    "trapfaults": true,
+    "set": {
+        "apiname": {
+            "key": "value"
+        }
+    }
 }
 ```
 
@@ -160,6 +165,7 @@ Here is the description of the configuration fields:
                      do not extend thread pool. When needed they are pushed on waiting queue.
 - **thread-max**:    autoclean thread pool when bigger than max (may temporaly get bigger), (integer, default is 1)
 - **trapfaults**:    prevent handling faults when debugging (boolean, default is false)
+- **set**:           object for setting configurations per API
 
 ## Binding configuration object
 

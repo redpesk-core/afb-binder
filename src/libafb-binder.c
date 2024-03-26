@@ -137,6 +137,9 @@ typedef struct {
     /** path for loading */
     json_object* ldpathJ;
 
+    /** settings for APIs */
+    json_object* settingsJ;
+
     /** maximum count of threads on hold */
     int poolThreadMax;
 
@@ -1470,7 +1473,7 @@ static int BinderParseConfig (json_object *configJ, AfbBinderConfigT *config) {
     // allocate config and set defaults
     memcpy (config, &binderConfigDflt, sizeof(AfbBinderConfigT));
 
-    err= rp_jsonc_unpack (configJ, "{ss s?s s?i s?i s?b s?i s?s s?s s?s s?s s?s s?o s?o s?o s?o s?o s?i s?i s?b s?o !}"
+    err= rp_jsonc_unpack (configJ, "{ss s?s s?i s?i s?b s?i s?s s?s s?s s?s s?s s?o s?o s?o s?o s?o s?i s?i s?b s?o s?o !}"
         , "uid",         &config->uid            /* string */
         , "info",        &config->info           /* string */
         , "verbose",     &config->verbose        /* integer */
@@ -1490,6 +1493,7 @@ static int BinderParseConfig (json_object *configJ, AfbBinderConfigT *config) {
         , "thread-pool", &config->poolThreadSize /* integer */
         , "thread-max" , &config->poolThreadMax  /* integer */
         , "trapfaults",  &config->trapfaults     /* boolean */
+        , "set",         &config->settingsJ      /* object: settings */
         , "onerror",     &ignoredJ               /* object: legacy, ignored */
         );
     if (err) goto OnErrorExit;
@@ -1537,6 +1541,9 @@ const char* AfbBinderConfig (json_object *configJ, AfbBinderHandleT **handle, vo
 
     // set binder global verbosity
     afb_verbose_set(verbosity_to_mask(binder->config.verbose));
+
+    // record global settings
+    afb_api_common_set_config(binder->config.settingsJ);
 
     // create the apisets: private, protected and public
     binder->privateApis = afb_apiset_create("main", binder->config.timeout);
