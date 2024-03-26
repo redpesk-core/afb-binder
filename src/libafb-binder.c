@@ -1487,7 +1487,7 @@ static int BinderParseConfig (json_object *configJ, AfbBinderConfigT *config) {
         , "https-key",   &config->httpd.key      /* string */
         , "alias",       &config->httpd.aliasJ   /* object: string or array of string */
         , "intf",        &config->httpd.intfJ    /* object: string or array of string */
-        , "extentions",  &config->extendJ        /* object: dictionnary */
+        , "extensions",  &config->extendJ        /* object: dictionnary */
         , "ldpath",      &config->ldpathJ        /* object: string or array of string */
         , "acls",        &aclsJ                  /* object: dictionnary */
         , "thread-pool", &config->poolThreadSize /* integer */

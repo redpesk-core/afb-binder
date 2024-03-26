@@ -158,14 +158,15 @@ Here is the description of the configuration fields:
 - **https-key**:     path to TLS's X509 private key (string or null, default is null for no TLS)
 - **alias**:         list of HTTP prefix for paths (string or array of string of structure "prefix:path")
 - **intf**:          listening HTTP interface (string or array of strings)
-- **extentions**,    configuration of extentions (object)
+- **extensions**,    configuration of extensions (object)
 - **ldpath**:        global list of directory for searching bindings (string or array of strings)
 - **acls**:          dictionary of access control (object, see [access control](#acls))
 - **thread-pool**:   initial thread pool size (integer, default is 0). Note than standard operations: verb,event,timer,...
                      do not extend thread pool. When needed they are pushed on waiting queue.
-- **thread-max**:    autoclean thread pool when bigger than max (may temporaly get bigger), (integer, default is 1)
+- **thread-max**:    autoclean thread pool when bigger than max (may temporary get bigger), (integer, default is 1)
 - **trapfaults**:    prevent handling faults when debugging (boolean, default is false)
 - **set**:           object for setting configurations per API
+
 
 ## Binding configuration object
 
