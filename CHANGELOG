@@ -2,7 +2,11 @@ Version 5.1.4
 -------------
 
 - Change to workdir before loading extensions
-- new option --fail (or -F), synonym of --trap-faults=no
+- New option --fail (or -F), synonym of --trap-faults=no
+- Add configuration "set" in libafb-binder for setting
+  configurations per API
+- In libafb-binder, change spelling of option "extention"
+  to "extension"
 
 Version 5.1.3
 -------------
