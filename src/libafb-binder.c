@@ -24,7 +24,6 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <fcntl.h>
-#include <linux/limits.h>
 
 #include <rp-utils/rp-jsonc.h>
 #include <rp-utils/rp-file.h>

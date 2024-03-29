@@ -32,7 +32,6 @@
 #include <unistd.h>
 #include <limits.h>
 #include <fcntl.h>
-#include <argp.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
 
