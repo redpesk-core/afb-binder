@@ -1636,14 +1636,18 @@ const char* AfbBinderConfig (json_object *configJ, AfbBinderHandleT **handle, vo
         }
         afb_hook_create_global(traceFlags, NULL, NULL);
     }
-
     /* load the extensions if existing */
     if (binder->config.extendJ) {
+#if WITH_EXTENSION
         status = afb_extend_config(binder->config.extendJ);
         if (status < 0) {
             errorMsg= "Extension config failed";
             goto OnErrorExit;
         }
+#else
+        errorMsg= "Extension are not supported";
+        goto OnErrorExit;
+#endif
     }
 
     /* set the root directory */

@@ -1125,6 +1125,7 @@ static error_t parsecb_final(int key, char *value, struct argp_state *state)
 	return 0;
 }
 
+#if WITH_EXTENSION
 static error_t parsecb_extension(int key, char *value, struct argp_state *state)
 {
 	struct children_data *data = state->input;
@@ -1158,6 +1159,7 @@ static error_t parsecb_extension(int key, char *value, struct argp_state *state)
 	
 
 }
+#endif
 
 int afb_binder_opts_parse_initial(int argc, char **argv, struct json_object **config)
 {
@@ -1184,15 +1186,16 @@ int afb_binder_opts_parse_final(int argc, char **argv, struct json_object **conf
 {
 	struct argp argp;
 	int flags;
-	int next, iext, rc;
-	const struct argp_option **options;
-	const char **names;
-	struct argp_child *children;
-	struct argp *children_argp;
-	struct children_data *children_data;
-	struct json_object *root, *obj;
+	int rc;
+	struct argp_child *children = NULL;
+	struct argp *children_argp = NULL;
+	struct children_data *children_data = NULL;
 	struct final_data data;
-
+#if WITH_EXTENSION
+	struct json_object *root, *obj;
+	const char **names;
+	const struct argp_option **options;
+	int next, iext;
 	next = afb_extend_get_options(&options, &names);
 	if (next < 0) {
 		LIBAFB_ERROR("Can't get options of extensions");
@@ -1236,6 +1239,7 @@ int afb_binder_opts_parse_final(int argc, char **argv, struct json_object **conf
 	data.children_data = children_data;
 	data.nchildren = next;
 	data.dodump = 0;
+#endif
 
 	argp.options = optdefs;
 	argp.parser = parsecb_final;
@@ -1263,8 +1267,10 @@ int afb_binder_opts_parse_final(int argc, char **argv, struct json_object **conf
 		exit(0);
 	}
 
+#if WITH_EXTENSION
 	for (iext = 0 ; iext < next ; iext++)
 		free((char**)children[iext].header);
+#endif
 	free(children);
 	free(children_argp);
 	free(children_data);

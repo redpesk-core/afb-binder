@@ -33,7 +33,10 @@
 #define WELL_KNOWN_DIR         "@REAL_WELL_KNOWN_DIR@"
 #define SYS_CONFIG_DIR         "@CONFDIR@"
 
+#if WITH_EXTENSION /* from libafb */
+#undef WITH_EXTENSION
 #cmakedefine01 WITH_EXTENSION
+#endif
 
 #if WITH_LIBMICROHTTPD
 #cmakedefine01 WITH_MONITORING

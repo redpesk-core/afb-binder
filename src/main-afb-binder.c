@@ -273,7 +273,9 @@ static void exit_handler(int code, void *arg)
 	sigaction(SIGCHLD, &siga, NULL);
 
 	if (afb_binder_main_apiset) {
+#if WITH_EXTENSION
 		afb_extend_exit(afb_binder_main_apiset);
+#endif
 		afb_apiset_exit_all_services(afb_binder_main_apiset, code);
 	}
 
