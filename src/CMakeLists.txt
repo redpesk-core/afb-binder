@@ -72,6 +72,17 @@ target_link_libraries(afb-binder
 	${librp-utils_LDFLAGS}
 )
 
+find_library (fts fts)
+if(fts)
+	target_link_libraries(afb-binder ${fts})
+	target_link_libraries(libafb-binder ${fts})
+endif()
+find_library (argp argp)
+if(argp)
+	target_link_libraries(afb-binder ${argp})
+	target_link_libraries(libafb-binder ${argp})
+endif()
+
 # install
 
 install(TARGETS afb-binder
