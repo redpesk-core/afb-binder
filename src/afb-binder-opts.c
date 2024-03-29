@@ -1201,16 +1201,17 @@ int afb_binder_opts_parse_final(int argc, char **argv, struct json_object **conf
 {
 	struct argp argp;
 	int flags;
-	int rc;
+	int rc, next = 0;
 	struct argp_child *children = NULL;
 	struct argp *children_argp = NULL;
 	struct children_data *children_data = NULL;
 	struct final_data data;
+
 #if WITH_EXTENSION
 	struct json_object *root, *obj;
 	const char **names;
 	const struct argp_option **options;
-	int next, iext;
+	int iext;
 	next = afb_extend_get_options(&options, &names);
 	if (next < 0) {
 		LIBAFB_ERROR("Can't get options of extensions");
@@ -1250,11 +1251,11 @@ int afb_binder_opts_parse_final(int argc, char **argv, struct json_object **conf
 		}
 	}
 
+#endif
 	data.config = *config;
 	data.children_data = children_data;
 	data.nchildren = next;
 	data.dodump = 0;
-#endif
 
 	argp.options = optdefs;
 	argp.parser = parsecb_final;
