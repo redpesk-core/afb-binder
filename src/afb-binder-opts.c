@@ -514,6 +514,7 @@ static void config_mix2_str(struct json_object *config, int optid, const char *v
 	const char *api, *key;
 	struct json_object *obj, *sub;
 	enum json_tokener_error jerr;
+	char *tmp;
 
 	st1 = strcspn(val, "/:{[\"");
 	st2 = strcspn(&val[st1], ":{[\"");
@@ -522,9 +523,23 @@ static void config_mix2_str(struct json_object *config, int optid, const char *v
 		if (jerr != json_tokener_success)
 			obj = json_object_new_string(val);
 	} else {
-		api = st1 == 0 ? "*" : strndupa(val, st1);
+		if (st1 == 0)
+			api = "*";
+		else {
+			tmp = alloca(st1 + 1);
+			memcpy(tmp, val, st1);
+			tmp[st1] = 0;
+			api = tmp;
+		}
 		val += st1 + 1;
-		key = st2 <= 1 || (st2 == 2 && *val == '*') ? NULL : strndupa(val, st2 - 1);
+		if (st2 <= 1 || (st2 == 2 && *val == '*'))
+			key = NULL;
+		else {
+			tmp = alloca(st2);
+			memcpy(tmp, val, st2 - 1);
+			tmp[st2 - 1] = 0;
+			key = tmp;
+		}
 		val += st2;
 		sub = json_tokener_parse_verbose(val, &jerr);
 		if (jerr != json_tokener_success)

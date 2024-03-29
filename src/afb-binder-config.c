@@ -379,7 +379,9 @@ static int get_var(void *closure, const char *name, size_t len, rp_expand_vars_r
 
 	/* this loop searches a neighbor key in parents */
 	if (len > 1 && name[0] == '@') {
-		key = strndupa(&name[1], len - 1);
+		key = alloca(len);
+		memcpy(key, &name[1], len - 1);
+		key[len - 1] = 0;
 		expand_path = expref->expand_path;
 		idx = rp_jsonc_expand_path_length(expand_path);
 		while (result == NULL && idx > 0) {
