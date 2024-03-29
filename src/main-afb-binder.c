@@ -298,6 +298,13 @@ static void on_sighup(int signum, siginfo_t *info, void *uctx)
 	/* TODO */
 }
 
+#if !_DEFAULT_SOURCE /* no on_exit function */
+static void atexit_handler()
+{
+	exit_handler(0, NULL);
+}
+#endif
+
 /**
  * Set the handlers
  */
@@ -319,8 +326,12 @@ static void setup_handlers()
 	siga.sa_sigaction = on_sighup;
 	sigaction(SIGHUP, &siga, NULL);
 
-	/* handle groups */
+	/* handle exiting */
+#if _DEFAULT_SOURCE
 	on_exit(exit_handler, NULL);
+#else
+	atexit(atexit_handler);
+#endif
 }
 
 /*----------------------------------------------------------
