@@ -60,6 +60,10 @@ to client sessions indexed using a unique session identifier.
 
 	Example: --call 'monitor/set:{"verbosity":{"api":"debug"}}'
 
+*--cntxtimeout* _TIMEOUT_
+	Client Session Context Timeout in seconds
+	\[default 32000000 (means 370 days)]
+
 *-D, --daemon*
 	Turn to run in background mode (synonym of *--background*)
 
@@ -94,9 +98,15 @@ to client sessions indexed using a unique session identifier.
 	Redirect stdout and stderr to output file of path _FILENAME_
 	(useful when *--daemon*).
 
+*-T, --threads-init* _VALUE_
+	Number of threads to start at the beginning.
+
 *-t, --threads-max* _VALUE_
 	Maximum count of parallel threads held on.
 	Value must be a positive integer.
+
+*-u, --uuid* _UUID_
+	Set the session UUID of the binder, random by default.
 
 
 ## Directories
@@ -106,19 +116,6 @@ to client sessions indexed using a unique session identifier.
 	If the path is relative, it is given relative to the workdir
 	as set by option *--workdir*.
 	The default value is to use the workdir (same as *--rootdir=.*)
-
-*--roothttp* _DIRECTORY_
-	Root directory for serving files through HTTP.
-	If the path is relative, it is given relative to the workdir
-	as set by option *--workdir*.
-	*If not set*, the default is to not serve files through HTTP
-	but to serve API through websocket connections.
-
-*-u, --uploaddir* _DIRECTORY_
-	Directory for uploading files through HTTP POST methods.
-	If the path is relative, it is given relative to the workdir
-	as set by option *--workdir*.
-	The default value is to use the workdir (same as *--uploaddir=.*)
 
 *-w, --workdir* _DIRECTORY_
 	Set the working directory.
@@ -145,10 +142,6 @@ to client sessions indexed using a unique session identifier.
 *--cache-eol* _TIMEOUT_
 	Client cache end of live in seconds
 	\[default 100000 (means 27 hours)]
-
-*--cntxtimeout* _TIMEOUT_
-	Client Session Context Timeout in seconds
-	\[default 32000000 (means 370 days)]
 
 *--https*
 	Activates HTTPS
@@ -190,6 +183,19 @@ to client sessions indexed using a unique session identifier.
 	The effect is that HTTP requests to URL of path */PREF/subpath*
 	are redirected to */PREF/#!subpath* if it can not be satisfied
 	normally.
+
+*--roothttp* _DIRECTORY_
+	Root directory for serving files through HTTP.
+	If the path is relative, it is given relative to the workdir
+	as set by option *--workdir*.
+	*If not set*, the default is to not serve files through HTTP
+	but to serve API through websocket connections.
+
+*-u, --uploaddir* _DIRECTORY_
+	Directory for uploading files through HTTP POST methods.
+	If the path is relative, it is given relative to the workdir
+	as set by option *--workdir*.
+	The default value is to use the workdir (same as *--uploaddir=.*)
 
 
 ## Bindings and APIs
