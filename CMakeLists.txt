@@ -25,7 +25,7 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.10)
 
 project(afb-binder
-	VERSION 5.1.4
+	VERSION 5.1.5
 	DESCRIPTION "Secured binder of API for clients of the Application framework"
 	HOMEPAGE_URL "https://github.com/redpesk-core/afb-binder"
 	LANGUAGES C)
