@@ -3,6 +3,7 @@ Version 5.1.5
 
 - Adaptation to musl libc
 - Update of manual
+- remove use of rp-jsonc-locator
 
 Version 5.1.4
 -------------

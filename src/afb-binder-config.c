@@ -38,7 +38,6 @@
 #include <rp-utils/rp-jsonc.h>
 #include <rp-utils/rp-expand-vars.h>
 #include <rp-utils/rp-jsonc-expand.h>
-#include <rp-utils/rp-jsonc-locator.h>
 #include <rp-utils/rp-jsonc-path.h>
 #include <rp-utils/rp-path-search.h>
 #include <rp-utils/rp-yaml.h>
@@ -103,9 +102,7 @@ struct expref
 static void error_at_object(struct json_object *object, rp_jsonc_expand_path_t expand_path, const char *format, ...)
 {
 	char *jpath;
-	const char *file;
 	char *msg;
-	unsigned line;
 	va_list ap;
 
 	/* string for the message */
@@ -114,11 +111,10 @@ static void error_at_object(struct json_object *object, rp_jsonc_expand_path_t e
 	va_end(ap);
 
 	/* locating object */
-	file = rp_jsonc_locator_locate(object, &line);
-	jpath = expand_path ? rp_jsonc_path(rp_jsonc_expand_path_get(expand_path, 0), object) : NULL;
+	jpath = expand_path ? rp_jsonc_path(rp_jsonc_expand_path_get(expand_path, 0), object) : "?";
 
 	/* emit the error */
-	LIBAFB_ERROR("%s (file %s line %u json-path %s", msg, file, line, jpath);
+	LIBAFB_ERROR("%s (json-path %s)", msg, jpath);
 	free(jpath);
 	free(msg);
 }
@@ -423,10 +419,8 @@ static struct json_object *expand_string(void *closure, struct json_object* obje
 		obj = json_object_new_string(subst);
 		if (obj == NULL)
 			expref->error_code = -ENOMEM;
-		else {
-			rp_jsonc_locator_copy(object, obj);
+		else
 			object = obj;
-		}
 	}
 	return object;
 }
@@ -467,13 +461,8 @@ static int is_json_filename(const char *filename)
 
 static int read_json_file(struct json_object **obj, const char *filename)
 {
-#if 0
 	*obj = json_object_from_file(filename);
 	return *obj ? 0 : -1;
-#else
-	/* use the locator to keep track of the lines and of the file */
-	return rp_jsonc_locator_from_file(obj, filename);
-#endif
 }
 
 static int read_yaml_file(struct json_object **obj, const char *filename)
