@@ -972,7 +972,11 @@ static void startup_call_current(struct startup_req *sreq)
 
 			rc = afb_data_create_raw(&arg0, &afb_type_predefined_json, json + 1, strlen(json), 0, 0);
 			if (sreq->api && sreq->verb && rc >= 0) {
+#if LIBAFB_BEFORE_VERSION(5,2,0)
 				afb_req_common_init(&sreq->comreq, &startup_req_common_itf, sreq->api, sreq->verb, 1, &arg0);
+#else
+				afb_req_common_init(&sreq->comreq, &startup_req_common_itf, sreq->api, sreq->verb, 1, &arg0, NULL);
+#endif
 				afb_req_common_set_session(&sreq->comreq, sreq->session);
 				sreq->comreq.validated = 1;
 				afb_req_common_process(&sreq->comreq, afb_binder_main_apiset);
