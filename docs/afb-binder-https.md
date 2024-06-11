@@ -28,7 +28,7 @@ Having the certificate and the key, the command to run the binder is:
 afb-binder --https --https-key key.pem --https-cert cert.pem
 ```
 
-You can connect to that binder with a browerser at **https://localhost:1234/**.
+You can connect to that binder with a browser at **https://localhost:1234/**.
 
 Because the certificate is self signed, your browser will
 complain and emit warnings.

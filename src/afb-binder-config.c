@@ -410,17 +410,71 @@ static int get_var(void *closure, const char *name, size_t len, rp_expand_vars_r
 static struct json_object *expand_string(void *closure, struct json_object* object, rp_jsonc_expand_path_t expand_path)
 {
 	struct expref *expref = closure;
-	struct json_object* obj;
 	char *subst;
 	
 	expref->expand_path = expand_path;
 	subst = rp_expand_vars_function(json_object_get_string(object), 0, get_var, expref);
 	if (subst) {
-		obj = json_object_new_string(subst);
-		if (obj == NULL)
-			expref->error_code = -ENOMEM;
-		else
+		struct json_object *obj = NULL;
+		double dval;
+		long lval;
+		char *end, *beg;
+
+		/* try if true */
+		if (strcasecmp(subst, "true") == 0)
+			obj = json_object_new_boolean(1);
+		/* try if false */
+		if (obj == NULL && strcasecmp(subst, "false") == 0)
+			obj = json_object_new_boolean(0);
+		/* try if integer */
+		if (obj == NULL) {
+			errno = 0;
+			lval = strtol(subst, &end, 10);
+			if (*end == 0 && end != subst && errno == 0 && lval <= INT32_MAX && lval >= INT32_MIN)
+				obj = json_object_new_int((int32_t)lval);
+		}
+		/* try if hexa integer */
+		if (obj == NULL && subst[0] == '0' && (subst[1] | 32) == 'x') {
+			errno = 0;
+			beg = &subst[2];
+			lval = strtol(beg, &end, 16);
+			if (*end == 0 && end != beg && errno == 0 && lval <= INT32_MAX && lval >= INT32_MIN)
+				obj = json_object_new_int((int32_t)lval);
+		}
+		/* try if binary integer */
+		if (obj == NULL && subst[0] == '0' && (subst[1] | 32) == 'b') {
+			errno = 0;
+			beg = &subst[2];
+			lval = strtol(beg, &end, 2);
+			if (*end == 0 && end != beg && errno == 0 && lval <= INT32_MAX && lval >= INT32_MIN)
+				obj = json_object_new_int((int32_t)lval);
+		}
+		/* try if octal integer */
+		if (obj == NULL && subst[0] == '0') {
+			errno = 0;
+			beg = &subst[1 + ((subst[1] | 32) == 'o')];
+			lval = strtol(beg, &end, 8);
+			if (*end == 0 && end != beg && errno == 0 && lval <= INT32_MAX && lval >= INT32_MIN)
+				obj = json_object_new_int((int32_t)lval);
+		}
+		/* try if floating point */
+		if (obj == NULL) {
+			errno = 0;
+			dval = strtod(subst, &end);
+			if (*end == 0 && end != subst && errno == 0)
+				obj = json_object_new_double_s(dval, subst);
+		}
+		/* if done */
+		if (obj != NULL && strcmp(subst, "null") == 0)
 			object = obj;
+		else {
+			/* else default to string */
+			obj = json_object_new_string(subst);
+			if (obj == NULL)
+				expref->error_code = -ENOMEM;
+			else
+				object = obj;
+		}
 	}
 	return object;
 }
