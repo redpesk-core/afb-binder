@@ -81,7 +81,9 @@ add_compile_options(-g -O2)
 set (CMAKE_CXX_STANDARD 14)
 
 set(CMAKE_C_FLAGS_PROFILING    "-g -O2 -pg -U_FORTIFY_SOURCE")
-set(CMAKE_C_FLAGS_DEBUG        "-g -O2 -ggdb -U_FORTIFY_SOURCE")
+#set(CMAKE_C_FLAGS_DEBUG        "-g -O1 -ggdb -U_FORTIFY_SOURCE -fsanitize=address -fno-omit-frame-pointer")
+#set(CMAKE_C_FLAGS_DEBUG        "-g -O1 -ggdb -U_FORTIFY_SOURCE -fsanitize=thread -fno-omit-frame-pointer")
+set(CMAKE_C_FLAGS_DEBUG        "-g -O1 -ggdb -U_FORTIFY_SOURCE")
 set(CMAKE_C_FLAGS_RELEASE      "-g -O3")
 set(CMAKE_C_FLAGS_COVERAGE     "-g -O2 --coverage")
 
