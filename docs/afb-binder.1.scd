@@ -277,6 +277,10 @@ to client sessions indexed using a unique session identifier.
 
 	See discussion on WS/RPC-API.
 
+*--ws-maxlen* _LENGTH_
+	Set the maximum length of a websocket packet
+
+
 *--rpc-client* _SOCKSPEC_
 	Bind an external API through RPCAPI connection.
 

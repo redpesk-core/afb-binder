@@ -1085,7 +1085,7 @@ static void start(int signum, void *arg)
 	unsigned flags;
 #endif
 	const char *uuid = NULL;
-	struct json_object *settings = NULL;
+	struct json_object *settings = NULL, *tmpobj;
 	int max_session_count, session_timeout, api_timeout;
 	int rc;
 
@@ -1131,6 +1131,21 @@ static void start(int signum, void *arg)
 		exit(EXIT_FAILURE);
 	}
 #endif
+
+	/* initialize max websocket length */
+	if (json_object_object_get_ex(afb_binder_main_config, "ws-maxlen", &tmpobj)) {
+		ssize_t val = -1;
+		if (json_object_is_type(tmpobj, json_type_int))
+			val = (ssize_t)json_object_get_int64(tmpobj);
+		if (val < 0) {
+			LIBAFB_ERROR("invalid value for option --ws-maxlen");
+			goto error;
+		}
+		else if (val <= WEBSOCKET_DEFAULT_MAXLENGTH)
+			LIBAFB_NOTICE("value %lld of option ws-maxlen lesser than default %lld is ignored", (long long)val, (long long)WEBSOCKET_DEFAULT_MAXLENGTH);
+		else
+			websock_set_default_max_length((size_t)val);
+	}
 
 	/* initialize session handling */
 	if (afb_session_init(max_session_count, session_timeout)) {

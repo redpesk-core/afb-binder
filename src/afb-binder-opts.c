@@ -48,6 +48,7 @@
 #include "afb-binder-utils.h"
 #include <libafb/extend/afb-extend.h>
 #include <libafb/misc/afb-verbose.h>
+#include <libafb/afb-utils.h>
 
 #define _d2s_(x)  #x
 #define d2s(x)    _d2s_(x)
@@ -98,9 +99,11 @@
 #define ADD_RPC_CLIENT      27
 #define ADD_RPC_SERVICE     28
 
+#define SET_WSMAXLEN        29
+
 #define ADD_AUTO_API       'A'
 #if WITH_DYNAMIC_BINDING
-#define ADD_BINDING        'b'
+# define ADD_BINDING       'b'
 #endif
 #define SET_CONFIG         'C'
 #define SET_COLOR          'c'
@@ -112,7 +115,7 @@
 #define SET_JOB_MAX        'j'
 #define SET_LOG            'l'
 #if WITH_MONITORING
-#define SET_MONITORING     'M'
+# define SET_MONITORING    'M'
 #endif
 #define SET_NAME           'n'
 #define SET_OUTPUT         'o'
@@ -122,7 +125,7 @@
 #define SET_THR_MAX        't'
 #define SET_THR_INIT       'T'
 #if WITH_LIBMICROHTTPD
-#define SET_UPLOAD_DIR     'u'
+# define SET_UPLOAD_DIR    'u'
 #endif
 #define SET_UUID           'U'
 #define GET_VERSION        'V'
@@ -189,6 +192,7 @@ static const struct argp_option optdefs[] = {
 
 	{ .name="ws-client",   .key=ADD_WS_CLIENT,       .arg="SOCKSPEC", .doc="Bind to an afb service through websocket" },
 	{ .name="ws-server",   .key=ADD_WS_SERVICE,      .arg="SOCKSPEC", .doc="Provide an afb service through websockets" },
+	{ .name="ws-maxlen",   .key=SET_WSMAXLEN,        .arg="LENGTH",   .doc="set max length of websockets [default " d2s(WEBSOCKET_DEFAULT_MAXLENGTH) "]" },
 
 	{ .name="rpc-client",   .key=ADD_RPC_CLIENT,     .arg="SOCKSPEC", .doc="Bind to an afb service through websocket" },
 	{ .name="rpc-server",   .key=ADD_RPC_SERVICE,    .arg="SOCKSPEC", .doc="Provide an afb service through websockets" },
