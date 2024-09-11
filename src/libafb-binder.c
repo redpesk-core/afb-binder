@@ -1639,6 +1639,11 @@ const char* AfbBinderConfig (json_object *configJ, AfbBinderHandleT **handle, vo
     /* load the extensions if existing */
     if (binder->config.extendJ) {
 #if WITH_EXTENSION
+	status = afb_extend_load_set_of_extensions(binder->config.extendJ);
+        if (status < 0) {
+            errorMsg= "Loading extension failed";
+            goto OnErrorExit;
+        }
         status = afb_extend_configure(binder->config.extendJ);
         if (status < 0) {
             errorMsg= "Extension config failed";
@@ -1760,6 +1765,22 @@ void BinderStartCb (int signum, void *context) {
         goto OnErrorExit;
     }
 
+#if WITH_EXTENSION
+    /* declare extensions */
+    status = afb_extend_declare(binder->privateApis, binder->privateApis);
+    if (status < 0) {
+        errorMsg = "Extension declare failed";
+        goto OnErrorExit;
+    }
+#if WITH_LIBMICROHTTPD
+    status = afb_extend_http(binder->hsrv);
+    if (status < 0) {
+        errorMsg = "Extension HTTP failed";
+        goto OnErrorExit;
+    }
+#endif
+#endif
+
     // resolve dependencies and start binding services
     status= afb_apiset_start_all_services (binder->privateApis);
     if (status) {
@@ -1767,6 +1788,16 @@ void BinderStartCb (int signum, void *context) {
         goto OnErrorExit;
     }
 
+#if WITH_EXTENSION
+    /* declare extensions */
+    status = afb_extend_serve(binder->privateApis);
+    if (status < 0) {
+        errorMsg = "Extension serve failed";
+        goto OnErrorExit;
+    }
+#endif
+
+#if WITH_LIBMICROHTTPD
     /* start HTTP server and its interfaces */
     if (binder->config.httpd.port) {
         char *key = NULL, *cert = NULL;
@@ -1801,6 +1832,8 @@ void BinderStartCb (int signum, void *context) {
             goto OnErrorExit;
         }
     }
+#endif
+
     // start user startup function
     if (init->callback) {
         status= init->callback (init->config, init->context);
@@ -1854,6 +1887,9 @@ int AfbBinderEnter (AfbBinderHandleT *binder, void *config, AfbStartupCb callbac
 
 // Force mainloop exit
 void AfbBinderExit(AfbBinderHandleT *binder, int exitcode) {
+#if WITH_EXTENSION
+    afb_extend_exit(binder->privateApis);
+#endif
     afb_sched_exit (1, NULL /*callback*/, NULL/*context*/, exitcode);
 }
 
