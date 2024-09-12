@@ -654,6 +654,22 @@ unix socket:
 - on server: *--ws-server=unix:@foo*
 - on client: *--ws-client=unix:@foo?as-api=bar*
 
+Since libafb 5.3.0, a prefix *tls+* can be added at the front of TCP _SOCKSPEC_
+to enable mTLS encryption (currently only available for RPC connections). This
+requires the addition of two query parameters:
+
+- *key*, path to a private key file in PEM format
+- *cert*, path to a certificate file matching the private key, also in PEM format
+
+A *trust* parameter is also available. If present, it should be the path to a
+directory containing trusted certificates which will be used when validating
+peers' certificates. If absent, the system trust directory will be used.
+
+Example of connecting the API *foo* over TLS using a custom trust directory:
+
+- on server: *--rpc-server="tls+tcp:localhost:1235/foo?cert=./srv_cert.pem&key=./srv_key.pem&trust=./mytrustdir/"*
+- on client: *--rpc-client="tls+tcp:localhost:1235/foo?cert=./cli_cert.pem&key=./cli_key.pem&trust=./mytrustdir/"*
+
 Since afb-binder 5.0.3, _SOCKSPEC_ of client options can be prefixed with an
 exportation specification. See discussion on EXPORT.
 
