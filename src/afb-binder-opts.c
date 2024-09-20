@@ -1083,6 +1083,7 @@ static error_t parsecb_final(int key, char *value, struct argp_state *state)
 	case SET_THR_MAX:
 	case SET_THR_INIT:
 	case SET_SESSIONMAX:
+	case SET_WSMAXLEN:
 		config_set_optint(config, key, value, 1, INT_MAX);
 		break;
 
