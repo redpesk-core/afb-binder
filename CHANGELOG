@@ -1,7 +1,8 @@
-Version next
-------------
+Version 5.1.7
+-------------
 
 - Implement support of extensions in libafb-binder
+- Fix of option --ws-maxlen
 
 Version 5.1.6
 -------------
