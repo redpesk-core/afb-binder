@@ -29,7 +29,7 @@ configure_file(
 	${CMAKE_CURRENT_BINARY_DIR}/binder-settings.h
 	@ONLY)
 
-CONFIGURE_FILE(
+configure_file(
 	${CMAKE_CURRENT_SOURCE_DIR}/libafb-binder.pc.in
 	${CMAKE_CURRENT_BINARY_DIR}/libafb-binder.pc
 	@ONLY)

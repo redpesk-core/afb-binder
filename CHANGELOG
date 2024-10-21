@@ -1,3 +1,9 @@
+Version 5.1.8
+-------------
+
+ - Use splitted librp-utils:
+   librp-utils-file, librp-utils-json-c, librp-utils-yaml
+
 Version 5.1.7
 -------------
 
