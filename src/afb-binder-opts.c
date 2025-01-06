@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2024 IoT.bzh Company
+ * Copyright (C) 2015-2025 IoT.bzh Company
  * Author: José Bollo <jose.bollo@iot.bzh>
  *
  * $RP_BEGIN_LICENSE$
@@ -315,7 +315,7 @@ static const char version[] =
 	"-V3"
 	"-V4"
 #endif
-	"]\nCopyright (C) 2015-2024 IoT.bzh Company\n"
+	"]\nCopyright (C) 2015-2025 IoT.bzh Company\n"
 ;
 
 static const char docstring[] =
