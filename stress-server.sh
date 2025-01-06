@@ -5,7 +5,7 @@ cd ${ROOT:-.}
 ROOT=$(pwd)
 echo ROOT=$ROOT
 
-AFB=afb-binder
+AFB=$(type -p afb-binder)
 HELLO=~/redpesk/redpesk-core/afb-binding/tutorials/v4/hello4.so
 PORT=12345
 TEST=test
@@ -18,7 +18,7 @@ ws=false
 rpc=false
 blind=false
 traps=false
-eval set -- $(getopt -o wgsvbmct -l ws,gdb,strace,valgrind,blind,memcheck,callgrind,traps -- "$@") || exit
+eval set -- $(getopt -o wrgsvbmct -l ws,rpc,gdb,strace,valgrind,blind,memcheck,callgrind,traps -- "$@") || exit
 while true
 do
 	case "$1" in
@@ -52,6 +52,7 @@ OPTHTTP="--port=$PORT --roothttp=$TEST"
 OPTHELLO="--binding=$HELLO"
 OPTFRONT="$OPTGLOB --port=$PORT --roothttp=$TEST"
 OPTBACK="$OPTGLOB -q --no-httpd $OPTHELLO"
+
 
 
 if $rpc; then
