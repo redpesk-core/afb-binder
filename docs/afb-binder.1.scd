@@ -358,13 +358,20 @@ By default, the logging level is set as if the option
 
 	Tune the log level mask. The levels are:
 
-		- error
-		- warning
-		- notice
-		- info
-		- debug
+	- error
+	- warning
+	- notice
+	- info
+	- debug
 
-	The level can be set using + or -.
+	The level can be set using prefixes:
+
+	- + for adding
+	- - for removing
+	- @ for setting until
+
+	When no prefix is given at first, all is removed before
+	adding log levels as if + where specified.
 
 [[ *Examples*
 :[ *Description*
@@ -375,7 +382,9 @@ By default, the logging level is set as if the option
 |  -warning
 :  remove the level warning from the current verbosity
 |  +warning-debug,info
-:  Adds error and remove errors and warnings
+:  Adds warning and removes debug and info
+|  @warning
+:  Adds error, warning, notice, info, debug
 
 
 *-q, --quiet*
