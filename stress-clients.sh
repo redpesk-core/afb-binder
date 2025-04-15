@@ -1,5 +1,9 @@
 #!/bin/bash
 
+#export LD_PRELOAD=/lib/x86_64-linux-gnu/libasan.so.8
+#export ASAN_OPTIONS=
+#export AFB_NO_RTLD_DEEPBIND=1
+
 ROOT=$(dirname $0)
 echo ROOT=$ROOT
 
