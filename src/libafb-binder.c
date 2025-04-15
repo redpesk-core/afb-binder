@@ -1890,7 +1890,7 @@ void AfbBinderExit(AfbBinderHandleT *binder, int exitcode) {
 #if WITH_EXTENSION
     afb_extend_exit(binder->privateApis);
 #endif
-    afb_sched_exit (1, NULL /*callback*/, NULL/*context*/, exitcode);
+    afb_sched_exit (0, NULL /*callback*/, NULL/*context*/, exitcode);
 }
 
 // pop afb waiting event and process them
