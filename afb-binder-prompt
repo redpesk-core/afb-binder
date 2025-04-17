@@ -1,0 +1,62 @@
+# bash completion for afb-binder
+
+complete \
+	-A file \
+	-A directory \
+	-W "	--verbose
+		--color
+		--quiet
+		--log
+		--foreground
+		--background
+		--daemon
+		--name
+		--no-httpd
+		--port
+		--interface
+		--roothttp
+		--rootbase
+		--rootapi
+		--alias
+		--uploaddir
+		--cache-eol
+		--https
+		--https-cert
+		--https-key
+		--apitimeout
+		--cntxtimeout
+		--workdir
+		--rootdir
+		--binding
+		--ldpaths
+		--weak-ldpaths
+		--extension
+		--extpaths
+		--ws-client
+		--ws-server
+		--ws-maxlen
+		--rpc-client
+		--rpc-server
+		--auto-api
+		--session-max
+		--tracereq
+		--traceevt
+		--traceses
+		--traceapi
+		--traceglob
+		--call
+		--exec
+		--monitoring
+		--config
+		--dump-config
+		--dump-final-config
+		--set
+		--output
+		--trap-faults
+		--fail
+		--jobs-max
+		--threads-max
+		--threads-init
+		--uuid" \
+	afb-binder
+

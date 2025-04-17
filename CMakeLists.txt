@@ -109,3 +109,5 @@ if(PROVIDE_AFB_DAEMON)
 	add_subdirectory(afb-daemon)
 endif()
 
+install(FILES afb-binder-prompt
+        DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/bash-completion/completions")
