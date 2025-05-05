@@ -596,7 +596,7 @@ when the file **/home/15646/config1** is:
 	}
 ```
 
-The otpion *--set* can be used to set values for specific APIs.
+The option *--set* can be used to set values for specific APIs.
 The set value can have different formats.
 
 The most generic format is *{"API1":{"KEY1":VALUE,"KEY2":VALUE2,...},"API2":...}*
