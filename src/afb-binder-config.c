@@ -92,7 +92,7 @@ struct expref
 };
 
 /**
- * Emits an error for a given object of witin path of ref
+ * Emits an error for a given object of within path of ref
  *
  * @param object the object leading to an error
  * @param path   path to the expanded reference or NULL
@@ -102,19 +102,20 @@ struct expref
 static void error_at_object(struct json_object *object, rp_jsonc_expand_path_t expand_path, const char *format, ...)
 {
 	char *jpath;
-	char *msg;
+	char *msg = NULL;
 	va_list ap;
+	int rc;
 
 	/* string for the message */
 	va_start(ap, format);
-	vasprintf(&msg, format, ap);
+	rc = vasprintf(&msg, format, ap);
 	va_end(ap);
 
 	/* locating object */
-	jpath = expand_path ? rp_jsonc_path(rp_jsonc_expand_path_get(expand_path, 0), object) : "?";
+	jpath = expand_path ? rp_jsonc_path(rp_jsonc_expand_path_get(expand_path, 0), object) : NULL;
 
 	/* emit the error */
-	LIBAFB_ERROR("%s (json-path %s)", msg, jpath);
+	LIBAFB_ERROR("%s (json-path %s)", rc > 0 ? msg : "json expansion error", jpath ? jpath : "?");
 	free(jpath);
 	free(msg);
 }
