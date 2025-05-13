@@ -340,7 +340,7 @@ static void setup_handlers()
  +--------------------------------------------------------- */
 static void daemonize()
 {
-	int fd = 0, daemon, nostdin, pfd[2];
+	int fd = 0, daemon, nostdin, pfd[2], rc;
 	const char *output;
 	pid_t pid;
 
@@ -383,11 +383,14 @@ static void daemonize()
 	/* closes the input */
 	if (output) {
 		LIBAFB_NOTICE("Redirecting output to %s", output);
-		close(2);
-		dup(fd);
-		close(1);
-		dup(fd);
+		rc = dup2(fd, 1);
+		if (rc >= 0)
+			rc = dup2(fd, 2);
 		close(fd);
+		if (rc < 0) {
+			LIBAFB_NOTICE("Failed to redirect to %s: %s", output, strerror(errno));
+			_exit(EXIT_FAILURE);
+		}
 	}
 
 	if (nostdin)
