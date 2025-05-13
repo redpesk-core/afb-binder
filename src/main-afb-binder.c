@@ -1070,7 +1070,10 @@ static void notify_readyness()
 #endif
 	if (syncfd >= 0) {
 		char tag = 0;
-		write(syncfd, &tag, 1);
+		if (write(syncfd, &tag, 1) != 1) {
+			LIBAFB_ERROR("can't notify parent");
+			exit(EXIT_FAILURE);
+		}
 	}
 }
 
