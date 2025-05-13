@@ -664,15 +664,22 @@ unix socket:
 - on client: *--ws-client=unix:@foo?as-api=bar*
 
 Since libafb 5.3.0, a prefix *tls+* can be added at the front of TCP _SOCKSPEC_
-to enable mTLS encryption (currently only available for RPC connections). This
-requires the addition of two query parameters:
+to enable mTLS encryption (currently only available for RPC connections). Since
+libafb 5.4.0, the `tls+` prefix enables traditional TLS only, and the prefix
+`mtls+` enables mTLS. mTLS requires the addition of two query parameters:
 
-- *key*, path to a private key file in PEM format
-- *cert*, path to a certificate file matching the private key, also in PEM format
+- *key*, path to a private key file (PEM or DER)
+- *cert*, path to a certificate file matching the private key (PEM or DER)
 
 A *trust* parameter is also available. If present, it should be the path to a
 directory containing trusted certificates which will be used when validating
-peers' certificates. If absent, the system trust directory will be used.
+peers' certificates. GnuTLS accepts PEM trusted certificates only. If absent,
+when using GnuTLS, the system trust directory will be used.
+
+Since libafb 5.4.1, the *host* parameter controls whether to check the peer's
+certificate hostname with what value. No *host* parameter uses the hostname or
+IP address for the _SOCKSPEC_; a *host* parameter with a value uses that value;
+a *host* parameter with no value disables hostname checking.
 
 Example of connecting the API *foo* over TLS using a custom trust directory:
 
