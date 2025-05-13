@@ -719,8 +719,9 @@ static int http_server_start(struct afb_hsrv *hsrv)
  | execute_command
  +--------------------------------------------------------- */
 
-static void exit_at_end()
+static void exit_at_end(void *ignore)
 {
+	(void)ignore;
 	exit(EXIT_SUCCESS);
 }
 
