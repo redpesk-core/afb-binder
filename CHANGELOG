@@ -1,6 +1,8 @@
 Version 5.????
 --------------
 
+ - Requires afb-libafb >= 5.4.0
+ - Add options --tls-cert, --tls-key, --tls-trust
  - Remove doc on options (deprecated in favour of manual page)
 
 Version 5.1.10

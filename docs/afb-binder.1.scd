@@ -295,6 +295,22 @@ to client sessions indexed using a unique session identifier.
 	See discussion on WS/RPC-API.
 
 
+## TLS
+
+*--tls-cert* _FILENAME_
+	Set the global certificat for all TLS connections. The certificate
+	can be in DER or PEM form. If used for https, it must
+	be in PEM form.
+
+*--tls-key* _FILENAME_
+	Set the global private key for TLS server connections. The key file
+	can be in DER or PEM form, but, if used for https, it must
+	be in PEM form.
+
+*--tls-trust* _PATH_
+	Add a trusted root certificate if file or the trusted root certificates
+	of the directory. Can be in PEM or DER form.
+
 ## Extensions
 
 *-x, --extension* _FILENAME_
@@ -505,6 +521,12 @@ the option.
 |  *AFB_LOG*
 :  --log
 :  mixed
+|  *AFB_TLS_CERT*
+:  --tls-cert
+:  override
+|  *AFB_TLS_KEY*
+:  --tls-key
+:  override
 
 ## Variables for extra behaviour
 
@@ -633,6 +655,21 @@ The following examples are all setting the same values:
 ```
 
 
+## HTTPS
+
+When the option *--https* is active, a certificate and a private key
+must be given. It is required that these file are given in PEM form.
+
+The used certificate file is the first one given by these settings, in that order:
+*--https-cert*, *${AFB_HTTPS_CERT}*, *--tls-cert*, *${AFB_TLS_CERT}*,
+*${AFB_HTTPS_PREFIX}/cert.pem*.
+
+The used private key file is the first one given by these settings, in that order:
+*--https-key*, *${AFB_HTTPS_KEY}*, *--tls-key*, *${AFB_TLS_KEY}*,
+*${AFB_HTTPS_PREFIX}/key.pem*.
+
+This settings are allowing to have different certificates for HTTP and for TLS.
+
 ## WS/RPC-API, Connection of API
 
 API can be exported using option *--ws-server* and imported using option *--ws-client*,
@@ -663,31 +700,77 @@ unix socket:
 - on server: *--ws-server=unix:@foo*
 - on client: *--ws-client=unix:@foo?as-api=bar*
 
-Since libafb 5.3.0, a prefix *tls+* can be added at the front of TCP _SOCKSPEC_
-to enable mTLS encryption (currently only available for RPC connections). Since
-libafb 5.4.0, the `tls+` prefix enables traditional TLS only, and the prefix
-`mtls+` enables mTLS. mTLS requires the addition of two query parameters:
+For RPC connections (options *--rpc-server* and *--rpc-client*),
+since afb-binder 5.2, the `tls+` prefix enables traditional TLS,
+and the prefix `mtls+` enables mTLS.
+
+TLS and mTLS require cryptographic material to be given: certificate, private
+key, root(s) of trust. This material can be given either as parameters of
+_SOCKSPEC_ or using global option. Global options are *--tls-cert*, *--tls-key*
+and *--tls-trust*.
+
+[[ requirements
+:[ *client*
+:[ *server*
+|  *TLS*
+:  trust, host
+:  cert, key
+|  *mTLS*
+:  trust, cert, key, host
+:  trust, cert, key, host
+
+Certificates are containig the common name (CN) that is granted by authorities.
+TLS normally checks that this name matches the name given in _SOCKSPEC_.
+For example, `tls+tcp:iot.server.com:1515/api` uses the hostname `iot.server.com`.
+The _SOCKSPEC_ argument allows to change that behaviour.
+
+When given in _SOCKSPEC_, the arguments are given using *key* for private key,
+*cert* for certificate, *trust* for root of trust and *host* to tune hostname
+verification. This is an example:
+
+	*mtls+tcp:10.20.30.40:1789/api?cert=PATH&key=PATH&trust=PATH&host=HOST*
+
+Here, because the address is given using IPv4 notation, the HOST name
+is given to match the name presented by the certificate (common name CN).
 
 - *key*, path to a private key file (PEM or DER)
 - *cert*, path to a certificate file matching the private key (PEM or DER)
+- *trust*, path to a file of root certificates (PEM or DER) or to a directory
+  containing files for root certificates.
+- *host*, if set to empty string, disable control of hostname, if set to some
+  string, tells to use this hostname, not the one from URL.
 
-A *trust* parameter is also available. If present, it should be the path to a
-directory containing trusted certificates which will be used when validating
-peers' certificates. GnuTLS accepts PEM trusted certificates only. If absent,
-when using GnuTLS, the system trust directory will be used.
-
-Since libafb 5.4.1, the *host* parameter controls whether to check the peer's
-certificate hostname with what value. No *host* parameter uses the hostname or
-IP address for the _SOCKSPEC_; a *host* parameter with a value uses that value;
-a *host* parameter with no value disables hostname checking.
+If *trust* is not given, the system trust directory will be used.
 
 Example of connecting the API *foo* over TLS using a custom trust directory:
 
 - on server: *--rpc-server="tls+tcp:localhost:1235/foo?cert=./srv_cert.pem&key=./srv_key.pem&trust=./mytrustdir/"*
 - on client: *--rpc-client="tls+tcp:localhost:1235/foo?cert=./cli_cert.pem&key=./cli_key.pem&trust=./mytrustdir/"*
 
+TLS material are common to afb-binder and should preferentially be given
+using global options, except *host* that is per connection.
+
+[[ global option
+:[ _SOCKSPEC_
+:[ descritpion
+|  *--tls-cert*
+:  *cert=*
+:  Path to the certificate file (PEM or DER)
+|  *--tls-key*
+:  *key=*
+:  Path to the private key file (PEM or DER)
+|  *--tls-trust*
+:  *trust=*
+:  Path to the root certificates file (PEM or DER)
+   or to directory containing root certificates
+|  -
+:  *host=*
+:  Hostname to check against common name (CN) of certificate.
+   If empty it disables hostname check.
+
 Since afb-binder 5.0.3, _SOCKSPEC_ of client options can be prefixed with an
 exportation specification. See discussion on EXPORT.
+
 
 ## EXPORT, Exportation of API
 
@@ -740,3 +823,4 @@ José Bollo <jose.bollo@iot.bzh>
 - The source code:        https://github.com/redpesk-core/afb-binder
 - Reporting bugs:         https://github.com/redpesk-core/afb-binder/issues
 - Redpesk documentation:  https://docs.redpesk.bzh
+

@@ -62,6 +62,10 @@
 #include <libafb/afb-http.h>
 #endif
 
+#if WITH_TLS
+#include <libafb/afb-tls.h>
+#endif
+
 #include <libafb/afb-sys.h>
 #include <libafb/afb-utils.h>
 #include <libafb/misc/afb-verbose.h>
@@ -659,6 +663,9 @@ static int get_https_config(char **key, char **cert)
 {
 	int rc, is_https;
 	const char *okey, *ocert;
+#if WITH_TLS
+	const char *tkey, *tcert;
+#endif
 
 	/* read HTTPS parameters if any */
 	is_https = 0;
@@ -666,8 +673,14 @@ static int get_https_config(char **key, char **cert)
 	rc = rp_jsonc_unpack(afb_binder_main_config, "{s?b s?s s?s}",
 				"https", &is_https,
 				"https-key", &okey,
-				"https-cert", &ocert
-			);
+				"https-cert", &ocert);
+#if WITH_TLS
+	tkey = tcert = NULL;
+	if (rc > 0)
+		rc = rp_jsonc_unpack(afb_binder_main_config, "{s?s s?s}",
+				"tls-key", &tkey,
+				"tls-cert", &tcert);
+#endif
 	if (rc < 0)
 		rc = X_ECANCELED;
 	else if (!is_https) {
@@ -676,6 +689,10 @@ static int get_https_config(char **key, char **cert)
 		rc = 0; /* no https */
 	}
 	else {
+#if WITH_TLS
+		okey = okey ?: tkey;
+		ocert = ocert ?: tcert;
+#endif
 		rc = get_https_value("key", okey, key);
 		if (rc >= 0) {
 			rc = get_https_value("cert", ocert, cert);
@@ -712,6 +729,64 @@ static int http_server_start(struct afb_hsrv *hsrv)
 	if (errs) {
 		LIBAFB_ERROR("setting interface %s failed", errs);
 		return X_ECANCELED;
+	}
+
+	return 0;
+}
+#endif
+
+#if WITH_TLS
+/*---------------------------------------------------------
+ | TLS
+ +--------------------------------------------------------- */
+
+static int initialize_tls()
+{
+	int rc;
+	struct json_object *obj;
+	const char *tkey, *tcert;
+
+	obj = NULL;
+	tkey = tcert = NULL;
+	rc = rp_jsonc_unpack(afb_binder_main_config, "{s?b s?s s?o}",
+				"tls-key", &tkey,
+				"tls-cert", &tcert,
+				"tls-trust", &obj);
+
+	if (rc < 0) {
+		LIBAFB_ERROR("Can't get tls paths");
+		return X_ECANCELED;
+	}
+
+	if (tcert) {
+		rc = tls_load_cert(tcert);
+		if (rc < 0) {
+			LIBAFB_ERROR("loading certificate %s failed", tcert);
+			return rc;
+		}
+	}
+
+	if (tkey) {
+		rc = tls_load_key(tkey);
+		if (rc < 0) {
+			LIBAFB_ERROR("loading key %s failed", tkey);
+			return rc;
+		}
+	}
+
+	if (obj) {
+		const char *str;
+		struct json_object *val;
+		size_t i, n = (size_t)json_object_array_length(obj);
+		for (i = 0 ; i < n ; i++) {
+			val = json_object_array_get_idx(obj, i);
+			str = json_object_get_string(val);
+			rc = tls_load_trust(str);
+			if (rc < 0) {
+				LIBAFB_ERROR("loading trust %s failed", str);
+				return rc;
+			}
+		}
 	}
 
 	return 0;
@@ -1153,6 +1228,14 @@ static void start(int signum, void *arg)
 		else
 			websock_set_default_max_length((size_t)val);
 	}
+
+#if WITH_TLS
+	/* initialize TLS */
+	if (initialize_tls() < 0) {
+		LIBAFB_ERROR("initialisation of tls failed");
+		goto error;
+	}
+#endif
 
 	/* initialize session handling */
 	if (afb_session_init(max_session_count, session_timeout)) {

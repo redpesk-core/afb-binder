@@ -136,7 +136,11 @@
 #define DUMP_CONFIG_FINAL  'z'
 #define DUMP_CONFIG        'Z'
 
-
+#if WITH_TLS
+#define SET_TLS_CERT       128
+#define SET_TLS_KEY        129
+#define ADD_TLS_TRUST      130
+#endif
 
 /* definition of options */
 static const struct argp_option optdefs[] = {
@@ -233,6 +237,12 @@ static const struct argp_option optdefs[] = {
 
 	{ .name="uuid",        .key=SET_UUID,            .arg="VALUE", .doc="Set the session UUID of the binder, random by default" },
 
+#if WITH_TLS
+	{ .name="tls-cert",    .key=SET_TLS_CERT,        .arg="FILENAME", .doc="Set the certificat of TLS connexions" },
+	{ .name="tls-key",     .key=SET_TLS_KEY,         .arg="FILENAME", .doc="Set the private key for TLS connexions" },
+	{ .name="tls-trust",   .key=ADD_TLS_TRUST,       .arg="PATH",     .doc="Add trust file or directory" },
+#endif
+
 	{ .name=0,             .key=0,                   .arg=0, .doc=0 }
 /* *INDENT-ON* */
 };
@@ -309,6 +319,9 @@ static const char version[] =
 #endif
 #if WITH_AFB_TRACE
 	"+TRACE"
+#endif
+#if WITH_TLS
+	"+TLS"
 #endif
 #if WITH_DYNAMIC_BINDING
 	"+BINDING"
@@ -890,6 +903,10 @@ static void parse_environment_initial(struct json_object *config)
 	on_environment(config, SET_HTTPS_CERT, "AFB_HTTPS_CERT", config_set_str);
 	on_environment(config, SET_HTTPS_KEY, "AFB_HTTPS_KEY", config_set_str);
 #endif
+#if WITH_TLS
+	on_environment(config, SET_TLS_CERT, "AFB_TLS_CERT", config_set_str);
+	on_environment(config, SET_TLS_KEY, "AFB_TLS_KEY", config_set_str);
+#endif
 }
 
 #endif
@@ -1117,6 +1134,16 @@ static error_t parsecb_final(int key, char *value, struct argp_state *state)
 #if WITH_MONITORING
 	case SET_MONITORING:
 		config_set_bool(config, key, 1);
+		break;
+#endif
+
+#if WITH_TLS
+	case SET_TLS_CERT:
+	case SET_TLS_KEY:
+		config_set_optstr(config, key, value);
+		break;
+	case ADD_TLS_TRUST:
+		config_add_optstr(config, key, value);
 		break;
 #endif
 
