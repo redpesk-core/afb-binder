@@ -12,8 +12,6 @@ books:
       name: Overview
     - url: afb-getting.md
       name: Getting the binder
-    - url: afb-binder-options.md
-      name: Options of afb-binder
     - url: afb-binder-https.md
       name: Setting HTTPS up
     - url: afb-binder-debugging.md
