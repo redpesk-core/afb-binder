@@ -1,5 +1,5 @@
-Version 5.????
---------------
+Version 5.2.0
+-------------
 
  - Requires afb-libafb >= 5.4.0
  - Add options --tls-cert, --tls-key, --tls-trust
