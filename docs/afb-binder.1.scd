@@ -527,6 +527,9 @@ the option.
 |  *AFB_TLS_KEY*
 :  --tls-key
 :  override
+|  *AFB_APITIMEOUT*
+:  --apitimeout
+:  override
 
 ## Variables for extra behaviour
 

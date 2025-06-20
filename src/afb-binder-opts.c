@@ -881,6 +881,7 @@ static void on_environment_int(struct json_object *config, int optid, const char
 static void parse_environment_initial(struct json_object *config)
 {
 	on_environment_basic("AFB_LOG", set_log);
+	on_environment_int(config, SET_API_TIMEOUT, "AFB_APITIMEOUT");
 #if WITH_AFB_HOOK
 	on_environment_flags(config, SET_TRACEREQ, "AFB_TRACEREQ", afb_hook_flags_req_from_text);
 	on_environment_flags(config, SET_TRACEEVT, "AFB_TRACEEVT", afb_hook_flags_evt_from_text);

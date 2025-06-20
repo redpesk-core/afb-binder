@@ -1,3 +1,7 @@
+Next
+
+ - Add environment AFB_APITIMEOUT (for debugging sessions)
+
 Version 5.2.0
 -------------
 
