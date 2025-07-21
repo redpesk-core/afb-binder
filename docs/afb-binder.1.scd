@@ -703,6 +703,11 @@ unix socket:
 - on server: *--ws-server=unix:@foo*
 - on client: *--ws-client=unix:@foo?as-api=bar*
 
+Since afb-binder 5.0.3, _SOCKSPEC_ of client options can be prefixed with an
+exportation specification. See discussion on EXPORT.
+
+## RPC-API, Support of TLS and mTLS
+
 For RPC connections (options *--rpc-server* and *--rpc-client*),
 since afb-binder 5.2, the `tls+` prefix enables traditional TLS,
 and the prefix `mtls+` enables mTLS.
@@ -771,8 +776,53 @@ using global options, except *host* that is per connection.
 :  Hostname to check against common name (CN) of certificate.
    If empty it disables hostname check.
 
-Since afb-binder 5.0.3, _SOCKSPEC_ of client options can be prefixed with an
-exportation specification. See discussion on EXPORT.
+## RPC-API, Support of multiplexed API
+
+Since version 5.2.1, it is possible to import (client) or export (server)
+more than one api. This is achieved by using the keywords *import* and *export*
+and to specify the api list. This is an example importing (client) the apis
+*gps* and *imu*:
+
+	*--rpc-client=unix:@key?import=gps,imu*
+
+In that case, the abstract unix socket name is not used.
+
+On the server side, it is possible to export all the apis as below:
+
+	*--rpc-server=unix:@key?export=\**
+
+RPC connection also support renaming of APIs. Suppose that the API on
+server is named *internal* and that, for some reason, we want to use it with
+the name *external*. This can be done usding *@*, on server side using
+*export=internal@external* or on client side using *import=external@internal*.
+The first name is the local name.
+
+RPC connection also support the concept of unnamed default API. In that case,
+the RPC connection doesn't transmit the API name. To tell on the server the name
+of the default API, use *export=name@* and on the client, to tell that the api
+of given name is connected as default API, use *import=name@*.
+
+Finally import and exports are comma separated lists of api matching pattern of
+the below table:
+
+[[ *PATTERN*
+:[ *import*
+:[ *export*
+|  LOCAL
+:  LOCAL as LOCAL
+:  LOCAL as LOCAL
+|  LOCAL@REMOTE
+:  REMOTE as LOCAL
+:  LOCAL as REMOTE
+|  LOCAL@
+:  default as LOCAL
+:  LOCAL as default
+|  \*
+:  unimplemented
+:  all APIs
+|  LOCAL@\*
+:  illegal
+:  LOCAL for all APIs
 
 
 ## EXPORT, Exportation of API
