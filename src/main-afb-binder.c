@@ -748,7 +748,7 @@ static int initialize_tls()
 
 	obj = NULL;
 	tkey = tcert = NULL;
-	rc = rp_jsonc_unpack(afb_binder_main_config, "{s?b s?s s?o}",
+	rc = rp_jsonc_unpack(afb_binder_main_config, "{s?s s?s s?o}",
 				"tls-key", &tkey,
 				"tls-cert", &tcert,
 				"tls-trust", &obj);
