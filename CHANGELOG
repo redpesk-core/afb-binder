@@ -1,5 +1,7 @@
-Next
+Version 5.2.1
+-------------
 
+ - Fix option --tls-key
  - Add environment AFB_APITIMEOUT (for debugging sessions)
 
 Version 5.2.0
