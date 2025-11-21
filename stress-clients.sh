@@ -110,6 +110,6 @@ while test $i -le $count; do
 done
 echo "done [${children[*]}]"
 
-trap "kill ${children[*]}" SIGTERM SIGINT SIGQUIT
+trap "kill ${children[*]}" SIGTERM SIGINT SIGQUIT EXIT
 wait ${children[*]}
 

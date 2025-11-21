@@ -18,7 +18,7 @@ ws=false
 rpc=false
 blind=false
 traps=false
-eval set -- $(getopt -o wrgsvbmct -l ws,rpc,gdb,strace,valgrind,blind,memcheck,callgrind,traps -- "$@") || exit
+eval set -- $(getopt -o wrgsvbmcth -l ws,rpc,gdb,strace,valgrind,blind,memcheck,callgrind,traps,helgrind -- "$@") || exit
 while true
 do
 	case "$1" in
@@ -29,6 +29,7 @@ do
 	-v|--valgrind) tool=valgrind; shift;;
 	-m|--memcheck) tool=memcheck; shift;;
 	-c|--callgrind) tool=callgrind; shift;;
+	-h|--helgrind) tool=helgrind; shift;;
 	-b|--blind) blind=true; shift;;
 	-t|--traps) traps=true; shift;;
 	--) shift; break;;
@@ -40,6 +41,7 @@ case $tool in
  valgrind) cmd="$(type -p valgrind) --leak-check=full";;
  memckeck) cmd="$(type -p valgrind) --tool=memcheck --leak-check=full";;
  callgrind) cmd="$(type -p valgrind) --tool=callgrind";;
+ helgrind) cmd="$(type -p valgrind) --tool=helgrind";;
  strace) cmd="$(type -p strace) -tt -f -o $OUT.strace";;
  *) cmd=;;
 esac
