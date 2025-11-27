@@ -131,7 +131,7 @@ to client sessions indexed using a unique session identifier.
 
 	The syntax is *--alias=/PREF:DIR* where */PREF* is an absolute
 	path (starting with a /) and *DIR* is either and absolute path
-	or a path relative to the workdir.
+	or a path relative to the rootdir.
 
 	The effect is that HTTP requests to URL of path */PREF/subpath*
 	served by files of *subpath* within the directory *DIR*.
