@@ -621,6 +621,15 @@ when the file **/home/15646/config1** is:
 	}
 ```
 
+The option *--config* can be repeated. In that case, the loaded configuration files
+are fragment of configuration that complete one an other if not overlapping.
+
+If values of frament are overlapping, the effect depends on the value of the
+parameters and on the order of the options. Arrays and dictionaries are
+merged but integral values are replaced, the latest replacing the previous.
+
+## Configuration of APIs
+
 The option *--set* can be used to set values for specific APIs.
 The set value can have different formats.
 
@@ -657,6 +666,32 @@ The following examples are all setting the same values:
 	afb-binder --set 'chook/account:"urn:chook:b2ca5ddb97679"' --set chook/delay:500
 ```
 
+## Configuration of bindings
+
+Bindings are dynamic libraries. They can either (1) provide only one statically named API,
+or, (2) do anything useful (like declaring one or more API).
+
+In former case (2) the API name can not be used. In order to give parameter to
+the binding, the option *--set* can be used but the *API* must take the value of
+the basename of the binding.
+
+The second way to pass parameters to the binding is to use a configuration file
+and to pass its path as *CONFIG* when using option *--binding=[EXPORT]PATH[:[UID:]CONFIG]*.
+
+The last way to provide binding's configuration is using configuration fragment
+(see above). In that case, the options can be given at the same location of the
+binding. The below frament shows passing the value "factor" to binding "mult.so".
+
+```
+	{
+	  "binding": [
+	    {
+	      "path": "milt.so",
+	      "factor": 6.283185307
+	    }
+	  ]
+	}
+```
 
 ## HTTPS
 
