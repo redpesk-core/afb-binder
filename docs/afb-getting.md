@@ -1,6 +1,6 @@
 # Getting the binder
 
-The binder if installed by default on all redpesk distributions.
+The binder is installed by default on all redpesk distributions.
 
 It is valuable to install the binder *afb-binder*, its simple client *afb-client*
 and the headers for developing bindings *afb-binding* on its development environment,
