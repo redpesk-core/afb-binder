@@ -36,6 +36,7 @@
 #define JSON_C_TO_STRING_NOSLASHESCAPE 0
 #endif
 
+#include <rp-utils/rp-version.h>
 #include <rp-utils/rp-jsonc.h>
 
 #if WITH_AFB_HOOK
@@ -306,8 +307,7 @@ static const char *name_of_optid(int optid)
  +--------------------------------------------------------- */
 static const char version[] =
 	"\n"
-	AFB_BINDER_VERSION
-	" ["
+	"afb-binder " AFB_BINDER_VERSION " ["
 #if WITH_MONITORING
 	"+MONITOR"
 #endif
@@ -328,7 +328,11 @@ static const char version[] =
 	"-V3"
 	"-V4"
 #endif
-	"]\nCopyright (C) 2015-2025 IoT.bzh Company\n"
+	"]\n"
+	"use LIBAFB "d2s(LIBAFB_VERSION_MAJOR)"."d2s(LIBAFB_VERSION_MINOR)"."d2s(LIBAFB_VERSION_PATCH)
+	" RPUTILS "d2s(RPUTILS_VERSION_MAJOR)"."d2s(RPUTILS_VERSION_MINOR)"."d2s(RPUTILS_VERSION_PATCH)
+	"\n"
+	"Copyright (C) 2015-2026 IoT.bzh Company\n"
 ;
 
 static const char docstring[] =
