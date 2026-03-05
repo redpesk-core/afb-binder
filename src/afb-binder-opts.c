@@ -632,7 +632,7 @@ static void config_set_optflags(struct json_object *config, int optid,
 	config_set_str(config, optid, value);
 }
 
-static void config_add_optstr(struct json_object *config, int optid, char *value)
+static void config_add_optstr(struct json_object *config, int optid, const char *value)
 {
 	config_add_str(config, optid, value);
 }
@@ -911,6 +911,7 @@ static void parse_environment_initial(struct json_object *config)
 #if WITH_TLS
 	on_environment(config, SET_TLS_CERT, "AFB_TLS_CERT", config_set_str);
 	on_environment(config, SET_TLS_KEY, "AFB_TLS_KEY", config_set_str);
+	on_environment(config, ADD_TLS_TRUST, "AFB_TLS_TRUST", config_add_str);
 #endif
 }
 
