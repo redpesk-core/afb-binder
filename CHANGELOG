@@ -1,3 +1,9 @@
+Version 5.2.2
+-------------
+
+ - Version displays compile time versions of afb-libafb and rp-utils
+ - Add of environment variable AFB_TLS_TRUST
+
 Version 5.2.1
 -------------
 
