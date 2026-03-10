@@ -892,6 +892,8 @@ as given below:
 :  private
 |  *--rpc-client*
 :  private
+|  *--rpc-server*
+:  private
 |  *--auto-api*
 :  private
 

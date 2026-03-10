@@ -194,7 +194,8 @@ static void apiset_start_export_list(const char *name,
 static int run_start(void *closure, const char *value)
 {
 	int (*starter) (const char *value, struct afb_apiset *declare_set, struct afb_apiset *call_set) = closure;
-	return starter(value, afb_binder_main_apiset, afb_binder_main_apiset) >= 0;
+	struct afb_apiset *declset = get_declare_set(&value, Export_Private);
+	return starter(value, declset, afb_binder_main_apiset) >= 0;
 }
 
 static void apiset_start_list(const char *name,
