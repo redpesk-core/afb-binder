@@ -1,3 +1,9 @@
+Version ?????
+-------------
+
+ - Fix uid+config in AfbBindingLoad of libafb-binder
+ - Allows public export of rpc server imported APIs
+
 Version 5.2.2
 -------------
 

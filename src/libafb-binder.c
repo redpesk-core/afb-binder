@@ -739,7 +739,7 @@ const char* AfbAddOneVerb (AfbBinderHandleT *binder, afb_api_x4_t apiv4, json_ob
 
     // info verb require 'uid' but syntax allows to defined only one of uid|verb
     if (!verb && uid)  verb=uid;
-    if (verb &&  !uid) json_object_object_add(configJ, "uid", json_object_new_string(verb));
+    if (verb && !uid) json_object_object_add(configJ, "uid", json_object_new_string(verb));
 
     /* get permission description */
     if (auth) {
@@ -1353,7 +1353,7 @@ const char* AfbBindingLoad (AfbBinderHandleT *binder, json_object *bindingJ) {
     afb_apiset *apiDeclSet, *apiCallSet;
     int err;
     const char *uid=NULL, *libpath, *export=NULL;
-    json_object *aliasJ=NULL, *ldpathJ=NULL, *configJ=NULL;
+    json_object *aliasJ=NULL, *ldpathJ=NULL;
     ScanPathT scanner;
 
     /* check argument */
@@ -1420,7 +1420,7 @@ const char* AfbBindingLoad (AfbBinderHandleT *binder, json_object *bindingJ) {
     }
 
     // open the binding
-    err= afb_api_so_add_binding_config(scanner.filename, apiDeclSet, apiCallSet, configJ);
+    err= afb_api_so_add_binding_config(scanner.filename, apiDeclSet, apiCallSet, bindingJ);
     if (err) {
         LIBAFB_ERROR ("AfbBindingLoad:fatal [uid=%s] can't open %s", uid, libpath);
         errorMsg= "binding load fail";

@@ -183,6 +183,7 @@ This is a JSON example of binding configuration object.
    "path"   : "afb-helloworld-skeleton.so",
    "ldpath" : ["/opt/helloworld-binding/lib", "/usr/local/helloworld-binding/lib"],
    "alias"  : ["/hello:'/opt/helloworld-binding/htdocs","/devtools:/usr/share/afb-ui-devtools/binder"],
+   "config" : { "option": "full" }
 }
 ```
 
@@ -190,12 +191,13 @@ All the fields are optionals except *uid* and *path*.
 
 Here is the description of the configuration fields:
 
-- **uid**: binding uid use debug purpose only
+- **uid**: binding uid
 - **path**: binding relative or full path
 - **uri**: direct exportation path of the API of the binding (string, see [uri import/export](#uri))
 - **export**: private, restricted public (string, see [exportation](#exportation))
 - **ldpath**: local binding search path searched before default binder search path
 - **alias**: alias list added to global binder existing list
+- **config**: must be an object, that object is given to the binding as config
 
 ## API configuration object
 
