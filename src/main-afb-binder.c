@@ -607,8 +607,10 @@ static int http_server_create(struct afb_hsrv **result)
 		goto error;
 
 	/* set predefined aliases */
+#if WITH_DEVTOOLS
 	if (!add_alias_weak(hsrv, "/devtools", DEVTOOLS_INSTALL_DIR, 0, 1))
 		goto error;
+#endif
 	if (!add_alias_weak(hsrv, "/.well-known", WELL_KNOWN_DIR, -15, 1))
 		goto error;
 	tmp = secure_getenv("AFB_BINDER_WELL_KNOWN_DIR");

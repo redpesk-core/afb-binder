@@ -40,6 +40,8 @@
 
 #if WITH_LIBMICROHTTPD
 #cmakedefine01 WITH_MONITORING
+#cmakedefine01 WITH_DEVTOOLS
 #else
 #define WITH_MONITORING 0
+#define WITH_DEVTOOLS 0
 #endif
