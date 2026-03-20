@@ -607,6 +607,10 @@ static int http_server_create(struct afb_hsrv **result)
 		goto error;
 
 	/* set predefined aliases */
+#if WITH_MONITORING
+	if (!add_alias_weak(hsrv, "/monitoring", MONITORING_INSTALL_DIR, 0, 1))
+		goto error;
+#endif
 #if WITH_DEVTOOLS
 	if (!add_alias_weak(hsrv, "/devtools", DEVTOOLS_INSTALL_DIR, 0, 1))
 		goto error;

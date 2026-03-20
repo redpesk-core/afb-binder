@@ -4,6 +4,7 @@ Version ?????
  - Fix uid+config in AfbBindingLoad of libafb-binder
  - Allows public export of rpc server imported APIs
  - Make DEVTOOL removable at compile time
+ - Make options -M --monitor obsoletes (but kept ATM)
 
 Version 5.2.2
 -------------

@@ -115,9 +115,7 @@
 #define ADD_INTERFACE      'i'
 #define SET_JOB_MAX        'j'
 #define SET_LOG            'l'
-#if WITH_MONITORING
-# define SET_MONITORING    'M'
-#endif
+#define SET_MONITORING     'M' /* do nothing, kept for compatibility */
 #define SET_NAME           'n'
 #define SET_OUTPUT         'o'
 #define SET_PORT           'p'
@@ -218,9 +216,7 @@ static const struct argp_option optdefs[] = {
 
 	{ .name="exec",        .key=SET_EXEC,            .arg=0, .flags=OPTION_NO_USAGE, .doc="Execute the remaining arguments" },
 
-#if WITH_MONITORING
-	{ .name="monitoring",  .key=SET_MONITORING,      .arg=0, .doc="Enable HTTP monitoring at <ROOT>/monitoring/" },
-#endif
+	{ .name="monitoring",  .key=SET_MONITORING,      .arg=0, .doc="OBSOLETE, don't use it" },
 
 	{ .name="config",      .key=SET_CONFIG,          .arg="FILENAME", .doc="Load options from the given config file" },
 	{ .name="dump-config", .key=DUMP_CONFIG,         .arg=0, .doc="Dump the config to stdout and exit" },
@@ -247,10 +243,6 @@ static const struct argp_option optdefs[] = {
 	{ .name=0,             .key=0,                   .arg=0, .doc=0 }
 /* *INDENT-ON* */
 };
-
-#if WITH_MONITORING
-static const char MONITORING_ALIAS[] = "/monitoring:"MONITORING_INSTALL_DIR;
-#endif
 
 static const struct {
 	int optid;
@@ -308,9 +300,6 @@ static const char *name_of_optid(int optid)
 static const char version[] =
 	"\n"
 	"afb-binder " AFB_BINDER_VERSION " ["
-#if WITH_MONITORING
-	"+MONITOR"
-#endif
 #if WITH_SUPERVISION
 	"+SUPERVISION"
 #endif
@@ -817,11 +806,6 @@ static void fulfill_config(struct json_object *config)
 	if (!config_has(config, SET_PORT) && !config_has(config, ADD_INTERFACE) && !config_has_bool(config, SET_NO_HTTPD))
 		config_set_int(config, SET_PORT, DEFAULT_HTTP_PORT);
 #endif
-
-#if WITH_MONITORING
-	if (config_has_bool(config, SET_MONITORING) && !config_has_str(config, ADD_ALIAS, MONITORING_ALIAS))
-		config_add_str(config, ADD_ALIAS, MONITORING_ALIAS);
-#endif
 }
 
 /*---------------------------------------------------------
@@ -1064,6 +1048,7 @@ static error_t parsecb_final(int key, char *value, struct argp_state *state)
 	case SET_CONFIG:
 	case SET_ROOT_DIR:
 	case SET_WORK_DIR:
+	case SET_MONITORING:
 		break;
 
 	/* other keys */
@@ -1136,12 +1121,6 @@ static error_t parsecb_final(int key, char *value, struct argp_state *state)
 	case ADD_SET:
 		config_mix2_optstr(config, key, value);
 		break;
-
-#if WITH_MONITORING
-	case SET_MONITORING:
-		config_set_bool(config, key, 1);
-		break;
-#endif
 
 #if WITH_TLS
 	case SET_TLS_CERT:
