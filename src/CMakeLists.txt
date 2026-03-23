@@ -97,9 +97,3 @@ INSTALL(FILES
 	${CMAKE_CURRENT_BINARY_DIR}/libafb-binder.pc
     DESTINATION
 	${CMAKE_INSTALL_LIBDIR}/pkgconfig)
-
-if(WITH_MONITORING)
-	file(GLOB monit_files ${CMAKE_CURRENT_SOURCE_DIR}/monitoring/*)
-	install(FILES ${monit_files}
-		DESTINATION ${MONITORING_INSTALL_DIR})
-endif()

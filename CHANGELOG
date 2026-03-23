@@ -5,6 +5,7 @@ Version ?????
  - Allows public export of rpc server imported APIs
  - Make DEVTOOL removable at compile time
  - Make options -M --monitor obsoletes (but kept ATM)
+ - Move monitoring in separate project
 
 Version 5.2.2
 -------------

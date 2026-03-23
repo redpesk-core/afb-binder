@@ -412,9 +412,6 @@ By default, the logging level is set as if the option
 
 ## Debugging
 
-*-M, --monitoring*
-	Enable HTTP monitoring at URL /monitoring
-
 *--traceapi* _VALUE_
 	Log internal api calls.
 	Commonly used values are: *none*, *common*, *api*, *event*, *all*.

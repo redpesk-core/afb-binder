@@ -43,7 +43,7 @@ option(PROVIDE_AFB_DAEMON         "Provide afb-daemon compatibility items" OFF)
 
 set(CONFDIR                ${CMAKE_INSTALL_FULL_SYSCONFDIR}/afb CACHE STRING "Path to system config directory")
 set(DATADIR                ${CMAKE_INSTALL_FULL_DATADIR}/afb-binder CACHE STRING "Path to datadir")
-set(MONITORING_INSTALL_DIR ${DATADIR}/monitoring CACHE STRING "Path to install monitoring")
+set(MONITORING_INSTALL_DIR ${CMAKE_INSTALL_FULL_DATADIR}/afb-monitoring CACHE STRING "Path to install monitoring")
 set(DEVTOOLS_INSTALL_DIR   ${CMAKE_INSTALL_FULL_DATADIR}/afb-ui-devtools/binder CACHE STRING "Path to devtools")
 set(WELL_KNOWN_DIR         well-known CACHE STRING "Path to well known directory")
 
