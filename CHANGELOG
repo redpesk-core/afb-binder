@@ -1,4 +1,4 @@
-Version ?????
+Version 5.3.0
 -------------
 
  - Fix uid+config in AfbBindingLoad of libafb-binder
