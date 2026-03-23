@@ -6,6 +6,7 @@ Version ?????
  - Make DEVTOOL removable at compile time
  - Make options -M --monitor obsoletes (but kept ATM)
  - Move monitoring in separate project
+ - Remove legacy afb-daemon files
 
 Version 5.2.2
 -------------

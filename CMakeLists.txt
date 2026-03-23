@@ -39,7 +39,6 @@ INCLUDE(GNUInstallDirs)
 option(WITH_MONITORING            "Activates integration of monitoring"    ON)
 option(WITH_DEVTOOLS              "Activates integration of devtools"      ON)
 option(WITH_EXTENSION             "Activates installation of extensions"   ON)
-option(PROVIDE_AFB_DAEMON         "Provide afb-daemon compatibility items" OFF)
 
 set(CONFDIR                ${CMAKE_INSTALL_FULL_SYSCONFDIR}/afb CACHE STRING "Path to system config directory")
 set(DATADIR                ${CMAKE_INSTALL_FULL_DATADIR}/afb-binder CACHE STRING "Path to datadir")
@@ -105,10 +104,6 @@ ADD_DEFINITIONS(
 
 add_subdirectory(src)
 add_subdirectory(docs)
-
-if(PROVIDE_AFB_DAEMON)
-	add_subdirectory(afb-daemon)
-endif()
 
 install(FILES afb-binder-prompt
         DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/bash-completion/completions")
