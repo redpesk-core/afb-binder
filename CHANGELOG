@@ -1,3 +1,8 @@
+Version 5.3.1
+-------------
+
+ - Fix compiling without supervision
+
 Version 5.3.0
 -------------
 

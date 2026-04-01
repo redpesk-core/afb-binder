@@ -124,8 +124,10 @@ typedef struct {
     /** global concurency setting */
     int noconcurency;
 
+#if WITH_SUPERVISION
     /** url of supervision */
     const char* supervision;
+#endif
 
     /** path of root directory */
     const char* rootdir;
@@ -1586,6 +1588,7 @@ const char* AfbBinderConfig (json_object *configJ, AfbBinderHandleT **handle, vo
         goto OnErrorExit;
     }
 
+#if WITH_SUPERVISION
     /* setup the supervision */
     if (binder->config.supervision) {
         status = afb_supervision_init(binder->privateApis, configJ);
@@ -1594,6 +1597,7 @@ const char* AfbBinderConfig (json_object *configJ, AfbBinderHandleT **handle, vo
             goto OnErrorExit;
         }
     }
+#endif
 
     /* steup tracing of request, api, event, session or global events */
     if (binder->config.trace.rqt) {
