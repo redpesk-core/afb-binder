@@ -11,48 +11,11 @@ because it allows two important things:
 
 ## Installing from packages
 
-IoT.bzh provides an SDK for some common linux distributions at the download URL
-
-    https://download.redpesk.bzh/redpesk-lts/{{ site.redpesk-os.latest }}/sdk/
-
-You must first add the repository to your list of repositories.
-
-Then you have to install the packages.
-
-### Add the sdk repository
-
-Add the repository to your list of repositories using this script:
+You can run the same command on a target runing a redpesk OS or in the [SDK container]({% chapter_link sdk-container-doc.overview %}) (development mode).
 
 ```bash
-# Retrieve the setup script and execute it
-wget -O - https://raw.githubusercontent.com/redpesk-devtools/redpesk-sdk-tools/master/install-redpesk-sdk.sh | bash
+dnf install afb-binder afb-client afb-binding-devel
 ```
-
-### Installing for Fedora:
-
-Install the packages
-
-    sudo dnf install afb-binder afb-client afb-binding-devel
-
-### Installing for open SUSE:
-
-Install the packages
-
-    sudo zypper in afb-binder afb-client afb-binding-devel
-
-### Installing on Debian 10
-
-Install the packages
-
-    sudo apt update
-    sudo apt install afb-binder afb-client afb-binding-dev
-
-### Installing on Ubuntu 20
-
-Install the packages
-
-    sudo apt update
-    sudo apt install afb-binder afb-client afb-binding-dev
 
 ## Installing from rebuild
 
@@ -69,16 +32,11 @@ Building from sources is done in 4 steps:
 
 ### Install dependencies
 
-The exact workflow for installing dependencies required for the build depends on
-your distribution. The procedure below applies on widely used distributions.
+When developing inside the SDK container, to install the build dependencies, run the following command:
 
-- For Fedora or open SUSE
-
-    dnf install json-c-devel systemd-devel readline-devel libmicrohttpd-devel file-devel cmake make gcc
-
-- For Debian or Ubuntu
-
-    apt install libjson-c-dev libsystemd-dev libreadline-dev libmicrohttpd-dev libmagic-dev cmake make gcc
+```bash
+dnf builddep afb-binder
+```
 
 ### Get the sources
 
