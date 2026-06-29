@@ -99,8 +99,6 @@ two main purposes, either together or separately:
 1. Entry point of user applications for using micro-services
 2. Interconnection of services together
 
-The interconnection of services together
-
 ## Bindings
 
 The bindings are dynamically loaded libraries that bring callable
