@@ -1,3 +1,9 @@
+Version ?
+-------------
+
+ - Use of rp-yaml-default-expand for reading configuration files
+   and for expanding configuration
+
 Version 5.3.1
 -------------
 
