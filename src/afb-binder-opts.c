@@ -38,6 +38,7 @@
 
 #include <rp-utils/rp-version.h>
 #include <rp-utils/rp-jsonc.h>
+#include <rp-utils/rp-yaml-default-expand.h>
 
 #if WITH_AFB_HOOK
 #include <libafb/core/afb-hook-flags.h>
@@ -45,7 +46,6 @@
 
 #include "afb-binder-defaults.h"
 #include "afb-binder-opts.h"
-#include "afb-binder-config.h"
 #include "afb-binder-utils.h"
 #include <libafb/extend/afb-extend.h>
 #include <libafb/misc/afb-verbose.h>
@@ -974,7 +974,8 @@ static error_t parsecb_initial(int key, char *value, struct argp_state *state)
 		break;
 #endif
 	case SET_CONFIG:
-		if (read_config_file(&conf, value) < 0) {
+		conf = NULL;
+		if (rp_yaml_default_expand(&conf, value, RP_YAMLEXP_ALL_ALL) < 0) {
 			LIBAFB_ERROR("Can't read config file %s", value);
 			exit(1);
 		}
@@ -1211,7 +1212,7 @@ int afb_binder_opts_parse_initial(int argc, char **argv, struct json_object **co
 	argp_program_version = version;
 	flags = ARGP_IN_ORDER | ARGP_SILENT;
 	argp_parse(&argp, argc, argv, flags, 0, *config);
-	return expand_config(config, 1);
+	return rp_yaml_default_expand(config, NULL, RP_YAMLEXP_ALL_ALL);
 }
 
 int afb_binder_opts_parse_final(int argc, char **argv, struct json_object **config)
@@ -1292,7 +1293,7 @@ int afb_binder_opts_parse_final(int argc, char **argv, struct json_object **conf
 	}
 	if (afb_verbose_wants(afb_Log_Level_Info) && !afb_verbose_wants(afb_Log_Level_Debug))
 		dump(*config, stderr, "--", "CONFIG");
-	rc = expand_config(config, 1);
+	rc = rp_yaml_default_expand(config, NULL, RP_YAMLEXP_ALL_ALL);
 	if (afb_verbose_wants(afb_Log_Level_Debug))
 		dump(*config, stderr, "--", "CONFIG");
 	if (data.dodump == 2) {

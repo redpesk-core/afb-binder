@@ -62,7 +62,6 @@ target_link_libraries(libafb-binder
 add_executable(afb-binder
 	main-afb-binder.c
 	afb-binder-opts.c
-	afb-binder-config.c
 	afb-binder-utils.c
 )
 
