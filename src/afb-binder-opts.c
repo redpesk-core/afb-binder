@@ -58,6 +58,9 @@
 #error "you should define AFB_BINDER_VERSION"
 #endif
 
+/* Set default exansion flags */
+#define EXPANDFLAGS RP_YAMLEXP_ALL_ALL
+
 // Define command line option
 #define SET_BACKGROUND       1
 #define SET_FOREGROUND       2
@@ -975,7 +978,7 @@ static error_t parsecb_initial(int key, char *value, struct argp_state *state)
 #endif
 	case SET_CONFIG:
 		conf = NULL;
-		if (rp_yaml_default_expand(&conf, value, RP_YAMLEXP_ALL_ALL) < 0) {
+		if (rp_yaml_default_expand(&conf, value, EXPANDFLAGS) < 0) {
 			LIBAFB_ERROR("Can't read config file %s", value);
 			exit(1);
 		}
@@ -1212,7 +1215,7 @@ int afb_binder_opts_parse_initial(int argc, char **argv, struct json_object **co
 	argp_program_version = version;
 	flags = ARGP_IN_ORDER | ARGP_SILENT;
 	argp_parse(&argp, argc, argv, flags, 0, *config);
-	return rp_yaml_default_expand(config, NULL, RP_YAMLEXP_ALL_ALL);
+	return rp_yaml_default_expand(config, NULL, EXPANDFLAGS);
 }
 
 int afb_binder_opts_parse_final(int argc, char **argv, struct json_object **config)
@@ -1293,7 +1296,7 @@ int afb_binder_opts_parse_final(int argc, char **argv, struct json_object **conf
 	}
 	if (afb_verbose_wants(afb_Log_Level_Info) && !afb_verbose_wants(afb_Log_Level_Debug))
 		dump(*config, stderr, "--", "CONFIG");
-	rc = rp_yaml_default_expand(config, NULL, RP_YAMLEXP_ALL_ALL);
+	rc = rp_yaml_default_expand(config, NULL, EXPANDFLAGS);
 	if (afb_verbose_wants(afb_Log_Level_Debug))
 		dump(*config, stderr, "--", "CONFIG");
 	if (data.dodump == 2) {
