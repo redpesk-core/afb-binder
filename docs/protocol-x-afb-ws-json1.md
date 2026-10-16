@@ -51,11 +51,11 @@ Where:
 
 | Field | Type   | Description
 |-------|--------|------------------
-| ID    | string | A string that identifies the call. A reply to that call use the ID of the CALL.
-| PROCN | string | The procedure name to call of the form "api/verb"
+| ID    | string | A string that identifies the call. A reply to that call uses the ID of the CALL.
+| PROCN | string | The procedure's name to call, in the form "api/verb"
 | ARGS  | any    | Any argument to pass to the call (see afb_req_json that returns it)
 | RESP  | any    | The response to the call
-| TOKEN | string | The authorisation token
+| TOKEN | string | The authorization token
 | EVTN  | string | Name of the event in the form "api/event"
 | OBJ   | any    | The companion object of the event
 

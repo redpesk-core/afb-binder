@@ -1,10 +1,10 @@
 # The library libafb-binder
 
-The library *libafb-binder* can be used to create programs that easily
-use *libafb* to integrate in AFB framework.
+The libafb-binder library makes it easy to develop applications that
+integrate with the AFB framework using libafb.
 
-The following libraries are known to integrate *libafb-binder* in order
-to offer AFB framework connection to widely used programming languages:
+The following libraries are known to integrate with *libafb-binder* in order
+to offer AFB framework connections to widely used programming languages:
 
 - *libafb-python*
 - *libafb-nodejs*
@@ -17,7 +17,7 @@ The below example shows a basic usage
 ```C
 #include <libafb-binder.h>
 /**
-* @brief create a binder instance from configuration and run it
+* @brief creates a binder instance from configuration and run it
 * @param config the configuration object
 * @return 1 in case of success or 0 in case of error
 */
@@ -34,68 +34,68 @@ int run_binder(json_object *config)
 ```
 
 As the main purpose of *libafb-binder* is to wrap complexity of libafb in a higher
-abstraction layer, the main settings is done through a structured configuration
+abstraction layer, the main settings are done through a structured configuration
 object whose internal representation is a *json_object* and whose external
 canonical representation can be JSON or YAML.
 
-The documentation below use the JSON representation to explain the expected
+The documentation below uses the JSON representation to explain the expected
 structure and content of the *json_object* used internally.
 
-The known libraries integrating *libafb-binder* are using native language
+The known libraries integrating with *libafb-binder* are using native language
 notations for setting their configuration. These representations must
-be converted to their equivalent *json_object*.
+be converted to their *json_object* equivalent .
 
-## Overview of API
+## Overview of the API
 
-The API is accessible through incuding `libafb-binder.h` header file.
-That header includes 2 other important headers: json-c and libafb/v4
+The API is accessible by including `libafb-binder.h` header file.
+This header includes 2 other important headers: json-c and libafb/v4
 
 ```C
 #include <json-c/json.h>
 #include <libafb/afb-v4.h>
 ```
 
-The library *libafb-binder* is intended to ease the use of *libafb*
-but as it use it internally, *libafb*, as imported in the header file
+The library *libafb-binder* is intended to ease the use of *libafb*,
+but as it uses it internally, *libafb*, as imported in the header file,
 can be used directly where needed.
 
 ### Binder instance
 
 The function `AfbBinderConfig` must be called to create a binder instance.
-That instance can then be used for loading bindings and adding API, verb
+This instance can then be used for loading bindings and adding API, verb
 and event handlers (or implementations).
 
 The binder instance is then either started to serve automatically,
 implementations living in callbacks, using `AfbBinderStart`, or,
-it is started using `AfbBinderEnter`, that start services, and the
+it is started using `AfbBinderEnter`, that starts services, and the
 scheduler is run by polling using `AfbPollRunJobs`. See [event loop](#event-loop)
 
 - **AfbBinderHandleT**: abstract type for handling binder instance
-- **AfbBinderConfig**: create a binder instance for the given config
-- **AfbBinderInfo**: get some configuration strings
+- **AfbBinderConfig**: creates a binder instance for the given config
+- **AfbBinderInfo**: gets some configuration strings
 - **AfbStartupCb**: type of callback functions for `AfbBinderStart` and `AfbBinderEnter`
-- **AfbBinderStart**: run the binder loop until `AfbBinderExit` is called
-- **AfbBinderExit**: leave the binder loop
-- **AfbBinderEnter**: start binder instance services
-- **AfbPollRunJobs**: run binder instance scheduler one time
+- **AfbBinderStart**: runs the binder loop until `AfbBinderExit` is called
+- **AfbBinderExit**: leaves the binder loop
+- **AfbBinderEnter**: starts binder instance services
+- **AfbPollRunJobs**: runs binder instance scheduler one time
 
 ### Setting items of the binder
 
 The binder instance is used to load bindings, handle events and creation of
 API and verbs. It provide configuration facilities on top of libafb.
 
-- **AfbBindingLoad**: load binding in binder instance
-- **AfbBinderGetApi**: get the global API
-- **AfbApiImport**: load external API in binder instance
-- **AfbApiCreate**: add an API in binder instance
-- **AfbAddOneVerb**: add a verb to an API in binder instance
-- **AfbAddVerbs**: add set of verbs to an API in binder instance
-- **AfbAddOneEvent**: add an event handler to an API in binder instance
+- **AfbBindingLoad**: loads a binding in binder instance
+- **AfbBinderGetApi**: gets the global API
+- **AfbApiImport**: loads an external API in binder instance
+- **AfbApiCreate**: adds an API in binder instance
+- **AfbAddOneVerb**: adds a verb to an API in binder instance
+- **AfbAddVerbs**: adds a set of verbs to an API in binder instance
+- **AfbAddOneEvent**: adds an event handler to an API in binder instance
 - **AfbAddEvents**: add events handler to an API in binder instance
 
 ### About magic
 
-- **AfbMagicTagE**: enumeration type grouping predefined values for identitfying items
+- **AfbMagicTagE**: enumeration type grouping predefined values for identifying items
 - **AfbMagicToString**: String representation of an AfbMagicTagE value
 
 ## Main configuration object
@@ -149,23 +149,23 @@ Here is the description of the configuration fields:
 - **info**:          a free text describing the configuration
 - **verbose**:       verbosity level (integer from 0 to 9, default is 0)
 - **timeout**:       global http timeout in seconds ( default is 32000000)
-- **noconcurrency**: prevent API concurency if true (boolean, default is false)
-- **port**:          http port number when 0 (default) no http service starts
+- **noconcurrency**: prevents API concurrency if true (boolean, default is false)
+- **port**:          http port number, when 0 (default) no http service starts
 - **roothttp**:      served directory for http (string, default is ".")
 - **rootapi**:       HTTP prefix for accessing APIs (string, default is "/api")
 - **rootdir**:       running directory (string, default is ".")
 - **https-cert**:    path to TLS's X509 certificate (string or null, default is null for no TLS)
 - **https-key**:     path to TLS's X509 private key (string or null, default is null for no TLS)
-- **alias**:         list of HTTP prefix for paths (string or array of string of structure "prefix:path")
+- **alias**:         list of HTTP prefixes for paths (string or array of string of structure "prefix:path")
 - **intf**:          listening HTTP interface (string or array of strings)
 - **extensions**,    configuration of extensions (object)
-- **ldpath**:        global list of directory for searching bindings (string or array of strings)
+- **ldpath**:        global list of directories for searching bindings (string or array of strings)
 - **acls**:          dictionary of access control (object, see [access control](#acls))
 - **thread-pool**:   initial thread pool size (integer, default is 0). Note than standard operations: verb,event,timer,...
                      do not extend thread pool. When needed they are pushed on waiting queue.
-- **thread-max**:    autoclean thread pool when bigger than max (may temporary get bigger), (integer, default is 1)
-- **trapfaults**:    prevent handling faults when debugging (boolean, default is false)
-- **set**:           object for setting configurations per API
+- **thread-max**:    automatically cleans thread pool when bigger than max (may temporarily get bigger), (integer, default is 1)
+- **trapfaults**:    prevents handling faults when debugging (boolean, default is false)
+- **set**:           object for setting configurations on a per API basis
 
 
 ## Binding configuration object
@@ -204,7 +204,7 @@ Here is the description of the configuration fields:
 The API configuration object is passed to functions `AfbApiImport` or `AfbApiCreate`.
 
 AFB microservice architecture allows to import external APIs in the context
-of the binder instance. This mechanism make an external API(s) visible from
+of the binder instance. This mechanism makes external APIs visible from
 inside a binder as if it was existing locally. This is achieved by
 function `AfbApiImport`.
 
@@ -222,14 +222,14 @@ Here is a typical JSON configuration when importing a foreign API.
 }
 ```
 
-API can also be created in the binder instance to implement a
-local API in the way decided by the integrator. In that case,
+APIs can also be created in the binder instance to implement a
+local API in a way decided by the integrator. In this case,
 the function `AfbApiCreate` must be used.
 
 Both functions are taking an API configuration object but
-some of the fields are specific to one functions, not both.
+some of the fields are specific to one function.
 
-All the fields are optionals except *uid*.
+All the fields are optional except *uid*.
 
 Here is the description of the common configuration fields:
 
@@ -242,14 +242,14 @@ Here is the description of the common configuration fields:
 
 Fields for `AfbApiImport` only are:
 
-- **lazy**: prevent connection at start (boolean, default is false)
+- **lazy**: prevents connection at startup (boolean, default is false)
 
 Fields for `AfbApiCreate` only are:
 
-- **alias**: list of HTTP prefix for paths (string or array of string of structure "prefix:path")
+- **alias**: list of HTTP prefixes for paths (string or array of string of structure "prefix:path")
 - **require**: comma separated list of required classes (string)
 - **provide**: comma separated list of provided classes (string)
-- **noconcurrency**: prevent API concurrency if true (boolean, default is set globally)
+- **noconcurrency**: prevents API concurrency if true (boolean, default is set globally)
 - **verbs**: verb or list of verbs to add to the API (object or array of objects, see [verb config](#verb)).
 - **events**: event or list of events to handle at the API (object or array of objects, see [event config](#event)).
 
@@ -269,7 +269,7 @@ then a default *do nothing* `info` verb is automatically added.
 Verbs are created by the functions `AfbApiCreate`, `AfbAddOneVerb` and `AfbAddVerbs`
 that are all wrapping the function `afb_api_v4_add_verb_hookable`.
 
-All the fields are optionals but either *uid* or *verb* must have a value.
+All the fields are optional but either *uid* or *verb* must have a value.
 
 Here is the description of the configuration fields:
 
@@ -278,7 +278,7 @@ Here is the description of the configuration fields:
 - **info**: a free text describing the verb (string)
 - **auth**: id of the permission required (string, default is *no permission required*)
 - **session**: flag for handling session (integer, default is zero, see [session](#session))
-- **regex**: tell if the name is a global pattern (boolean, default is false)
+- **regex**: tells if the name is a global pattern (boolean, default is false)
 
 
 <div id="event"></div>
@@ -295,7 +295,7 @@ the function `afb_api_v4_event_handler_add_hookable`.
 }
 ```
 
-All the fields are optionals except *uid*.
+All the fields are optional except *uid*.
 
 Here is the description of the configuration fields:
 
@@ -306,21 +306,21 @@ Here is the description of the configuration fields:
 
 ## Exportation
 
-All local API have access to all imported or created API.
+All local APIs have access to all imported or created APIs.
 But APIs are exported to the external world according to
-*export* mode as set in the configuration.
+*export* mode, as set in the configuration.
 
-The values possible for *export* are:
+The possible values for *export* are:
 
-- **public**: binding api(s) is visible from HTTP and exportable as unix domain socket
-- **restricted**: binding api(s) is exportable only as a unix domain socket
-- **private**: all binding api(s) are visible for internal subcall only
+- **public**: binding APIs are visible from HTTP and exportable as unix domain socket
+- **restricted**: binding APIs are exportable only as a unix domain socket
+- **private**: all binding APIs are visible for internal subcall only
 
 <div id="pattern"></div>
 
 ## Patterns
 
-Patterns are global expressions, it treats the character `*` as the replacement
+Patterns are global expressions, they treat the character `*` as the replacement
 of any sequence (even empty) of any characters. Examples:
 
 - the pattern `super` only matches the string `super`
@@ -333,10 +333,10 @@ of any sequence (even empty) of any characters. Examples:
 
 The definition of access control is made globally.
 Each definition is associated to a key.
-Then definitions of verbs can point the permissions
-it requires using the key.
+Then definitions of verbs can point to the permissions
+they require using the key.
 
-Here is an example defining 3 accesses keys: *rw*, *ro* and *zip*:
+Here is an example defining 3 access keys: *rw*, *ro* and *zip*:
 ```json
 {
         "rw": "urn:redpesk:permission::read-write",
@@ -350,36 +350,36 @@ Here is an example defining 3 accesses keys: *rw*, *ro* and *zip*:
 }
 ```
 
-Definition is made of a dictionary identifying the permissions.
-The definition of a permission is either: a string, an array
+The definition is made with a dictionary identifying the permissions.
+The definition of a permission is either a string, an array
 or an object.
 
-When the specification is a string, its meaning depends of
-of its first character.
+When the specification is a string, its meaning depends on
+its first character.
 
-When the first character is not the sharp symbol,
+When the first character is not the hash symbol `#`,
 the string is the required permission.
 
-When the first character is the sharp symbol `#`, it is
-an internal reference to an access control definition (on the
+When the first character is the hash symbol `#`, it is
+an internal reference to an access control definition (in the
 example above, `#rw` is the reference to the access requiring
 the permission `urn:redpesk:permission::read-write`).
 
 When the specification is an array, like in `[ ... ]`,
 it is a shorthand for writing the object `{ "AllOf": [ ... ] }`,
-meaning that all access control of the list must be satisfied.
+meaning that all access controls of the list must be satisfied.
 
 When the specification is an object, it specifies one of the
-following requirement:
+following requirements:
 
-- requires that an access token
-- requires that a level of assurancy (LOA)
+- requires an access token
+- requires a level of assurancy (LOA)
 - requires that an access is not granted
 - requires that at least one access of a list is granted
 - requires that all accesses of a list are granted
 
-Valid objects can contain multiple entries. In that case all the
-entries are implicitely anded, meaning, all must be granted.
+Valid objects can contain multiple entries. In this case all the
+entries are implicitly and-ed, meaning, all must be granted.
 
 The valid keys are:
 
@@ -412,11 +412,11 @@ Any other key is raising an error.
 
 ## Defining sessions
 
-When defining verbs, it is possible to attach to each verb
-a session requirement value.
+When defining verbs, it is possible to attach a session requirement
+value to each of them.
 
 
-That value is a mask of bits defined as below:
+This value is a mask of bits defined as below:
 
 ```
 
@@ -442,7 +442,7 @@ a LOA of 1 at least.
 
 ## URI for import and export
 
-When importing or exporting API using sockets, the *uri*
+When importing or exporting APIs using sockets, the *uri*
 describes what kind of socket, how and where to connect.
 
 The *uri* follows the grammar below:
@@ -459,49 +459,49 @@ The *uri* follows the grammar below:
  renaming  = "?as-api=" any-name
  unix-spec = unix-abs | path
  unix-abs  = "@" ANY SEQUENCE OF CHARACTER
- path      = A PATH ABSOLUTE OR RELATIVE
+ path      = A PATH, ABSOLUTE OR RELATIVE
  api-name  = ANY SEQUENCE OF CHARACTER WITHOUT "/"
  any-name  = ANY SEQUENCE OF CHARACTER
 ```
 
-The renaming is an easy way to change the name of API
-across import/export.
+The renaming is an easy way to change the name of APIs
+during import/export.
 
 ## URI of type "tcp:"
 
-Uris of type "tcp:" are connecting using TCP sockets
+URIs of type "tcp:" are connecting using TCP sockets
 to or from a host and port.
 
-The host can be specified by its name or its IP address or for
-exporting server socket with the star `*` meaning any address.
+The host can be specified by its name or its IP address or, for
+exporting server socket, with the star `*` meaning any address.
 
 The port can be specified using a number or the name of a service.
 
-Without renaming, the API is named after the last slash folowing the port.
+Without renaming, the API is named after the last slash following the port.
 It is either the name of the exported API or the imported name.
 
 ## URI of type "sd:"
 
-Uris of type "sd:" are connecting using socket opened using systemd
+URIs of type "sd:" are connecting using sockets opened using systemd
 socket activation method. It is only suitable for server sockets.
 
 Without renaming, the name of the API is deduced from the name using its last part.
 
 ## URI of type "unix:"
 
-Uris of type "unix:" are connecting using unix domain sockets.
+URIs of type "unix:" are connecting using unix domain sockets.
 
-If the unix spec starts witn an arobase `@`, the socket is abstract
+If the unix spec starts with an at sign `@`, the socket is abstract
 and doesn't have a path in the filesystem. Otherwise, the socket
 is present in the file system and the spec is the path of that socket.
 
 Without renaming, the name of the API is deduced from the name using its last part,
-removing the starting @ if necessary.
+removing the starting `@` if necessary.
 
 ## URI of type "char:"
 
-Uris of type "char:" are connecting using a pipe or a character device.
-This is only possible for client API (import).
+URIs of type "char:" are connecting using a pipe or a character device.
+This is only possible for client APIs (import).
 
 Without renaming, the name of the API is deduced from the path using its last part.
 
@@ -511,13 +511,13 @@ Without renaming, the name of the API is deduced from the path using its last pa
 ## Integration with an event loop
 
 When not using AFB mainloop, `AfbBinderEnter` replaces `AfbBinderStart`.
-Fonctionnaly both functions do the same thing, except that `AfbBinderEnter`
-does not enter AFB mainloop, but expect the user to process AFB events/jobs
+Functionally, both functions do the same thing, except that `AfbBinderEnter`
+does not enter AFB mainloop, but expects the user to process AFB events/jobs
 from its own mainloop.
 
 Callback `AfbPollRunJobs` should be called each time AFB has waiting jobs
 in its pool. A typical example is the interface with *NodeJS* that uses
-*libuv* mainloop as in following code snipet.
+*libuv* mainloop as in following code snippet.
 
 ```C
 // Map LibUV mainloop event callback onto LibAfb signature
@@ -528,11 +528,11 @@ static void GlueOnPoolUvCb(uv_poll_t* handle, int status, int events) {
 int MyInitFunction() {
   int afbfd, statusN, statusU;
 
-  // retreive libafb jobs epool file handle
+  // retrieve libafb jobs epool file handle
   afbfd = afb_ev_mgr_get_fd();
   if (afbfd < 0) goto OnErrorExit;
 
-  // retreive nodejs libuv jobs file loop handle
+  // retrieve nodejs libuv jobs file loop handle
   statusN = napi_get_uv_event_loop(env, &loopU);
   if (statusN != napi_ok) goto OnErrorExit;
 

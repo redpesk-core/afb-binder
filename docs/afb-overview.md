@@ -1,7 +1,7 @@
 # Binder Overview
 
 The ***binder*** provides the way to connect applications to
-the services that it needs.
+the services that they needs.
 
 It provides a fast way to securely offer APIs to applications
 written in any language and running almost anywhere.
@@ -12,10 +12,10 @@ written in any language and running almost anywhere.
 - The binary is named **afb-binder**.
 - The name **afb-binder** stands for ***Application Framework Binder***.
 
-Each ***binder*** is in charge to bind one instance of  an application or
-service to the rest of the system, applications and services.
+Each ***binder*** is in charge of binding one instance of an application or
+a service to the rest of the system, applications and services.
 
-Within Redpesk, the connection between services and applications 
+Within redpesk, the connection between services and applications 
 is automatically set up by the
 [application framework]({% chapter_link application-framework.introduction %}),
 using the binder.
@@ -27,13 +27,13 @@ The following figure shows main concepts linked to the ***binder***.
 <a id="fig-binder-basis"></a>
 ![Figure: binder basis](pictures/basis.svg)
 
-The shown elements are:
+The displayed elements are:
 
 - The SECURITY CONTEXT
 
   The primary intention of any ***binder*** is to provide
   a secured environment for any application.  
-  On redpesk, the **security context** is ensured by [Smack],
+  In redpesk, the **security context** is ensured by [Smack],
   the security context of the application or service.
 
 - The BINDER
@@ -56,13 +56,14 @@ The shown elements are:
   ***bindings*** are either:
 
   - dynamically loaded libraries in the ***binder*** process
-  - remote service running on the same host
-  - remote service running on other hosts
+  - remote services running on the same host
+  - remote services running on other hosts
 
   When acting as an HTTP server, the binder treats the language
   settings of the HTTP requests to provide internationalized
   content as specified by
   [widget specifications](https://www.w3.org/TR/widgets/#internationalization-and-localization).
+
 - The APPLICATION
 
   An ***application*** connects to the binder to get access to
@@ -81,17 +82,17 @@ The figure below shows that ***binders*** are interconnected.
 <a id="fig-binder-interconnection"></a>
 ![Figure: binder interconnection](pictures/interconnection.svg)
 
-The figure shows 4 several **application/service**: **A**, **B**,
+The figure shows 4 **applications/services**: **A**, **B**,
 **C** and **D**.
 
-The application **A** might use an **API** that is shown as a
+Application **A** may use an **API** that is shown as a
 local ***binding*** but that in reality runs within the context
-of **D**.
+of application **D**.
 
 The [application framework]({% chapter_link application-framework.introduction %})
-of Redpesk takes care of making the plumbing working.
+of redpesk takes care of making the interconnection.
 
-## Role of binders in micro service architecture
+## Role of binders in micro-service architecture
 
 Inside the redpesk micro-service architecture, the binder is used for
 two main purposes, either together or separately:
@@ -103,4 +104,4 @@ two main purposes, either together or separately:
 
 The bindings are dynamically loaded libraries that bring callable
 APIs to the binder. The API brought by bindings can be exported
-to other bindings 
+to other bindings.

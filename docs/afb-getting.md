@@ -2,8 +2,8 @@
 
 The binder is installed by default on all redpesk distributions.
 
-It is valuable to install the binder *afb-binder*, its simple client *afb-client*
-and the headers for developing bindings *afb-binding* on its development environment,
+It is valuable to install the binder *afb-binder*, its simple client *afb-client*,
+and the headers for developing bindings *afb-binding* in its development environment,
 because it allows two important things:
 
 - communication with redpesk services
@@ -11,10 +11,10 @@ because it allows two important things:
 
 ## Installing from packages
 
-You can run the same command on a target runing a redpesk OS or in the [SDK container]({% chapter_link sdk-container-doc.overview %}) (development mode).
+You can execute the same command on a target running a redpesk OS or in the [SDK container]({% chapter_link sdk-container-doc.overview %}) (development mode).
 
 ```bash
-dnf install afb-binder afb-client afb-binding-devel
+sudo dnf install afb-binder afb-client afb-binding-devel
 ```
 
 ## Installing from rebuild
@@ -32,10 +32,10 @@ Building from sources is done in 4 steps:
 
 ### Install dependencies
 
-When developing inside the SDK container, to install the build dependencies, run the following command:
+When developing inside the SDK container, install the build dependencies by running command:
 
 ```bash
-dnf builddep afb-binder
+sudo dnf builddep afb-binder
 ```
 
 ### Get the sources
@@ -57,8 +57,8 @@ It can be achieved as below:
 ### Compile and install
 
 Before compiling you have to choose the base directory where you want to
-install the programs and development files. That directory is noted PREFIX.
-The common values of PREFIX are:
+install the programs and development files. This directory is named PREFIX.
+The common values for PREFIX are:
 
 - /usr
 - /usr/local
@@ -81,5 +81,5 @@ Then to compile the whole set, enter the following commands:
     afb-binder/mkbuild.sh install
     afb-client/mkbuild.sh install
 
-It is done!
+Done!
 

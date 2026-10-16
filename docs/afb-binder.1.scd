@@ -1,4 +1,4 @@
-afb-binder(1)	"Redpesk OS"
+afb-binder(1)	"redpesk OS"
 
 # NAME
 
@@ -19,21 +19,21 @@ The program *afb-binder*, often called the *binder*, has 3 main purposes:
 *Bindings* are shared object libraries dynamically loaded by the binder.
 These bindings when loaded are declaring *API*(s) that they provide.
 
-API stands fo *A*pplication *P*rogrammer *I*nterface. In the context
+API stands for *A*pplication *P*rogrammer *I*nterface. In the context
 of *afb-binder*, it represents a set of procedures linked to a same service.
 
 An *API* groups named entries called *verbs*. A verb is a callable endpoint,
-a procedure for short: it receives data, process it, return a result.
+a procedure for short: it receives data, processes it and returns a result.
 
-The program *afb-binder* ensure the security context for these API and verbs.
-It tracks identity of callers and checks there rights and capabilities
+The program *afb-binder* ensures the security context for these API and verbs.
+It tracks identity of callers and checks their rights and capabilities
 against the statically declared policy attached to verbs.
 
 It provides the transport mechanism to connect instances of *afb-binder*,
-allowing one instance to call verbs of an other instance, providing an
+allowing one instance to call verbs of another instance, providing an
 invisible RPC (Remote Procedure Call) secured framework for free.
 
-*afb-binder* also easy export of callable verbs to HTML5 applications.
+*afb-binder* also enables easy export of callable verbs to HTML5 applications.
 But not only because it allows to build rich HTML5 applications by
 providing a simple but powerful HTTP server.
 
@@ -46,16 +46,16 @@ to client sessions indexed using a unique session identifier.
 ## Running
 
 *--background*
-	Turn to run in background mode (synonym of *--daemon*)
+	Asks to run in background mode (synonym of *--daemon*)
 
 *--call* _CALLSPEC_
-	Call a verb at start. This option can be repeated.
+	Calls a verb at start. This option can be repeated.
 	
 	The format of _CALLSPEC_ is *API/VERB:JSONARG*.
 
-	The effect is to cal the *VERB* of the *API* with
+	The effect is to call the *VERB* of the *API* with
 	the JSON value *JSONARG* as argument.
-	This call is made after initialisation and before
+	This call is made after initialization and before
 	starting to serve.
 
 	Example: --call 'monitor/set:{"verbosity":{"api":"debug"}}'
@@ -65,7 +65,7 @@ to client sessions indexed using a unique session identifier.
 	\[default 32000000 (means 370 days)]
 
 *-D, --daemon*
-	Turn to run in background mode (synonym of *--background*)
+	Asks to run in background mode (synonym of *--background*)
 
 *-e, --exec* _COMMAND AND ARGS..._
 	Execute the remaining arguments
@@ -80,10 +80,10 @@ to client sessions indexed using a unique session identifier.
 	the _port_ (see *--port*) and _@_.
 
 *--foreground*
-	Turn to run in forground mode (this is the default mode)
+	Asks to run in foreground mode (this is the default mode)
 
 *-j, --jobs-max* _VALUE_
-	Maximum count of jobs that can be queued.
+	Maximum number of jobs that can be queued.
 	Value must be a positive integer.
 
 *-n, --name* _NAME_
@@ -91,7 +91,7 @@ to client sessions indexed using a unique session identifier.
 	Also set the environment variable *AFB_NAME*.
 
 *--session-max* _COUNT_
-	Max count of simultaneous sessions.
+	Max number of simultaneous sessions.
 	Value must be a positive integer.
 
 *-o, --output* _FILENAME_
@@ -102,7 +102,7 @@ to client sessions indexed using a unique session identifier.
 	Number of threads to start at the beginning.
 
 *-t, --threads-max* _VALUE_
-	Maximum count of parallel threads held on.
+	Maximum number of parallel threads held on.
 	Value must be a positive integer.
 
 *-u, --uuid* _UUID_
@@ -120,58 +120,58 @@ to client sessions indexed using a unique session identifier.
 *-w, --workdir* _DIRECTORY_
 	Set the working directory.
 	The working directory is the default directory of the program.
-	By default, don't change of directory and use the current one.
+	Uses the current directory by default.
 
 
 ## Http service
 
 *--alias* _ALIAS_
-	Install an HTTP alias for a specific directory.
+	Installs an HTTP alias for a specific directory.
 	This option can be repeated.
 
 	The syntax is *--alias=/PREF:DIR* where */PREF* is an absolute
-	path (starting with a /) and *DIR* is either and absolute path
+	path (starting with a /) and *DIR* is either an absolute path
 	or a path relative to the rootdir.
 
 	The effect is that HTTP requests to URL of path */PREF/subpath*
-	served by files of *subpath* within the directory *DIR*.
+	are served by files of *subpath* within the directory *DIR*.
 
 	Example: --alias=/icons:/usr/share/icons maps the
 	content of /usr/share/icons within the subpath /icons.
 
 *--cache-eol* _TIMEOUT_
-	Client cache end of live in seconds
+	Client cache end of life in seconds.
 	\[default 100000 (means 27 hours)]
 
 *--https*
-	Activates HTTPS
+	Activates HTTPS.
 
 *--https-cert* _FILE_
 	Path to the file containing the certificate in PEM
-	format to use for serving HTTPS
+	format to use for serving HTTPS.
 
 *--https-key* _FILE_
 	Path to the file containing the private key in PEM
-	format to use for serving HTTPS
+	format to use for serving HTTPS.
 
 *-i, --interface* _INTERFACE_
-	Add HTTP listening interface.
+	Adds HTTP listening interface.
 	The format is *SERVICE:HOST:PORT*.
 	(ex: tcp:localhost:8080)
 
 *--no-httpd*
-	Forbid HTTP service: no file served and no API through
+	Forbids HTTP service: no file served and no API through
 	websockets.
 
 *-p, --port* _PORT_
 	HTTP listening TCP port.
 	The default value is 1234.
 	Setting the option *--port=4545* is equivalent to set
-	option *--interface=tcp:0.0.0.0:4545* that listen to
+	option *--interface=tcp:0.0.0.0:4545* that listens to
 	any interface at port 4545.
 
 *--rootapi* _PATH_
-	HTTP Root API URL [default /api]
+	HTTP Root API URL [default /api].
 
 *--rootbase* _PATH_
 	Angular Base Root URL [default /opa].
@@ -201,14 +201,14 @@ to client sessions indexed using a unique session identifier.
 ## Bindings and APIs
 
 *--apitimeout* _TIMEOUT_
-	Binding API timeout in seconds [default 20]
+	Binding API timeout in seconds [default 20].
 
-	Defines how many seconds maximum a verb is allowed to run
+	Defines for how many seconds a verb is allowed to run
 	before raising an error. 0 means no limit.
 
 *-A, --auto-api* _DIRECTORY_
 	Automatic activation of APIs found in the given _DIRECTORY_ when
-	an API api is missing.
+	an API is missing.
 
 	Since afb-binder 5.0.3, _DIRECTORY_ can be prefixed with an
 	exportation specification. See discussion on EXPORT.
@@ -228,18 +228,18 @@ to client sessions indexed using a unique session identifier.
 
 	Where:
 
-	- *PATH* is the path path to the library implementing the binding
-	- *EXPORT* (since 5.0.3, optional) tells how to export APIs of the
+	- *PATH* is the path to the library implementing the binding
+	- *EXPORT* (optional since 5.0.3) tells how to export APIs of the
 	  binder, see discussion on EXPORT
 	- *CONFIG* (optional) is the path to a file holding configuration
 	  data for the binding
 	- *UID* (optional) if given, its value can be read by the binding for its
-	  setting up (example: use one config for N specialization
+	  setup (example: use one config for N specialization
 	  selected by UID value)
 
 *--ldpaths* _PATHSET_
 	Load bindings found from paths given in _PATHSET_,
-	separated by colons. Path to files must point bindings.
+	separated by colons. Paths to files must point bindings.
 	Path to directories are scanned recursively to discover
 	bindings.
 	
@@ -251,21 +251,21 @@ to client sessions indexed using a unique session identifier.
 	The bindings are the files terminated by '.so' (the extension
 	so denotes shared object) that contain the public entry symbol.
 
-	If any found binding fails to load, *afb-binder* will report
+	If any of the found bindings fails to load, *afb-binder* will report
 	the error and stop.
 
 	Since afb-binder 5.0.3, _PATHSET_ can be prefixed with an
 	exportation specification. See discussion on EXPORT.
 
 *--weak-ldpaths* _PATHSET_
-	Same as *--ldpaths* but if a binding fails to load, an error
-	is reported but *afb-binder* will continue instead of stopping.
+	Same as *--ldpaths*: if a binding fails to load, an error
+	is reported, but *afb-binder* will continue instead of stopping.
 
 	Since afb-binder 5.0.3, _PATHSET_ can be prefixed with an
 	exportation specification. See discussion on EXPORT.
 
 *--ws-client* _SOCKSPEC_
-	Bind an external API through WSAPI connection.
+	Binds an external API through a WSAPI connection.
 
 	See discussion on WS/RPC-API.
 
@@ -273,16 +273,16 @@ to client sessions indexed using a unique session identifier.
 	exportation specification. See discussion on EXPORT.
 
 *--ws-server* _SOCKSPEC_
-	Provide (Export) an API through WSAPI connection.
+	Provides (Exports) an API through a WSAPI connection.
 
 	See discussion on WS/RPC-API.
 
 *--ws-maxlen* _LENGTH_
-	Set the maximum length of a websocket packet
+	Sets the maximum length of a websocket packet.
 
 
 *--rpc-client* _SOCKSPEC_
-	Bind an external API through RPCAPI connection.
+	Binds an external API through an RPCAPI connection.
 
 	See discussion on WS/RPC-API.
 
@@ -290,7 +290,7 @@ to client sessions indexed using a unique session identifier.
 	exportation specification. See discussion on EXPORT.
 
 *--rpc-server* _SOCKSPEC_
-	Provide (Export) an API through RPCAPI connection.
+	Provides (Exports) an API through a RPCAPI connection.
 
 	See discussion on WS/RPC-API.
 
@@ -298,26 +298,26 @@ to client sessions indexed using a unique session identifier.
 ## TLS
 
 *--tls-cert* _FILENAME_
-	Set the global certificat for all TLS connections. The certificate
-	can be in DER or PEM form. If used for https, it must
+	Sets the global certificate for all TLS connections. The certificate
+	can be in DER or PEM format. If used for https, it must
 	be in PEM form.
 
 *--tls-key* _FILENAME_
-	Set the global private key for TLS server connections. The key file
-	can be in DER or PEM form, but, if used for https, it must
+	Sets the global private key for TLS server connections. The key file
+	can be in DER or PEM format. If used for https, it must
 	be in PEM form.
 
 *--tls-trust* _PATH_
-	Add a trusted root certificate if file or the trusted root certificates
-	of the directory. Can be in PEM or DER form.
+	Adds a trusted root certificate if pointing to a file, or the trusted
+	root certificates of the directory. Can be in PEM or DER format.
 
 ## Extensions
 
 *-x, --extension* _FILENAME_
-	Load the extension of path _FILENAME_.
+	Loads the extension of path _FILENAME_.
 
 *-X, --extpaths* _PATHSET_
-	Load extensions from dir1:dir2:...
+	Loads extensions from dir1:dir2:...
 
 	The format is *--extpaths=dir1:dir2:...* where directories
 	are separated by colons.
@@ -329,33 +329,33 @@ to client sessions indexed using a unique session identifier.
 ## Configuration
 
 *-C, --config* _FILENAME_
-	Load options from the given config file.
+	Loads options from the given config file.
 
-	The loaded options are loaded early in the process of scanning options.
-	Then if later options are set, it overrides the options loaded from the
+	The options are loaded early in the process of scanning options.
+	Then if options are set later, they override the options loaded from the
 	file.
 
-	This option can be repeated. The differents configuration files loaded
-	complete one an other if not overlapping. Otherwise, the effect
+	This option can be repeated. The different configuration files loaded
+	complete each other if not overlapping. Otherwise, the effect
 	depends on the value of the parameter. Arrays and dictionaries are
 	merged but integral values are replaced.
 
 	See discussion below.
 
 *-s, --set* _VALUE_
-	Set parameters values for APIs.
+	Sets parameters values for APIs.
 	The value can be of the form *[API]/[KEY]:JSON*
 	or *{"API":{"KEY":JSON},...}*
 
 	See discussion below.
 
 *-Z, --dump-config*
-	Output before expansion a JSON representation of the configuration
+	Outputs, before expansion, a JSON representation of the configuration
 	resulting from environment and options.
 	Then exits.
 
 *-z, --dump-final-config*
-	Output after expansion a JSON representation of the configuration
+	Outputs, after expansion, a JSON representation of the configuration
 	resulting from environment and options.
 	Then exits.
 
@@ -363,16 +363,16 @@ to client sessions indexed using a unique session identifier.
 ## Verbosity and log
 
 These options control the logging output of the binder.
-By default, the logging level is set as if the option
+By default, the logging level is set as if the options
 *--log=error,warning* were entered.
 
 *-c, --color*
-	Enforce colorization of the output
+	Enforces colorization of the output
 
 *-l, --log* _LOGSPEC_
-	Tune log level
+	Tunes log level
 
-	Tune the log level mask. The levels are:
+	Tunes the log level mask. The levels are:
 
 	- error
 	- warning
@@ -386,7 +386,7 @@ By default, the logging level is set as if the option
 	- - for removing
 	- @ for setting until
 
-	When no prefix is given at first, all is removed before
+	When no prefix is given at first, everything is removed before
 	adding log levels as if + where specified.
 
 [[ *Examples*
@@ -396,7 +396,7 @@ By default, the logging level is set as if the option
 |  +debug
 :  adds level debug to the current verbosity
 |  -warning
-:  remove the level warning from the current verbosity
+:  removes the level warning from the current verbosity
 |  +warning-debug,info
 :  Adds warning and removes debug and info
 |  @warning
@@ -413,32 +413,32 @@ By default, the logging level is set as if the option
 ## Debugging
 
 *--traceapi* _VALUE_
-	Log internal api calls.
+	Logs internal api calls.
 	Commonly used values are: *none*, *common*, *api*, *event*, *all*.
 
 *--traceevt* _VALUE_
-	Log internal event calls.
+	Logs internal event calls.
 	Commonly used values are: *none*, *common*, *extra*, *all*
 
 *--traceglob* _VALUE_
-	Log internal global calls.
+	Logs internal global calls.
 	Commonly used values are: *none*, *all*
 
 *--tracereq* _VALUE_
-	Log internal request calls.
+	Logs internal request calls.
 	Commonly used values are: *none*, *common*, *extra*, *all*
 
 *--traceses* _VALUE_
-	Log internal session calls.
+	Logs internal session calls.
 	Commonly used values are: *none*, *all*
 
 *--trap-faults* _VALUE_
-	Indicates that faults are to be trapped or not.
+	Indicates if faults are to be trapped or not.
 	_VALUE_ can be  *on*, *off*, *yes*, *no*, *true* (default), *false*, *1* or *0*
 
 	The default is to trap faults (SIGSEGV, SIGABRT, SIGFPE) and
 	to try to recover.
-	But it could be difficult to debug and recover is sometimes hazardous.
+	But it could be difficult to debug, and recover is sometimes hazardous.
 
 *-F, --fail*
 	Shortcut for *--trap-faults=no*
@@ -450,24 +450,24 @@ By default, the logging level is set as if the option
 	Prints help with available options
 
 *--usage*
-	Give a short usage message
+	Gives a short usage message
 
 *-V, --version*
-	Print program version and copyright
+	Prints program version and copyright
 
 
 # ENVIRONMENT
 
 Environment variables can be used to set some options or behaviours.
 Also, the binder defines some variables that can be used by loaded
-bindings or chilren programs.
+bindings or children programs.
 
 ## Variables for setting options
 
 These environment variables are giving a value to their corresponding
-option. For some of it, giving the option in the command line
-override the value of the environment variable, while for some other,
-giving the option on the command line extend the list of values for
+option. For some of them, giving the option in the command line
+overrides the value of the environment variable, while for some others,
+giving the option on the command line extends the list of values for
 the option.
 
 [[ *variable*
@@ -537,15 +537,15 @@ These variables are checked by the binder on start.
 They have no option counter part.
 
 *AFB_BINDER_WELL_KNOWN_DIR*
-	Set an alternate well-known directory. More or less equivalent
+	Sets an alternate well-known directory. More or less equivalent
 	to the option *--alias=/.well-known:${AFB_BINDER_WELL_KNOWN_DIR}*
 
 *AFB_BINDER_DOWNLOAD_DIR*
-	Set an alternate download directory. More or less equivalent
+	Sets an alternate download directory. More or less equivalent
 	to the option *--alias=/download:${AFB_BINDER_DOWNLOAD_DIR}*
 
 *AFB_HTTPS_PREFIX*
-	Directory where are searched the https key and certificate.
+	Directory where the https key and certificate are looked for.
 	Default is /etc/afb/.https
 
 ## Variables defined by the binder
@@ -554,7 +554,7 @@ These variables are defined by the binder and can be used by
 bindings and children processes.
 
 *AFB_PORT*
-	Export the listening HTTP port of the binder.
+	Exports the listening HTTP port of the binder.
 
 *AFB_WORKDIR*
 	The workdir of the binder.
@@ -572,7 +572,7 @@ bindings and children processes.
 
 The option *--config* can be used instead of arguments on the command line.
 
-That option accepts a filename that is read. The read options are not taking
+This option accepts a filename that is read. The read options are not taking
 precedence over options given in the command line.
 
 The files terminated by the extensions `.json` or `.jso` are supposed to be
@@ -599,7 +599,7 @@ is equivalent to:
 	afb-binder --config /home/15646/config1
 ```
 
-when the file **/home/15646/config1** is:
+where the content of file **/home/15646/config1** is:
 
 ```
 	{
@@ -622,11 +622,11 @@ when the file **/home/15646/config1** is:
 ```
 
 The option *--config* can be repeated. In that case, the loaded configuration files
-are fragment of configuration that complete one an other if not overlapping.
+are fragments of configuration that complete each other if not overlapping.
 
-If values of frament are overlapping, the effect depends on the value of the
+If values of fragments are overlapping, the effect depends on the value of the
 parameters and on the order of the options. Arrays and dictionaries are
-merged but integral values are replaced, the latest replacing the previous.
+merged but integral values are replaced, the latest replacing the previous one.
 
 ## Configuration of APIs
 
@@ -635,7 +635,7 @@ The set value can have different formats.
 
 The most generic format is *{"API1":{"KEY1":VALUE,"KEY2":VALUE2,...},"API2":...}*
 
-This example set 2 keys for the api *chook*:
+This example sets 2 keys for the api *chook*:
 
 ```
 	afb-binder -Z --set '{"chook":{"account":"urn:chook:b2ca5ddb97679","delay":500}}'
@@ -649,13 +649,13 @@ This example set 2 keys for the api *chook*:
 	 }
 ```
 
-An other format is: *[API]/[KEY]:VALUE*.
-When API is omitted, it take the value "\*".
-When KEY is ommitted, it take the value of "\*".
+Another format is: *[API]/[KEY]:VALUE*.
+When API is omitted, it takes the value "\*".
+When KEY is omitted, it takes the value of "\*".
 
 The settings for the *API* \* are globals and apply to all bindings.
 
-The settings for the *KEY* \* are mixing the value for the API.
+The settings for the *KEY* \* are mixing the values for the API.
 
 The following examples are all setting the same values:
 
@@ -669,9 +669,9 @@ The following examples are all setting the same values:
 ## Configuration of bindings
 
 Bindings are dynamic libraries. They can either (1) provide only one statically named API,
-or, (2) do anything useful (like declaring one or more API).
+or, (2) do anything useful (like declaring one or more APIs).
 
-In former case (2) the API name can not be used. In order to give parameter to
+In case (2) the API name can not be used. In order to give parameters to
 the binding, the option *--set* can be used but the *API* must take the value of
 the basename of the binding.
 
@@ -679,8 +679,8 @@ The second way to pass parameters to the binding is to use a configuration file
 and to pass its path as *CONFIG* when using option *--binding=[EXPORT]PATH[:[UID:]CONFIG]*.
 
 The last way to provide binding's configuration is using configuration fragment
-(see above). In that case, the options can be given at the same location of the
-binding. The below frament shows passing the value "factor" to binding "mult.so".
+(see above). In that case, the options can be given at the same location than the
+binding. The below fragment shows passing the value "factor" to binding "milt.so".
 
 ```
 	{
@@ -696,7 +696,7 @@ binding. The below frament shows passing the value "factor" to binding "mult.so"
 ## HTTPS
 
 When the option *--https* is active, a certificate and a private key
-must be given. It is required that these file are given in PEM form.
+must be given. It is required that these files are given in PEM format.
 
 The used certificate file is the first one given by these settings, in that order:
 *--https-cert*, *${AFB_HTTPS_CERT}*, *--tls-cert*, *${AFB_TLS_CERT}*,
@@ -706,16 +706,16 @@ The used private key file is the first one given by these settings, in that orde
 *--https-key*, *${AFB_HTTPS_KEY}*, *--tls-key*, *${AFB_TLS_KEY}*,
 *${AFB_HTTPS_PREFIX}/key.pem*.
 
-This settings are allowing to have different certificates for HTTP and for TLS.
+These settings are allowing to have different certificates for HTTP and for TLS.
 
 ## WS/RPC-API, Connection of API
 
-API can be exported using option *--ws-server* and imported using option *--ws-client*,
+An API can be exported using option *--ws-server* and imported using option *--ws-client*,
 allowing a service running on a binder instance (client) to consume the API provided by
-an other binder (server).
+another binder (server).
 
-Starting with binder version 5.0.0 and above, API can also be exported with option *--rpc-server*
-and imported using the corresponding option *--rpc-client*. That new option use a protocol
+Starting with binder version 5.0.0 and above, an API can also be exported with option *--rpc-server*
+and imported using the corresponding option *--rpc-client*. That new option uses a protocol
 compatible with API v4 format and able to transmit binary data and types of data.
 
 When connecting binders together, the unit of connection is the API.
@@ -727,7 +727,7 @@ The format of the specification _SOCKSPEC_ is:
 - for abstract unix: *unix:@name/api* or *unix:@api*
 - for systemd activated: *sd:api*
 
-It is possible, especially for unix connections to set the import API name
+It is possible, especially for unix connections, to set the imported API name
 using the query like pattern *?as-api=name*, as below:
 
 	*unix:path/come-api-name?as-api=name*
@@ -747,9 +747,9 @@ For RPC connections (options *--rpc-server* and *--rpc-client*),
 since afb-binder 5.2, the `tls+` prefix enables traditional TLS,
 and the prefix `mtls+` enables mTLS.
 
-TLS and mTLS require cryptographic material to be given: certificate, private
+TLS and mTLS require cryptographic material to be specified: certificate, private
 key, root(s) of trust. This material can be given either as parameters of
-_SOCKSPEC_ or using global option. Global options are *--tls-cert*, *--tls-key*
+_SOCKSPEC_ or using global options. Global options are *--tls-cert*, *--tls-key*
 and *--tls-trust*.
 
 [[ requirements
@@ -762,7 +762,7 @@ and *--tls-trust*.
 :  trust, cert, key, host
 :  trust, cert, key, host
 
-Certificates are containig the common name (CN) that is granted by authorities.
+Certificates are containing the common name (CN) that is granted by authorities.
 TLS normally checks that this name matches the name given in _SOCKSPEC_.
 For example, `tls+tcp:iot.server.com:1515/api` uses the hostname `iot.server.com`.
 The _SOCKSPEC_ argument allows to change that behaviour.
@@ -780,7 +780,7 @@ is given to match the name presented by the certificate (common name CN).
 - *cert*, path to a certificate file matching the private key (PEM or DER)
 - *trust*, path to a file of root certificates (PEM or DER) or to a directory
   containing files for root certificates.
-- *host*, if set to empty string, disable control of hostname, if set to some
+- *host*, if set to empty string, disables control of hostname, if set to some
   string, tells to use this hostname, not the one from URL.
 
 If *trust* is not given, the system trust directory will be used.
@@ -790,7 +790,7 @@ Example of connecting the API *foo* over TLS using a custom trust directory:
 - on server: *--rpc-server="tls+tcp:localhost:1235/foo?cert=./srv_cert.pem&key=./srv_key.pem&trust=./mytrustdir/"*
 - on client: *--rpc-client="tls+tcp:localhost:1235/foo?cert=./cli_cert.pem&key=./cli_key.pem&trust=./mytrustdir/"*
 
-TLS material are common to afb-binder and should preferentially be given
+TLS material is common to afb-binder and should preferably be given
 using global options, except *host* that is per connection.
 
 [[ global option
@@ -809,35 +809,35 @@ using global options, except *host* that is per connection.
 |  -
 :  *host=*
 :  Hostname to check against common name (CN) of certificate.
-   If empty it disables hostname check.
+   If empty, it disables hostname check.
 
 ## RPC-API, Support of multiplexed API
 
 Since version 5.2.1, it is possible to import (client) or export (server)
-more than one api. This is achieved by using the keywords *import* and *export*
-and to specify the api list. This is an example importing (client) the apis
+more than one API. This is achieved by using the keywords *import* and *export*
+and to specify the APIs list. This is an example importing (client) the APIs
 *gps* and *imu*:
 
 	*--rpc-client=unix:@key?import=gps,imu*
 
 In that case, the abstract unix socket name is not used.
 
-On the server side, it is possible to export all the apis as below:
+On the server side, it is possible to export all the APIs as below:
 
 	*--rpc-server=unix:@key?export=\**
 
-RPC connection also support renaming of APIs. Suppose that the API on
+RPC connections also support renaming of APIs. Let's suppose that the API on
 server is named *internal* and that, for some reason, we want to use it with
-the name *external*. This can be done usding *@*, on server side using
-*export=internal@external* or on client side using *import=external@internal*.
+the name *external*. This can be done using *@*, on server side using
+*export=internal@external*, or on client side using *import=external@internal*.
 The first name is the local name.
 
-RPC connection also support the concept of unnamed default API. In that case,
-the RPC connection doesn't transmit the API name. To tell on the server the name
-of the default API, use *export=name@* and on the client, to tell that the api
+RPC connections also support the concept of unnamed default API. In that case,
+the RPC connection doesn't transmit the API name. To tell the name of the default
+API on the server, use *export=name@*, and on the client, to tell that the API
 of given name is connected as default API, use *import=name@*.
 
-Finally import and exports are comma separated lists of api matching pattern of
+Finally imports and exports are comma separated lists of APIs matching pattern of
 the below table:
 
 [[ *PATTERN*
@@ -860,10 +860,10 @@ the below table:
 :  LOCAL for all APIs
 
 
-## EXPORT, Exportation of API
+## EXPORT, API exportation
 
 When HTTP serving is enabled, it is possible to tell if the APIs are exported
-to HTTP interface or not. This setting is done using one of the prefix below.
+to HTTP interface or not. This setting is achieved using one of the prefix below:
 
 [[ *prefix*
 :[ *exportation*
@@ -874,7 +874,7 @@ to HTTP interface or not. This setting is done using one of the prefix below.
 |  *public:*
 :  exported to HTTP
 
-Not setting the exportation set the export to the default value of the option
+Not setting the exportation sets the export to the default value of the option,
 as given below:
 
 [[ *option*
@@ -895,8 +895,7 @@ as given below:
 :  private
 
 Note well that before version 5.0.3, the default exportation of all options
-was public. The change introduced by the binder 5.0.3 assume to potentially break
-existing setup.
+was public. The change introduced by the binder 5.0.3 may break existing setups.
 
 
 # SEE ALSO

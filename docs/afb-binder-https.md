@@ -3,7 +3,7 @@
 The HTTPS secured protocol of the HTTP server is activated by the
 option --https.
 
-The options --https-cert and --htps-key can be used to tell
+The options --https-cert and --https-key can be used to tell
 the binder what file to use for its certificate and private key.
 
 ## Quick start with HTTPS
@@ -20,7 +20,7 @@ openssl req -x509 -days 30 -newkey rsa:4096 -nodes -keyout key.pem -out cert.pem
 
 That creates in the current directory the private key file 'key.pem' and
 the self-signed certificate file 'cert.pem' attached to that key.
-The certificate is avalaible for 30 days (see option -days).
+The certificate is valid for 30 days (see option -days).
 
 Having the certificate and the key, the command to run the binder is:
 
@@ -35,7 +35,7 @@ complain and emit warnings.
 
 ## Settings of HTTPS
 
-The binder start HTTPS if one of the following condition is met:
+The binder starts HTTPS if one of the following condition is met:
 
 1. the option **--https** is set
 2. the environment variable **AFB_HTTPS** has one of the following values:
