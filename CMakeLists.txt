@@ -11,7 +11,7 @@
 #  a written agreement between you and The IoT.bzh Company. For licensing terms
 #  and conditions see https://www.iot.bzh/terms-conditions. For further
 #  information use the contact form at https://www.iot.bzh/contact.
-# 
+#
 # GNU General Public License Usage
 #  Alternatively, this file may be used under the terms of the GNU General
 #  Public license version 3. This license is as published by the Free Software
@@ -65,9 +65,22 @@ endif(${WELL_KNOWN_DIR_IS_ABSOLUTE})
 
 link_libraries(-Wl,--as-needed -Wl,--gc-sections -Wl,--no-undefined)
 
-add_compile_options(-Wall -Wextra -Wconversion)
-add_compile_options(-Wno-unused-parameter) # frankly not using a parameter does it care?
-add_compile_options(-Wno-sign-compare -Wno-sign-conversion)
+add_compile_options(
+	-g
+	-Wall
+	-Werror=format-security
+	-Wextra
+	-Wconversion
+	-Wincompatible-pointer-types
+	-Wno-unused-parameter
+	-Wsign-compare
+	-Wsign-conversion
+	-ffunction-sections
+	-fdata-sections
+	-fanalyzer
+	-fPIC
+	-pipe
+)
 add_compile_options(
 	$<$<C_COMPILER_ID:GNU>:-Werror=maybe-uninitialized>
 	$<$<CXX_COMPILER_ID:GNU>:-Werror=maybe-uninitialized>
@@ -75,19 +88,19 @@ add_compile_options(
 	$<$<CXX_COMPILER_ID:Clang>:-Werror=sometimes-uninitialized>
 	$<$<COMPILE_LANGUAGE:C>:-Werror=implicit-function-declaration>
 )
-add_compile_options(-ffunction-sections -fdata-sections)
-add_compile_options(-fPIC)
-add_compile_options(-g -O2)
 set (CMAKE_CXX_STANDARD 14)
 
-set(CMAKE_C_FLAGS_PROFILING    "-g -O2 -pg -U_FORTIFY_SOURCE")
-#set(CMAKE_C_FLAGS_DEBUG        "-g -O1 -ggdb -U_FORTIFY_SOURCE -fsanitize=address -fno-omit-frame-pointer")
-#set(CMAKE_C_FLAGS_DEBUG        "-g -O1 -ggdb -U_FORTIFY_SOURCE -fsanitize=thread -fno-omit-frame-pointer")
-set(CMAKE_C_FLAGS_DEBUG        "-g -O1 -ggdb -U_FORTIFY_SOURCE")
-set(CMAKE_C_FLAGS_RELEASE      "-g -O3")
-set(CMAKE_C_FLAGS_COVERAGE     "-g -O2 --coverage")
+set(FORTIFY    "-fstack-protector-strong -fasynchronous-unwind-tables -Wp,-U_FORTIFY_SOURCE,-D_FORTIFY_SOURCE=3")
+#set(SANITIZE   "-fno-omit-frame-pointer -fsanitize=address")
+#set(SANITIZE   "-fno-omit-frame-pointer -fsanitize=thread")
+set(PROTECTION   "${FORTIFY} ${SANITIZE}")
+set(NOPROTECTION "-U_FORTIFY_SOURCE")
+set(CMAKE_C_FLAGS_PROFILING    "-O2 -pg ${NOPROTECTION}")
+set(CMAKE_C_FLAGS_DEBUG        "-O0 ${PROTECTION}")
+set(CMAKE_C_FLAGS_RELEASE      "-O3 -DNDEBUG i${NOPROTECTION}")
+set(CMAKE_C_FLAGS_COVERAGE     "-O2 --coverage ${NOPROTECTION}")
 
-###########################################################################
+##############################################################
 
 PKG_CHECK_MODULES(json-c REQUIRED json-c)
 PKG_CHECK_MODULES(libafb REQUIRED libafb>=5.4.0)

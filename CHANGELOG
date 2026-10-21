@@ -4,6 +4,7 @@ Version ?
  - Use of rp-yaml-default-expand for reading configuration files
    and for expanding configuration
  - Improvements of documentation
+ - Rework of compilation flags
 
 Version 5.3.1
 -------------

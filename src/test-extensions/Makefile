@@ -9,8 +9,24 @@ endif
 
 flgs = $(shell pkg-config libafbcli --cflags --libs)
 
+CFLAGS += -Wall
+CFLAGS += -Werror=format-security
+CFLAGS += -Wextra
+CFLAGS += -Wconversion
+CFLAGS += -Wincompatible-pointer-types
+CFLAGS += -Wno-unused-parameter
+CFLAGS += -Wsign-compare
+CFLAGS += -Wsign-conversion
+CFLAGS += -ffunction-sections
+CFLAGS += -fdata-sections
+CFLAGS += -fanalyzer
+CFLAGS += -fPIC
+CFLAGS += -pipe
+CFLAGS += -Werror=maybe-uninitialized
+CFLAGS += -Werror=implicit-function-declaration
+
 .SUFFIXES: .so
 
 %.so: %.c
-	gcc -shared -o $@ $< -fPIC $(flgs)
+	$(CC) -shared -o $@ $< $(CFLAGS) $(flgs)
 
