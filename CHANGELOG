@@ -5,6 +5,7 @@ Version ?
    and for expanding configuration
  - Improvements of documentation
  - Rework of compilation flags
+ - Fix new compilation warnings
 
 Version 5.3.1
 -------------

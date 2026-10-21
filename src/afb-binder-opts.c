@@ -448,7 +448,7 @@ static int config_has_str(struct json_object *config, int optid, const char *val
 
 	n = (int)json_object_array_length(a);
 	for (i = 0 ; i < n ; i++) {
-		if (!strcmp(val, json_object_get_string(json_object_array_get_idx(a, i))))
+		if (!strcmp(val, json_object_get_string(json_object_array_get_idx(a, (unsigned)i))))
 			return 1;
 	}
 	return 0;
@@ -649,17 +649,17 @@ static void config_add_path_conf_uid(struct json_object *config, int optid, char
 	if (prefixed) /* skip prefix part */
 		value += scan_export_prefix(value, NULL);
 	while(*value && *value != separator) value++;
-	pathlen = value - pathstr;
+	pathlen = (size_t)(value - pathstr);
 	if (*value) {
 		for (uidstr = ++value; *value && *value != separator ; value++);
 		if (*value) {
-			uidlen = value - uidstr;
+			uidlen = (size_t)(value - uidstr);
 			confstr = ++value;
 			conflen = strlen(confstr);
 		}
 		else {
 			confstr = uidstr;
-			conflen = value - confstr;
+			conflen = (size_t)(value - confstr);
 			uidstr = NULL;
 		}
 	}
@@ -793,11 +793,11 @@ static void fulfill_config(struct json_object *config)
 	char *logging;
 	int i;
 
-	for (i = 0 ; i < sizeof default_optint_values / sizeof * default_optint_values ; i++)
+	for (i = 0 ; i < (int)(sizeof default_optint_values / sizeof * default_optint_values) ; i++)
 		if (!config_has(config, default_optint_values[i].optid))
 			config_set_int(config, default_optint_values[i].optid, default_optint_values[i].valdef);
 
-	for (i = 0 ; i < sizeof default_optstr_values / sizeof * default_optstr_values ; i++)
+	for (i = 0 ; i < (int)(sizeof default_optstr_values / sizeof * default_optstr_values) ; i++)
 		if (!config_has(config, default_optstr_values[i].optid))
 			config_set_str(config, default_optstr_values[i].optid, default_optstr_values[i].valdef);
 
@@ -1192,7 +1192,7 @@ static error_t parsecb_extension(int key, char *value, struct argp_state *state)
 	}
 
 	return ARGP_ERR_UNKNOWN;
-	
+
 
 }
 #endif
@@ -1200,7 +1200,7 @@ static error_t parsecb_extension(int key, char *value, struct argp_state *state)
 int afb_binder_opts_parse_initial(int argc, char **argv, struct json_object **config)
 {
 	struct argp argp;
-	int flags;
+	unsigned flags;
 
 #if WITH_ENVIRONMENT
 	parse_environment_initial(*config);
@@ -1221,7 +1221,7 @@ int afb_binder_opts_parse_initial(int argc, char **argv, struct json_object **co
 int afb_binder_opts_parse_final(int argc, char **argv, struct json_object **config)
 {
 	struct argp argp;
-	int flags;
+	unsigned flags;
 	int rc, next = 0;
 	struct argp_child *children = NULL;
 	struct argp *children_argp = NULL;
@@ -1243,9 +1243,9 @@ int afb_binder_opts_parse_final(int argc, char **argv, struct json_object **conf
 		children_argp = 0;
 		children_data = 0;
 	} else {
-		children = calloc(1 + next, sizeof *children);
-		children_argp = calloc(next, sizeof *children_argp);
-		children_data = calloc(next, sizeof *children_data);
+		children = calloc(1 + (unsigned)next, sizeof *children);
+		children_argp = calloc((unsigned)next, sizeof *children_argp);
+		children_data = calloc((unsigned)next, sizeof *children_data);
 		if (!children || !children_argp || !children_data)
 			rc = -1;
 		else {

@@ -620,8 +620,7 @@ static void AfbAclFree(afbAclsHandleT *acls)
 static afbAclsHandleT* AfbAclBuildFromJsonC (json_object *configJ) {
 
     const char *errorMsg;
-    size_t count;
-    int idx;
+    int idx, count;
     struct json_object_iterator it, end;
     afbAclsHandleT *acls = NULL;
     json_object *permJ;
@@ -634,7 +633,7 @@ static afbAclsHandleT* AfbAclBuildFromJsonC (json_object *configJ) {
 
     /* allocate the result */
     count = json_object_object_length (configJ);
-    acls = calloc (count + 1, sizeof(afbAclsHandleT));
+    acls = calloc ((unsigned)(count < 0 ? 0 : count) + 1, sizeof(afbAclsHandleT));
     if (acls == NULL) {
         errorMsg = "Out of memory";
         goto OnErrorExit;
@@ -695,7 +694,7 @@ static int BinderAddOneAlias (void *context, json_object *aliasJ) {
     }
 
     /* allocate copy the prefix */
-    prefix = strndup(alias, colon - alias);
+    prefix = strndup(alias, (size_t)(colon - alias));
     if (prefix == NULL) {
         LIBAFB_ERROR("BinderAddOneAlias out of memory [%s] ignored.", alias);
         goto OnErrorExit;
@@ -1720,8 +1719,8 @@ static int BinderAddIntf(void* context, json_object *intfJ) {
         /* make the interface using the port */
         status = snprintf(buffer, sizeof(buffer), "tcp:%s:%d",
                     DEFAULT_BINDER_INTERFACE, binder->config.httpd.port);
-        if (status >= (int)sizeof(buffer)) goto OnErrorExit;
         intf = buffer;
+        if (status >= (int)sizeof(buffer)) goto OnErrorExit;
     }
 
     /* create the interface */
@@ -1735,7 +1734,7 @@ OnErrorExit:
 }
 
 /**
-* @brief structure for starting 
+* @brief structure for starting
 */
 typedef struct {
     /** the binder instance */

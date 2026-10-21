@@ -143,13 +143,14 @@ static const char *run_for_config_array_opt(const char *name,
 					    int (*run) (void *closure, const char *value),
 					    void *closure)
 {
-	int i, n, rc;
+	size_t i, n;
+	int rc;
 	struct json_object *array, *value;
 
 	if (json_object_object_get_ex(afb_binder_main_config, name, &array)) {
 		if (!json_object_is_type(array, json_type_array))
 			return json_object_get_string(array);
-		n = (int)json_object_array_length(array);
+		n = json_object_array_length(array);
 		for (i = 0 ; i < n ; i++) {
 			value = json_object_array_get_idx(array, i);
 			rc = run(closure, json_object_get_string(value));
@@ -367,7 +368,7 @@ static void daemonize()
 		LIBAFB_INFO("entering background mode");
 
 		if (pipe(pfd) < 0)
-			pfd[0] = pfd[1] = -1;;
+			pfd[0] = pfd[1] = -1;
 		pid = fork();
 		if (pid == -1) {
 			LIBAFB_ERROR("Failed to fork daemon process");
@@ -375,7 +376,7 @@ static void daemonize()
 		}
 		if (pid != 0) {
 			char tag;
-			if (read(pfd[0], &tag, 1) != 1)
+			if (pfd[0] >= 0 && read(pfd[0], &tag, 1) != 1)
 				_exit(EXIT_FAILURE);
 			printf("%ld\n", (long)pid);
 			_exit(EXIT_SUCCESS);
@@ -430,9 +431,10 @@ static int add_alias_weak_dir(struct afb_hsrv *hsrv, const char *prefix, const c
 	return rc;
 }
 
-static int init_alias(void *closure, const char *spec)
+static int init_alias(void *closure, const char *cspec)
 {
 	struct afb_hsrv *hsrv = closure;
+	char *spec = (char*)cspec; /* modify in place the alias string to avoid copy */
 	char *path = strchr(spec, ':');
 
 	if (path == NULL) {
@@ -534,7 +536,7 @@ static int http_server_create(struct afb_hsrv **result)
 
 		/* add the default interface */
 		rc = snprintf(buffer, sizeof buffer, "tcp:%s:%d", DEFAULT_BINDER_INTERFACE, http_port);
-		if (rc < 0 || rc >= sizeof buffer) {
+		if (rc < 0 || rc >= (int)(sizeof buffer)) {
 			rc = X_ENOMEM;
 			goto end;
 		}
@@ -654,7 +656,7 @@ static int get_https_value(const char *key, const char *filename, char **value)
 	if (!filename) {
 		filename = secure_getenv("AFB_HTTPS_PREFIX") ?: SYS_CONFIG_DIR "/.https/";
 		rc = snprintf(buffer, sizeof buffer, "%s%s.pem", filename, key);
-		if (rc < 0 || rc >= sizeof buffer)
+		if (rc < 0 || rc >= (int)(sizeof buffer))
 			return X_EINVAL;
 		filename = buffer;
 	}
@@ -875,7 +877,7 @@ static char *instanciate_string(char *arg, const char *port)
 		return arg;
 
 	/* allocates the result */
-	resu = malloc((it - arg) + dif + 1);
+	resu = malloc((size_t)((it - arg) + dif + 1));
 	if (!resu) {
 		LIBAFB_ERROR("out of memory");
 		return NULL;
@@ -885,7 +887,7 @@ static char *instanciate_string(char *arg, const char *port)
 	wr = resu;
 	for (;;) {
 		it = strchrnul(arg, SUBST_CHAR);
-		wr = mempcpy(wr, arg, it - arg);
+		wr = mempcpy(wr, arg, (size_t)(it - arg));
 		if (!*it)
 			break;
 		c = *++it;
@@ -923,10 +925,10 @@ static char **instanciate_command_args(struct json_object *exec, const char *por
 {
 	char **result;
 	char *repl, *item;
-	int i, n;
+	size_t i, n;
 
 	/* allocates the result */
-	n = (int)json_object_array_length(exec);
+	n = json_object_array_length(exec);
 	result = malloc((n + 1) * sizeof * result);
 	if (!result) {
 		LIBAFB_ERROR("out of memory");
@@ -1047,14 +1049,14 @@ static void startup_call_current(struct startup_req *sreq)
 	struct afb_data *arg0;
 	int rc;
 
-	sreq->callspec = json_object_get_string(json_object_array_get_idx(sreq->calls, sreq->index)),
+	sreq->callspec = json_object_get_string(json_object_array_get_idx(sreq->calls, (unsigned)sreq->index)),
 	api = sreq->callspec;
 	verb = strchr(api, '/');
 	if (verb) {
 		json = strchr(verb, ':');
 		if (json) {
-			sreq->api = strndup(api, verb - api);
-			sreq->verb = strndup(verb + 1, json - verb - 1);
+			sreq->api = strndup(api, (size_t)(verb - api));
+			sreq->verb = strndup(verb + 1, (size_t)(json - verb - 1));
 
 			rc = afb_data_create_raw(&arg0, &afb_type_predefined_json, json + 1, strlen(json), 0, 0);
 			if (sreq->api && sreq->verb && rc >= 0) {
@@ -1084,6 +1086,10 @@ static void run_startup_calls()
 	 && json_object_is_type(calls, json_type_array)
 	 && (count = (int)json_object_array_length(calls))) {
 		sreq = calloc(1, sizeof *sreq);
+		if (sreq == NULL) {
+			LIBAFB_ERROR("Out of memory");
+			exit(EXIT_FAILURE);
+		}
 		sreq->session = afb_session_addref(afb_api_common_get_common_session());
 		sreq->calls = calls;
 		sreq->index = 0;
