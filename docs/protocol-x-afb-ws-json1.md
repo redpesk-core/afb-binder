@@ -70,5 +70,8 @@ S->C:   [3,"156",{"response":"Some String","jtype":"afb-reply","request":{"statu
 
 The file **AFB.js** is a javascript implementation of the protocol.
 
-It can be downloaded [here](https://raw.githubusercontent.com/redpesk-devtools/afb-monitoring/refs/heads/master/src/AFB.js)
+It can be downloaded [here](https://raw.githubusercontent.com/redpesk-devtools/afb-ws-js/refs/heads/master/src/AFB.js).
+
+A more modern javascript implementation, **AFB2.js**, can be downloaded [here](https://raw.githubusercontent.com/redpesk-devtools/afb-ws-js/refs/heads/master/src/AFB2.js).
+
 
