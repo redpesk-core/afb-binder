@@ -66,36 +66,9 @@ C->S:   [2,"156","hello/ping",null]
 S->C:   [3,"156",{"response":"Some String","jtype":"afb-reply","request":{"status":"success","info":"Ping Binder Daemon tag=pingSample count=1 query=\"null\""}}]
 ```
 
-## History
-
-### 14 November 2019
-
-Removal of token returning. The replies
-
-```txt
-[ 3, ID, RESP, TOKEN ]
-[ 4, ID, RESP, TOKEN ]
-```
-
-are removed from the specification.
-
-## Future
-
-Here are the planned extensions:
-
-- add binary messages with cbor data
-- add calls with unstructured replies
-
-This could be implemented by extending the current protocol or by
-allowing the binder to accept either protocol including the new ones.
-
 ## Javascript implementation
 
 The file **AFB.js** is a javascript implementation of the protocol.
 
-It can be downloaded [here](https://raw.githubusercontent.com/redpesk-devtools/afb-ws-js/refs/heads/master/src/AFB.js).
-
-A more mordern javascript implementation, **AFB2.js**, can be downloaded
-[here](https://raw.githubusercontent.com/redpesk-devtools/afb-ws-js/refs/heads/master/src/AFB2.js).
-
+It can be downloaded [here](https://raw.githubusercontent.com/redpesk-devtools/afb-monitoring/refs/heads/master/src/AFB.js)
 

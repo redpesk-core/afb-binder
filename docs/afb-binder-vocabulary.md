@@ -21,8 +21,9 @@ The current implementation allows to widely broadcast events to all clients.
 This level, ranging from 0 to 3, represents the level of
 assurance that the services can expect from the session.
 
-The exact definition of the meaning of these levels and how to use them remains to
-be achieved.
+The higher the LOA, the more trusted the session is. The framework can set and
+test LOA per session and per API. When testing the LOA, the test passes if the
+current value of the LOA is equal to or greater than the required value.
 
 ## Request
 
@@ -46,7 +47,6 @@ The binder is in charge of connecting services and applications.
 A service can serve many clients.
 
 The framework establishes connection between the services and the clients.
-Using sockets currently but other protocols are considered.
 
 The term of service is tightly bound to the notion of API.
 
